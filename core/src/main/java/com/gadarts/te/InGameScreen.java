@@ -2,6 +2,7 @@ package com.gadarts.te;
 
 import com.badlogic.ashley.core.PooledEngine;
 import com.badlogic.gdx.Screen;
+import com.gadarts.te.assets.GameAssetsManager;
 import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.Systems;
 import com.gadarts.te.systems.data.SharedData;
@@ -11,15 +12,18 @@ import java.util.Arrays;
 
 public class InGameScreen implements Screen {
     private PooledEngine engine;
+    private GameAssetsManager assetsManager;
 
     @Override
     public void show( ) {
         engine = new PooledEngine();
         SharedDataBuilder sharedDataBuilder = new SharedDataBuilder();
+        assetsManager = new GameAssetsManager();
+        assetsManager.loadGameFiles();
         Arrays.stream(Systems.values()).forEach(system -> {
             GameSystem instance = system.getInstance();
             engine.addSystem(instance);
-            instance.initialize(sharedDataBuilder);
+            instance.initialize(sharedDataBuilder, assetsManager);
         });
         SharedData sharedData = sharedDataBuilder.build();
         Arrays.stream(Systems.values()).forEach(system -> system.getInstance().onSystemReady(sharedData));
@@ -53,5 +57,6 @@ public class InGameScreen implements Screen {
     @Override
     public void dispose( ) {
         Arrays.stream(Systems.values()).forEach(system -> system.getInstance().dispose());
+        assetsManager.dispose();
     }
 }

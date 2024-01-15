@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.gadarts.te.assets.GameAssetsManager;
 import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.ModelInstanceComponent;
 import com.gadarts.te.systems.data.SharedData;
@@ -21,7 +22,7 @@ public class RenderSystem extends GameSystem {
 
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder) {
+    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager) {
         axisModelHandler = new AxisModelHandler();
         Engine engine = getEngine();
         axisModelHandler.addAxis(engine);
