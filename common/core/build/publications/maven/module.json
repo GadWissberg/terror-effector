@@ -1,0 +1,92 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.gadarts.te",
+    "module": "common",
+    "version": "0.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.4"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.badlogicgames.gdx",
+          "module": "gdx",
+          "version": {
+            "requires": "1.12.1"
+          }
+        },
+        {
+          "group": "com.badlogicgames.gdx",
+          "module": "gdx-freetype",
+          "version": {
+            "requires": "1.12.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "common-0.1.jar",
+          "url": "common-0.1.jar",
+          "size": 20542,
+          "sha512": "90112ad3f86cd3bdf8e5a34cfa57058a2eeb85370a7185a0c251a2e88d9b791189f494c672fe339564712b283c083ea9709b3d655448d90995a11c3027266a64",
+          "sha256": "5147f848fa5b627ac4b25e305cc492b85d7e6a2dbff6cd7ed4e42324dbf73d62",
+          "sha1": "d13c328fc1d1be3cf79581c32ec17addb545dcd0",
+          "md5": "3e088f8d92aac02d075137f77346b79f"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.badlogicgames.gdx",
+          "module": "gdx",
+          "version": {
+            "requires": "1.12.1"
+          }
+        },
+        {
+          "group": "com.badlogicgames.gdx",
+          "module": "gdx-freetype",
+          "version": {
+            "requires": "1.12.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "common-0.1.jar",
+          "url": "common-0.1.jar",
+          "size": 20542,
+          "sha512": "90112ad3f86cd3bdf8e5a34cfa57058a2eeb85370a7185a0c251a2e88d9b791189f494c672fe339564712b283c083ea9709b3d655448d90995a11c3027266a64",
+          "sha256": "5147f848fa5b627ac4b25e305cc492b85d7e6a2dbff6cd7ed4e42324dbf73d62",
+          "sha1": "d13c328fc1d1be3cf79581c32ec17addb545dcd0",
+          "md5": "3e088f8d92aac02d075137f77346b79f"
+        }
+      ]
+    }
+  ]
+}
