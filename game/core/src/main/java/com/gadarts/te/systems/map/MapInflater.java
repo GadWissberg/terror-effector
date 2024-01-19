@@ -88,12 +88,13 @@ public class MapInflater implements Disposable {
             auxVector3_5.set(0, 1, 0));
     }
 
-    public void inflate(String mapName) {
+    public MapGraph inflate(String mapName) {
         String path = format(MAP_PATH_TEMP, mapName);
         JsonObject mapJsonObj = gson.fromJson(Gdx.files.internal(path).reader(), JsonObject.class);
         MapGraph mapGraph = createMapGraph(mapJsonObj);
         inflateNodes(mapJsonObj.get(NODES).getAsJsonObject(), mapGraph);
         inflateHeightsAndWalls(mapJsonObj, mapGraph);
+        return mapGraph;
     }
 
     private void inflateNodes(JsonObject nodesJsonObject, MapGraph mapGraph) {
@@ -129,8 +130,8 @@ public class MapInflater implements Disposable {
     }
 
     private MapGraphNode getNodeByJson(final MapGraph mapGraph, final JsonObject tileJsonObject) {
-        int row = tileJsonObject.get(ROW).getAsInt();
-        int col = tileJsonObject.get(COL).getAsInt();
+        int row = tileJsonObject.get(COORD_Z).getAsInt();
+        int col = tileJsonObject.get(COORD_X).getAsInt();
         return mapGraph.getNode(col, row);
     }
 

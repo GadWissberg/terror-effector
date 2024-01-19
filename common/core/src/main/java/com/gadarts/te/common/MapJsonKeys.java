@@ -6,8 +6,8 @@ public final class MapJsonKeys {
     public static final String DEPTH = "depth";
     public static final String HEIGHT = "height";
     public static final String MATRIX = "matrix";
-    public static final String ROW = "row";
-    public static final String COL = "col";
+    public static final String COORD_Z = "z";
+    public static final String COORD_X = "x";
     public static final String V_SCALE = "v_scale";
     public static final String H_OFFSET = "h_offset";
     public static final String V_OFFSET = "v_offset";

@@ -8,9 +8,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum SurfaceTextures implements TextureDefinition {
-    BLANK,
     MISSING,
-    INDUSTRIAL_FLOOR_0;
+    INDUSTRIAL_FLOOR_0,
+    BLANK;
 
     private final Texture.TextureWrap textureWrap;
 

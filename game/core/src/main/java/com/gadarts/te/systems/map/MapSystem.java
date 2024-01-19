@@ -12,7 +12,7 @@ public class MapSystem extends GameSystem {
     public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager) {
         super.initialize(sharedDataBuilder, assetsManager);
         mapInflater = new MapInflater(assetsManager, getEngine());
-        mapInflater.inflate(DebugSettings.TEST_LEVEL.toLowerCase());
+        sharedDataBuilder.setMapGraph(mapInflater.inflate(DebugSettings.TEST_LEVEL.toLowerCase()));
     }
 
 
