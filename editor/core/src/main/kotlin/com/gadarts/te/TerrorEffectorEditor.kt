@@ -2,10 +2,14 @@ package com.gadarts.te
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.InputMultiplexer
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.renderer.SceneRenderer
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.*
@@ -17,19 +21,34 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     override fun create() {
         super.create()
         VisUI.load()
+        val gameAssetsManager = GameAssetsManager("../game/assets/")
+        gameAssetsManager.loadGameFiles()
+        val editorAssetsManager = AssetManager()
+        IconsTextures.entries.forEach {
+            editorAssetsManager.load(
+                it.getFileName(),
+                Texture::class.java
+            )
+        }
+        editorAssetsManager.finishLoading()
         stage = Stage(ScreenViewport())
         stage.isDebugAll = DebugSettings.SHOW_BORDERS
         val root = VisTable(true)
         root.setFillParent(true)
         addMenuBar(root)
+        Gdx.input.inputProcessor = InputMultiplexer(stage)
         sceneRenderer = SceneRenderer()
         root.add(sceneRenderer).expand().fill()
         stage.addActor(root)
-        Gdx.input.inputProcessor = stage
     }
 
     private fun addMenuBar(root: VisTable) {
         val menuBar = MenuBar()
+        addMenus(menuBar)
+        root.add(menuBar.table).fillX().expandX().row()
+    }
+
+    private fun addMenus(menuBar: MenuBar) {
         val fileMenu = Menu("File")
         val editMenu = Menu("Edit")
         val windowMenu = Menu("Window")
@@ -56,9 +75,6 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         menuBar.addMenu(editMenu)
         menuBar.addMenu(windowMenu)
         menuBar.addMenu(helpMenu)
-        val menu = Menu("Terror-Effector Map Editor")
-        menuBar.addMenu(menu)
-        root.add(menuBar.table).fillX().expandX().row()
     }
 
     private fun createSubMenu(): PopupMenu {
@@ -79,7 +95,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
             Gdx.graphics.width,
             Gdx.graphics.height
         )
-        ScreenUtils.clear(Color.BLACK)
+        ScreenUtils.clear(Color.BLACK, true)
         stage.act()
         stage.draw()
         sceneRenderer.render()

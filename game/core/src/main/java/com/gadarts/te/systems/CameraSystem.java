@@ -14,16 +14,14 @@ import static com.gadarts.te.TerrorEffector.*;
 
 public class CameraSystem extends GameSystem implements InputProcessor {
 
-    private static final int RESOLUTION_FACTOR = 75;
     private final Vector2 lastRightPressMousePosition = new Vector2();
 
     @Override
     public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager) {
-        int viewportWidth = (FULL_SCREEN ? FULL_SCREEN_RESOLUTION_WIDTH : WINDOWED_RESOLUTION_WIDTH) / RESOLUTION_FACTOR;
-        int viewportHeight = (FULL_SCREEN ? FULL_SCREEN_RESOLUTION_HEIGHT : WINDOWED_RESOLUTION_HEIGHT) / RESOLUTION_FACTOR;
-        OrthographicCamera cam = new OrthographicCamera(viewportWidth, viewportHeight);
+        int viewportWidth = (FULL_SCREEN ? FULL_SCREEN_RES_WIDTH : WINDOWED_RES_WIDTH);
+        int viewportHeight = (FULL_SCREEN ? FULL_SCREEN_RES_HEIGHT : WINDOWED_RES_HEIGHT);
+        OrthographicCamera cam = CameraUtils.createCamera(viewportWidth, viewportHeight);
         sharedDataBuilder.setCamera(cam);
-        CameraUtils.positionCamera(cam);
     }
 
     @Override

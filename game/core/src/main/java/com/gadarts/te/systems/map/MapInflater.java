@@ -199,6 +199,8 @@ public class MapInflater implements Disposable {
     }
 
     private void inflateWall(Wall wall, MapNodeData parentNodeData, MapGraph mapGraph) {
+        if (wall == null) return;
+
         BoundingBox bBox = wall.getModelInstance().calculateBoundingBox(new BoundingBox());
         avoidZeroDimensions(bBox);
         bBox.mul(auxMatrix.set(wall.getModelInstance().transform).setTranslation(Vector3.Zero));
@@ -292,7 +294,7 @@ public class MapInflater implements Disposable {
             Coords coords = nodeData.getCoords();
             MapNodeData northNodeData = new MapNodeData(
                 northNodeRow,
-                coords.getZ(),
+                coords.getX(),
                 OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
             nodeData.lift(height);
             if (northNodeRow >= 0 && northNodeRow < mapGraph.getDepth()) {
