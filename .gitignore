@@ -1,0 +1,4 @@
+/common/core/build/
+*.class*
+*build\classes*
+*.idea*

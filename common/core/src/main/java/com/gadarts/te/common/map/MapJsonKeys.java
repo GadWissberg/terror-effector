@@ -1,4 +1,4 @@
-package com.gadarts.te.common;
+package com.gadarts.te.common.map;
 
 public final class MapJsonKeys {
     public static final String TARGET = "target";

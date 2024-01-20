@@ -41,7 +41,7 @@ public class WallCreator implements Disposable {
         textureAttr.textureDescription.texture = assetsManager.getTexture(definition);
         Wall northWall = new Wall(modelInstance, definition);
         Coords nodeCoords = n.getCoords();
-        modelInstance.transform.setToTranslation(nodeCoords.col(), 0, nodeCoords.row());
+        modelInstance.transform.setToTranslation(nodeCoords.getX(), 0, nodeCoords.getZ());
         return northWall;
     }
 
@@ -125,7 +125,7 @@ public class WallCreator implements Disposable {
         float minHeight = Math.min(wallNodeHeight, neighborHeight);
         adjustWallTexture(modelInstance, sizeHeight);
         Coords neighborNodeNodeCoords = neighborNode.getCoords();
-        Vector3 position = auxVector3_1.set(neighborNodeNodeCoords.col(), minHeight, neighborNodeNodeCoords.row());
+        Vector3 position = auxVector3_1.set(neighborNodeNodeCoords.getX(), minHeight, neighborNodeNodeCoords.getZ());
         modelInstance.transform.setToTranslationAndScaling(position, auxVector3_2.set(1, sizeHeight, 1));
     }
 

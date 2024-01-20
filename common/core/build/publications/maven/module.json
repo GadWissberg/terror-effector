@@ -19,9 +19,11 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
         "org.gradle.libraryelements": "jar",
-        "org.gradle.usage": "java-api"
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
       },
       "dependencies": [
         {
@@ -43,11 +45,11 @@
         {
           "name": "common-0.1.jar",
           "url": "common-0.1.jar",
-          "size": 20543,
-          "sha512": "54a5a5bd7fb63f1cfd930dead36c9ca2a0e37ea3f0e9ce3cdd47a85f01e1b33e4d6935228b020597a14c220da3088904d514ba6c50ca3a294326772ff98120f7",
-          "sha256": "b0445d25790ede92cd7dffa3f1912dd45c0765b7f49ed60c790e9346b4a74459",
-          "sha1": "8275cb9eb0a331d7cf79844c1900bb3dcc3df7f8",
-          "md5": "5797476860cc0630e99e90de73a6b37c"
+          "size": 20927,
+          "sha512": "bade158caabef4a746c316fba60e332d8e90427fdae5169038e3f926a660f2559b2fcffca939f0419cb5ba20e8184da2404b40eafe1d2675217c176e40eb3ceb",
+          "sha256": "511c2640db360bbacc3c9977f42e7e20517ecd4bc667fdd329d587477c3fce79",
+          "sha1": "2724233b3a974678253c4651e3342e90cb9f9c7a",
+          "md5": "c0bd7f7d4a5ea01f48affb00f6311def"
         }
       ]
     },
@@ -56,11 +58,20 @@
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
-        "org.gradle.jvm.version": 17,
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
         "org.gradle.libraryelements": "jar",
-        "org.gradle.usage": "java-runtime"
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
       },
       "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.9.21"
+          }
+        },
         {
           "group": "com.badlogicgames.gdx",
           "module": "gdx",
@@ -80,11 +91,11 @@
         {
           "name": "common-0.1.jar",
           "url": "common-0.1.jar",
-          "size": 20543,
-          "sha512": "54a5a5bd7fb63f1cfd930dead36c9ca2a0e37ea3f0e9ce3cdd47a85f01e1b33e4d6935228b020597a14c220da3088904d514ba6c50ca3a294326772ff98120f7",
-          "sha256": "b0445d25790ede92cd7dffa3f1912dd45c0765b7f49ed60c790e9346b4a74459",
-          "sha1": "8275cb9eb0a331d7cf79844c1900bb3dcc3df7f8",
-          "md5": "5797476860cc0630e99e90de73a6b37c"
+          "size": 20927,
+          "sha512": "bade158caabef4a746c316fba60e332d8e90427fdae5169038e3f926a660f2559b2fcffca939f0419cb5ba20e8184da2404b40eafe1d2675217c176e40eb3ceb",
+          "sha256": "511c2640db360bbacc3c9977f42e7e20517ecd4bc667fdd329d587477c3fce79",
+          "sha1": "2724233b3a974678253c4651e3342e90cb9f9c7a",
+          "md5": "c0bd7f7d4a5ea01f48affb00f6311def"
         }
       ]
     }

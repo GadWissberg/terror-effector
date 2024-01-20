@@ -16,7 +16,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Disposable;
 import com.gadarts.te.EntityBuilder;
-import com.gadarts.te.common.MapJsonKeys;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
 import com.gadarts.te.common.map.*;
@@ -30,8 +29,8 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static com.gadarts.te.EntityBuilder.beginBuildingEntity;
-import static com.gadarts.te.common.MapJsonKeys.*;
 import static com.gadarts.te.common.assets.texture.SurfaceTextures.MISSING;
+import static com.gadarts.te.common.map.MapJsonKeys.*;
 import static com.gadarts.te.common.map.MapNodesTypes.OBSTACLE_KEY_DIAGONAL_FORBIDDEN;
 import static com.gadarts.te.components.ComponentsMapper.modelInstance;
 import static java.lang.String.format;
@@ -187,7 +186,7 @@ public class MapInflater implements Disposable {
                 definition));
             Coords coords = nodeData.getCoords();
             MapNodeData eastNodeData = new MapNodeData(
-                coords.row(),
+                coords.getZ(),
                 eastNodeCol,
                 OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
             nodeData.lift(height);
@@ -265,7 +264,7 @@ public class MapInflater implements Disposable {
             Coords coords = nodeData.getCoords();
             MapNodeData southNodeData = new MapNodeData(
                 southNodeRow,
-                coords.col(),
+                coords.getX(),
                 OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
             nodeData.lift(height);
             if (southNodeRow >= 0 && southNodeRow < mapGraph.getDepth()) {
@@ -293,7 +292,7 @@ public class MapInflater implements Disposable {
             Coords coords = nodeData.getCoords();
             MapNodeData northNodeData = new MapNodeData(
                 northNodeRow,
-                coords.col(),
+                coords.getZ(),
                 OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
             nodeData.lift(height);
             if (northNodeRow >= 0 && northNodeRow < mapGraph.getDepth()) {
@@ -352,7 +351,7 @@ public class MapInflater implements Disposable {
                 definition));
             Coords coords = nodeData.getCoords();
             MapNodeData westNodeData = new MapNodeData(
-                coords.row(),
+                coords.getZ(),
                 westNodeCol,
                 OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
             nodeData.lift(height);

@@ -1,8 +1,17 @@
 package com.gadarts.te.common.map;
 
-public record Coords(int row, int col) {
-    public boolean equals(int row, int col) {
-        return this.row == row && this.col == col;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+
+@Getter
+public class Coords {
+    private final int x;
+    private final int z;
+
+    public boolean equals(int z, int x) {
+        return this.z == z && this.x == x;
     }
 }
 

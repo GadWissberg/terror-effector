@@ -46,9 +46,9 @@ public class MapNodeData {
         return textureDefinition;
     }
 
-    private void initializeFields(final int row, final int col, final MapNodesTypes type) {
+    private void initializeFields(final int z, final int x, final MapNodesTypes type) {
         this.mapNodeType = type;
-        this.coords = new Coords(row, col);
+        this.coords = new Coords(x, z);
     }
 
     public void initializeModelInstance(final Model tileModel) {
@@ -56,7 +56,7 @@ public class MapNodeData {
         Material material = modelInstance.materials.get(0);
         material.remove(ColorAttribute.Diffuse);
         material.set(TextureAttribute.createDiffuse((Texture) null));
-        modelInstance.transform.setTranslation(coords.col(), 0, coords.row());
+        modelInstance.transform.setTranslation(coords.getX(), 0, coords.getZ());
     }
 
     public void lift(final float delta) {
