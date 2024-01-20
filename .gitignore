@@ -2,3 +2,9 @@
 *.class*
 *build\classes*
 *.idea*
+*.lock
+game\core\build\
+/game/.gradle/buildOutputCleanup/cache.properties
+*.bin
+*.jar
+*.probe
