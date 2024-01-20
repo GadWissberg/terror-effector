@@ -35,17 +35,19 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         stage.isDebugAll = DebugSettings.SHOW_BORDERS
         val root = VisTable(true)
         root.setFillParent(true)
-        addMenuBar(root)
+        val menuBar = addMenuBar(root)
+        menuBar.table.pack()
         Gdx.input.inputProcessor = InputMultiplexer(stage)
         sceneRenderer = SceneRenderer()
-        root.add(sceneRenderer).expand().fill()
+        root.add(sceneRenderer).size(1280F, 960F - menuBar.table.height)
         stage.addActor(root)
     }
 
-    private fun addMenuBar(root: VisTable) {
+    private fun addMenuBar(root: VisTable): MenuBar {
         val menuBar = MenuBar()
         addMenus(menuBar)
         root.add(menuBar.table).fillX().expandX().row()
+        return menuBar
     }
 
     private fun addMenus(menuBar: MenuBar) {
@@ -102,7 +104,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     }
 
     override fun dispose() {
-        super.dispose()
+        GeneralUtils.disposeObject(this, TerrorEffectorEditor::class)
         VisUI.dispose()
     }
 }

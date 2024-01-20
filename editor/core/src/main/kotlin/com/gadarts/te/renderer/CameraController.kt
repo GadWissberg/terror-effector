@@ -4,13 +4,13 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
 
-class CameraController(private val camera: OrthographicCamera) : InputProcessor {
+class CameraController(private val camera: Camera) : InputProcessor {
     private val lastMouseClickPosition = Vector2()
     private val intersectionPoint = Vector3()
     private var ray: Ray? = null
@@ -57,7 +57,12 @@ class CameraController(private val camera: OrthographicCamera) : InputProcessor 
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return false
+        var result = false
+        if (button == Input.Buttons.RIGHT) {
+            intersectionPoint.set(-1F, -1F, -1F)
+            result = true
+        }
+        return result
     }
 
     override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -65,6 +70,7 @@ class CameraController(private val camera: OrthographicCamera) : InputProcessor 
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        if (DebugSettings.FREELOOK) return false
         var result = false
         if (ray != null
             && intersectionPoint.x != -1F
