@@ -9,18 +9,21 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
+import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup
+import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.gadarts.te.IconsTextures.*
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.renderer.SceneRenderer
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.*
 
 class TerrorEffectorEditor : ApplicationAdapter() {
+    private lateinit var editorAsset: AssetManager
     private lateinit var sceneRenderer: SceneRenderer
     private lateinit var stage: Stage
     private val dispatcher: MessageDispatcher = MessageDispatcher()
@@ -30,19 +33,49 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         VisUI.load()
         val gameAssetsManager = GameAssetsManager("../game/assets/")
         gameAssetsManager.loadGameFiles()
-        val editorAssetsManager = AssetManager()
-        loadEditorAssets(editorAssetsManager)
+        editorAsset = AssetManager()
+        loadEditorAssets(editorAsset)
         stage = Stage(ScreenViewport())
         stage.isDebugAll = DebugSettings.SHOW_BORDERS
         val root = VisTable(true)
         root.setFillParent(true)
         val menuBar = addMenuBar(root)
         menuBar.table.pack()
-        val buttonBar = addButtonsBar(editorAssetsManager, root)
+        val buttonBar = addButtonsBar(editorAsset, root)
         Gdx.input.inputProcessor = InputMultiplexer(stage)
-        sceneRenderer = SceneRenderer()
-        root.add(sceneRenderer).size(1280F, 960F - (menuBar.table.height + buttonBar.table.height))
+        addSplitView(menuBar, buttonBar, root, gameAssetsManager)
         stage.addActor(root)
+    }
+
+    private fun addSplitView(
+        menuBar: MenuBar,
+        buttonBar: MenuBar,
+        root: VisTable,
+        gameAssetsManager: GameAssetsManager,
+    ) {
+        sceneRenderer = SceneRenderer(dispatcher)
+        val gallery = createGallery(gameAssetsManager)
+        val scrollPane = VisScrollPane(gallery)
+        val heightUnderBars = 960F - (menuBar.table.height + buttonBar.table.height)
+        val splitPane = VisSplitPane(scrollPane, sceneRenderer, false)
+        splitPane.setSplitAmount(0.2F)
+        root.add(splitPane).size(1280F, heightUnderBars)
+    }
+
+    private fun createGallery(gameAssetsManager: GameAssetsManager): Table {
+        val gallery = Table()
+        val buttonGroup = createButtonGroup()
+        SurfaceTextures.entries.forEach {
+            addGalleryButton(
+                buttonGroup,
+                gameAssetsManager.getTexture(it),
+                gallery,
+            )
+            if (gallery.children.size % 2 == 0) {
+                gallery.row()
+            }
+        }
+        return gallery
     }
 
     private fun addButtonsBar(
@@ -50,30 +83,98 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         root: VisTable
     ): MenuBar {
         val buttonBar = MenuBar()
-        addButton(manager, buttonBar, ICON_MODE_FLOOR)
-        addButton(manager, buttonBar, ICON_MODE_WALLS)
+        val buttonGroup = createButtonGroup()
+        addModesRadioButtons(buttonGroup, manager, buttonBar)
         root.add(buttonBar.table).fillX().expandX().row()
         buttonBar.table.pack()
         return buttonBar
     }
 
-    private fun addButton(manager: AssetManager, buttonBar: MenuBar, icon: IconsTextures) {
-        val style = ImageButton.ImageButtonStyle(
-            TextureRegionDrawable(manager.get(BUTTON_UP.getFileName(), Texture::class.java)),
-            TextureRegionDrawable(manager.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
-            TextureRegionDrawable(manager.get(BUTTON_CHECKED.getFileName(), Texture::class.java)),
-            TextureRegionDrawable(manager.get(icon.getFileName(), Texture::class.java)),
+    private fun addModesRadioButtons(
+        buttonGroup: ButtonGroup<VisImageButton>,
+        manager: AssetManager,
+        buttonBar: MenuBar
+    ) {
+        addBarRadioButton(
+            buttonGroup,
+            object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    super.clicked(event, x, y)
+                    dispatcher.dispatchMessage(UiEvents.MODE_SELECTED.ordinal, Modes.FLOOR)
+                }
+            },
+            manager.get(ICON_MODE_FLOOR.getFileName(), Texture::class.java), buttonBar.table, false
+        )
+        addBarRadioButton(
+            buttonGroup,
+            object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    super.clicked(event, x, y)
+                    dispatcher.dispatchMessage(UiEvents.MODE_SELECTED.ordinal, Modes.WALLS)
+                }
+            },
+            manager.get(ICON_MODE_WALLS.getFileName(), Texture::class.java), buttonBar.table, false
+        )
+    }
+
+    private fun createButtonGroup(): ButtonGroup<VisImageButton> {
+        val buttonGroup = ButtonGroup<VisImageButton>()
+        buttonGroup.setMinCheckCount(1)
+        buttonGroup.setMaxCheckCount(1)
+        buttonGroup.setUncheckLast(true)
+        return buttonGroup
+    }
+
+    private fun addGalleryButton(
+        buttonGroup: ButtonGroup<VisImageButton>,
+        icon: Texture,
+        table: Table,
+    ) {
+        val up = TextureRegionDrawable(editorAsset.get(BUTTON_GALLERY_UP.getFileName(), Texture::class.java))
+        val style = VisImageButton.VisImageButtonStyle(
+            up,
+            TextureRegionDrawable(editorAsset.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(editorAsset.get(BUTTON_GALLERY_CHECKED.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(icon),
             null, null
         )
-        style.over = TextureRegionDrawable(manager.get(BUTTON_OVER.getFileName(), Texture::class.java))
-        val imageButton = ImageButton(style)
+        val overTexture = editorAsset.get(BUTTON_GALLERY_OVER.getFileName(), Texture::class.java)
+        style.over = TextureRegionDrawable(overTexture)
+        val imageButton = VisImageButton(style)
         imageButton.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
                 super.clicked(event, x, y)
-                dispatcher.dispatchMessage(UiEvents.MODE_SELECTED.ordinal)
+                dispatcher.dispatchMessage(UiEvents.TEXTURE_SELECTED.ordinal, icon)
             }
         })
-        buttonBar.table.add(imageButton).pad(5F)
+        imageButton.imageCell.size(48F, 48F)
+        table.add(imageButton).pad(5F)
+        buttonGroup.add(imageButton)
+    }
+
+    private fun addBarRadioButton(
+        buttonGroup: ButtonGroup<VisImageButton>,
+        clickListener: ClickListener,
+        icon: Texture,
+        table: Table,
+        scaleImage: Boolean
+    ) {
+        val up = TextureRegionDrawable(editorAsset.get(BUTTON_UP.getFileName(), Texture::class.java))
+        val style = VisImageButton.VisImageButtonStyle(
+            up,
+            TextureRegionDrawable(editorAsset.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(editorAsset.get(BUTTON_CHECKED.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(icon),
+            null, null
+        )
+        style.over = TextureRegionDrawable(editorAsset.get(BUTTON_OVER.getFileName(), Texture::class.java))
+        val imageButton = VisImageButton(style)
+        imageButton.addListener(clickListener)
+        if (scaleImage) {
+            imageButton.imageCell.size(up.minWidth, up.minHeight)
+        }
+        table.add(imageButton).pad(5F)
+        buttonGroup.add(imageButton)
     }
 
     private fun loadEditorAssets(editorAssetsManager: AssetManager) {

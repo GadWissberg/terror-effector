@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum SurfaceTextures implements TextureDefinition {
     MISSING,
+    BOARD_WALL_0,
+    MARBLE_FLOOR_0,
     INDUSTRIAL_FLOOR_0,
     BLANK;
 

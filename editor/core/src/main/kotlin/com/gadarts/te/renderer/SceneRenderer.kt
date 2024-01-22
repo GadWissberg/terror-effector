@@ -2,6 +2,9 @@ package com.gadarts.te.renderer
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputMultiplexer
+import com.badlogic.gdx.ai.msg.MessageDispatcher
+import com.badlogic.gdx.ai.msg.Telegram
+import com.badlogic.gdx.ai.msg.Telegraph
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.VertexAttributes
@@ -13,15 +16,19 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Plane
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.GeneralUtils
+import com.gadarts.te.Modes
+import com.gadarts.te.UiEvents
 import com.gadarts.te.common.CameraUtils
 
 
-class SceneRenderer : Table(), Disposable {
+class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegraph {
+    private lateinit var mode: Modes
     private lateinit var eastPointerModelInstance: ModelInstance
     private lateinit var northPointerModelInstance: ModelInstance
     private lateinit var eastPointerModel: Model
@@ -34,6 +41,7 @@ class SceneRenderer : Table(), Disposable {
     private val modelInstances = mutableListOf<ModelInstance>()
 
     init {
+        dispatcher.addListener(this, UiEvents.MODE_SELECTED.ordinal)
         val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
         val modelBuilder = ModelBuilder()
         axisModel = modelBuilder.createXYZCoordinates(
@@ -46,6 +54,15 @@ class SceneRenderer : Table(), Disposable {
         cameraController = CameraController(camera)
         inputMultiplexer.addProcessor(cameraController)
         addDirectionsIndicator(modelBuilder)
+    }
+
+    override fun handleMessage(msg: Telegram?): Boolean {
+        var result = false
+        if (msg!!.message == UiEvents.MODE_SELECTED.ordinal) {
+            mode = (msg.extraInfo as Modes)
+            result = true
+        }
+        return result
     }
 
     private fun addGrid(modelBuilder: ModelBuilder): ModelInstance {
@@ -96,18 +113,19 @@ class SceneRenderer : Table(), Disposable {
     }
 
     fun render() {
+        val screenPosition = localToScreenCoordinates(auxVector2_1.set(0F, 0F))
         Gdx.gl.glViewport(
-            0,
-            0,
+            screenPosition.x.toInt(),
+            stage.height.toInt() - screenPosition.y.toInt(),
             width.toInt(),
             height.toInt()
         )
         Intersector.intersectRayPlane(
-            auxRay.set(camera.unproject(auxVector1.set(50F, 50F, 0F)), camera.direction),
-            groundPlane, auxVector2
+            auxRay.set(camera.unproject(auxVector3_1.set(50F, 50F, 0F)), camera.direction),
+            groundPlane, auxVector3_2
         )
-        northPointerModelInstance.transform.setTranslation(auxVector2)
-        eastPointerModelInstance.transform.setTranslation(auxVector2)
+        northPointerModelInstance.transform.setTranslation(auxVector3_2)
+        eastPointerModelInstance.transform.setTranslation(auxVector3_2)
         cameraController.update()
         camera.update()
         batch.begin(camera)
@@ -123,12 +141,14 @@ class SceneRenderer : Table(), Disposable {
 
 
     companion object {
-        val groundPlane = Plane(Vector3.Y, 0F)
-        val auxRay = Ray()
-        val auxVector1 = Vector3()
-        val auxVector2 = Vector3()
-        const val DIRECTIONS_INDICATOR_ARROW_SCALE = 2.5F
-        const val DIRECTIONS_INDICATOR_ARROW_SIZE = 1F
-        const val MAP_SIZE: Int = 32
+        private val groundPlane = Plane(Vector3.Y, 0F)
+        private val auxRay = Ray()
+        private val auxVector2_1 = Vector2()
+        private val auxVector3_1 = Vector3()
+        private val auxVector3_2 = Vector3()
+        private const val DIRECTIONS_INDICATOR_ARROW_SCALE = 2.5F
+        private const val DIRECTIONS_INDICATOR_ARROW_SIZE = 1F
+        private const val MAP_SIZE: Int = 32
     }
+
 }
