@@ -38,7 +38,7 @@ public class RenderSystem extends GameSystem {
     @Override
     public void update(float deltaTime) {
         ScreenUtils.clear(Color.BLACK, true);
-        modelBatch.begin(sharedData.getCamera());
+        modelBatch.begin(sharedData.camera());
         for (Entity entity : modelEntities) {
             ModelInstanceComponent modelInstanceComponent = ComponentsMapper.modelInstance.get(entity);
             ModelInstance modelInstance = modelInstanceComponent.getModelInstance();

@@ -26,7 +26,7 @@ public class CameraSystem extends GameSystem implements InputProcessor {
 
     @Override
     public void update(float deltaTime) {
-        sharedData.getCamera().update();
+        sharedData.camera().update();
     }
 
     @Override

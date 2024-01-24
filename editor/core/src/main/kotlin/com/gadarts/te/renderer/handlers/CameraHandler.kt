@@ -1,18 +1,21 @@
-package com.gadarts.te.renderer
+package com.gadarts.te.renderer.handlers
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.ai.msg.MessageDispatcher
+import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
 
-class CameraHandler(private val camera: Camera) : InputProcessor {
+class CameraHandler(private val camera: Camera, dispatcher: MessageDispatcher) : InputProcessor,
+    BaseHandler(dispatcher) {
     private val lastMouseClickPosition = Vector2()
-    private val intersectionPoint = Vector3()
+    private val intersectionPoint = Vector3(-1F, -1F, -1F)
     private var ray: Ray? = null
     private var freelook: CameraInputController? = null
 
@@ -108,6 +111,10 @@ class CameraHandler(private val camera: Camera) : InputProcessor {
     companion object {
         const val MAX_ROTATION_ANGLE_STEP: Float = 6.4f
         val groundPlane = Plane(Vector3.Y, 0F)
+    }
+
+    override fun handleMessage(msg: Telegram?): Boolean {
+        return false
     }
 
 }

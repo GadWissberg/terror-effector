@@ -1,6 +1,9 @@
-package com.gadarts.te.renderer
+package com.gadarts.te.renderer.handlers
 
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.ai.msg.MessageDispatcher
+import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g3d.Model
@@ -8,17 +11,20 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
-import com.badlogic.gdx.math.Intersector
-import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.math.Plane
-import com.badlogic.gdx.math.Vector3
+import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
+import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.common.map.MapUtils
+import kotlin.math.max
 
-
-class CursorHandler(private val camera: OrthographicCamera) : Disposable, InputProcessor {
+class CursorHandler(
+    private val camera: OrthographicCamera,
+    private val mapSize: Float,
+    dispatcher: MessageDispatcher
+) :
+    Disposable, InputProcessor, BaseHandler(dispatcher) {
     private var viewportScreenY: Float = 0.0f
     private var viewportScreenX: Float = 0.0f
     private var viewportHeight: Float = 0.0f
@@ -54,7 +60,13 @@ class CursorHandler(private val camera: OrthographicCamera) : Disposable, InputP
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return false
+        var result = false
+        if (button == Input.Buttons.LEFT) {
+            val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+            dispatcher.dispatchMessage(EditorEvents.CLICKED_GRID_CELL.ordinal, auxVector2_1.set(position.x, position.z))
+            result = true
+        }
+        return result
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -70,6 +82,16 @@ class CursorHandler(private val camera: OrthographicCamera) : Disposable, InputP
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        val position = fetchGridCellAtMouse(screenX, screenY)
+        floorModelInstanceCursor.transform.setTranslation(
+            MathUtils.clamp(position.x.toInt().toFloat(), 0F, mapSize) + 0.5F,
+            0F,
+            MathUtils.clamp(position.z.toInt().toFloat(), 0F, mapSize) + 0.5F
+        )
+        return true
+    }
+
+    private fun fetchGridCellAtMouse(screenX: Int, screenY: Int): Vector3 {
         val unproject = camera.unproject(
             auxVector3_2.set(screenX.toFloat(), screenY.toFloat(), 0F),
             viewportScreenX, viewportScreenY,
@@ -80,12 +102,7 @@ class CursorHandler(private val camera: OrthographicCamera) : Disposable, InputP
             groundPlane,
             auxVector3_2
         )
-        floorModelInstanceCursor.transform.setTranslation(
-            auxVector3_2.x.toInt().toFloat() + 0.5F,
-            0F,
-            auxVector3_2.z.toInt().toFloat() + 0.5F
-        )
-        return true
+        return auxVector3_2
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
@@ -93,8 +110,8 @@ class CursorHandler(private val camera: OrthographicCamera) : Disposable, InputP
     }
 
     fun update() {
-        cursorMaterialBlendingAttribute.opacity = MathUtils.sin(cursorFading)
-        cursorFading += 0.1F
+        cursorMaterialBlendingAttribute.opacity = max(MathUtils.sin(cursorFading / 10F), 0.1F)
+        cursorFading += 1
     }
 
     fun render(batch: ModelBatch) {
@@ -112,7 +129,11 @@ class CursorHandler(private val camera: OrthographicCamera) : Disposable, InputP
         private val auxVector3_2 = Vector3()
         private val auxRay = Ray()
         private val groundPlane = Plane(Vector3.Y, 0F)
+        private val auxVector2_1 = Vector2()
 
+    }
 
+    override fun handleMessage(msg: Telegram?): Boolean {
+        return false
     }
 }

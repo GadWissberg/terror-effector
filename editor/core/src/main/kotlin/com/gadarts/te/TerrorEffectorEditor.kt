@@ -102,7 +102,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
             object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     super.clicked(event, x, y)
-                    dispatcher.dispatchMessage(UiEvents.MODE_SELECTED.ordinal, Modes.FLOOR)
+                    dispatcher.dispatchMessage(EditorEvents.MODE_SELECTED.ordinal, Modes.FLOOR)
                 }
             },
             manager.get(ICON_MODE_FLOOR.getFileName(), Texture::class.java), buttonBar.table
@@ -112,7 +112,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
             object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     super.clicked(event, x, y)
-                    dispatcher.dispatchMessage(UiEvents.MODE_SELECTED.ordinal, Modes.WALLS)
+                    dispatcher.dispatchMessage(EditorEvents.MODE_SELECTED.ordinal, Modes.WALLS)
                 }
             },
             manager.get(ICON_MODE_WALLS.getFileName(), Texture::class.java), buttonBar.table
@@ -146,7 +146,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         imageButton.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
                 super.clicked(event, x, y)
-                dispatcher.dispatchMessage(UiEvents.TEXTURE_SELECTED.ordinal, icon)
+                dispatcher.dispatchMessage(EditorEvents.TEXTURE_SELECTED.ordinal, icon)
             }
         })
         imageButton.imageCell.size(48F, 48F)

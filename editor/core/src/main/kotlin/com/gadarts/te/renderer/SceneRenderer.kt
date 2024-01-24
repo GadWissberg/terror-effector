@@ -7,6 +7,7 @@ import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
@@ -21,14 +22,20 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
+import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
-import com.gadarts.te.UiEvents
 import com.gadarts.te.common.CameraUtils
+import com.gadarts.te.renderer.handlers.ActionsHandler
+import com.gadarts.te.renderer.handlers.CameraHandler
+import com.gadarts.te.renderer.handlers.CursorHandler
+import com.gadarts.te.renderer.handlers.DrawingHandler
 
 
-class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegraph {
+class SceneRenderer(private val dispatcher: MessageDispatcher) : Table(), Disposable, Telegraph {
+    private var actionsHandler: ActionsHandler
+    private lateinit var selectedTexture: Texture
     private lateinit var mode: Modes
     private lateinit var eastPointerModelInstance: ModelInstance
     private lateinit var northPointerModelInstance: ModelInstance
@@ -41,9 +48,10 @@ class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegr
     private val batch = ModelBatch()
     private val modelInstances = mutableListOf<ModelInstance>()
     private lateinit var cursorHandler: CursorHandler
+    private val drawingHandler = DrawingHandler(dispatcher, MAP_SIZE)
 
     init {
-        dispatcher.addListener(this, UiEvents.MODE_SELECTED.ordinal)
+        dispatcher.addListener(this, EditorEvents.MODE_SELECTED.ordinal)
         val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
         val modelBuilder = ModelBuilder()
         axisModel = modelBuilder.createXYZCoordinates(
@@ -53,17 +61,19 @@ class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegr
         modelInstances.add(ModelInstance(axisModel))
         val gridModelInstance = addGrid(modelBuilder)
         modelInstances.add(gridModelInstance)
-        cameraHandler = CameraHandler(camera)
+        cameraHandler = CameraHandler(camera, dispatcher)
+        actionsHandler = ActionsHandler(dispatcher)
         inputMultiplexer.addProcessor(cameraHandler)
         addDirectionsIndicator(modelBuilder)
     }
 
     override fun handleMessage(msg: Telegram): Boolean {
         var result = false
-        if (msg.message == UiEvents.MODE_SELECTED.ordinal) {
+        if (msg.message == EditorEvents.MODE_SELECTED.ordinal) {
             mode = (msg.extraInfo as Modes)
             result = true
-        } else if (msg.message == UiEvents.TEXTURE_SELECTED.ordinal) {
+        } else if (msg.message == EditorEvents.TEXTURE_SELECTED.ordinal) {
+            selectedTexture = msg.extraInfo as Texture
             result = true
         }
         return result
@@ -157,7 +167,7 @@ class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegr
         val screenPosition = localToScreenCoordinates(auxVector2_1.set(0F, 0F))
         val screenX = screenPosition.x
         val screenY = TerrorEffectorEditor.WINDOW_HEIGHT - screenPosition.y.toInt()
-        cursorHandler = CursorHandler(camera)
+        cursorHandler = CursorHandler(camera, MAP_SIZE.toFloat(), dispatcher)
         val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
         inputMultiplexer.addProcessor(cursorHandler)
         cursorHandler.setViewportSize(
