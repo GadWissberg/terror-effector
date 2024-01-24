@@ -43,8 +43,8 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         menuBar.table.pack()
         val buttonBar = addButtonsBar(editorAsset, root)
         Gdx.input.inputProcessor = InputMultiplexer(stage)
-        addSplitView(menuBar, buttonBar, root, gameAssetsManager)
         stage.addActor(root)
+        addSplitView(menuBar, buttonBar, root, gameAssetsManager)
     }
 
     private fun addSplitView(
@@ -56,10 +56,12 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         sceneRenderer = SceneRenderer(dispatcher)
         val gallery = createGallery(gameAssetsManager)
         val scrollPane = VisScrollPane(gallery)
-        val heightUnderBars = 960F - (menuBar.table.height + buttonBar.table.height)
+        val heightUnderBars = WINDOW_HEIGHT - (menuBar.table.height + buttonBar.table.height)
         val splitPane = VisSplitPane(scrollPane, sceneRenderer, false)
         splitPane.setSplitAmount(0.2F)
-        root.add(splitPane).size(1280F, heightUnderBars)
+        root.add(splitPane).size(WINDOW_WIDTH, heightUnderBars)
+        root.pack()
+        sceneRenderer.init(heightUnderBars)
     }
 
     private fun createGallery(gameAssetsManager: GameAssetsManager): Table {
@@ -103,7 +105,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
                     dispatcher.dispatchMessage(UiEvents.MODE_SELECTED.ordinal, Modes.FLOOR)
                 }
             },
-            manager.get(ICON_MODE_FLOOR.getFileName(), Texture::class.java), buttonBar.table, false
+            manager.get(ICON_MODE_FLOOR.getFileName(), Texture::class.java), buttonBar.table
         )
         addBarRadioButton(
             buttonGroup,
@@ -113,7 +115,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
                     dispatcher.dispatchMessage(UiEvents.MODE_SELECTED.ordinal, Modes.WALLS)
                 }
             },
-            manager.get(ICON_MODE_WALLS.getFileName(), Texture::class.java), buttonBar.table, false
+            manager.get(ICON_MODE_WALLS.getFileName(), Texture::class.java), buttonBar.table
         )
     }
 
@@ -157,7 +159,6 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         clickListener: ClickListener,
         icon: Texture,
         table: Table,
-        scaleImage: Boolean
     ) {
         val up = TextureRegionDrawable(editorAsset.get(BUTTON_UP.getFileName(), Texture::class.java))
         val style = VisImageButton.VisImageButtonStyle(
@@ -170,9 +171,6 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         style.over = TextureRegionDrawable(editorAsset.get(BUTTON_OVER.getFileName(), Texture::class.java))
         val imageButton = VisImageButton(style)
         imageButton.addListener(clickListener)
-        if (scaleImage) {
-            imageButton.imageCell.size(up.minWidth, up.minHeight)
-        }
         table.add(imageButton).pad(5F)
         buttonGroup.add(imageButton)
     }
@@ -250,5 +248,10 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     override fun dispose() {
         GeneralUtils.disposeObject(this, TerrorEffectorEditor::class)
         VisUI.dispose()
+    }
+
+    companion object {
+        const val WINDOW_WIDTH = 1280F
+        const val WINDOW_HEIGHT = 960F
     }
 }

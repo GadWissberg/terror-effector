@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
 
-class CameraController(private val camera: Camera) : InputProcessor {
+class CameraHandler(private val camera: Camera) : InputProcessor {
     private val lastMouseClickPosition = Vector2()
     private val intersectionPoint = Vector3()
     private var ray: Ray? = null

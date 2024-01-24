@@ -3,14 +3,8 @@ package com.gadarts.te.systems.map;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -39,10 +33,6 @@ public class MapInflater implements Disposable {
     public static final String MAP_PATH_TEMP = "maps/%s.json";
     private static final Matrix4 auxMatrix = new Matrix4();
     private final static Vector3 auxVector3_1 = new Vector3();
-    private static final Vector3 auxVector3_2 = new Vector3();
-    private static final Vector3 auxVector3_3 = new Vector3();
-    private static final Vector3 auxVector3_4 = new Vector3();
-    private static final Vector3 auxVector3_5 = new Vector3();
     private final Gson gson = new GsonBuilder().create();
     private final GameAssetsManager assetsManager;
     private final Engine engine;
@@ -53,39 +43,9 @@ public class MapInflater implements Disposable {
         this.assetsManager = assetsManager;
         this.engine = engine;
         wallCreator = new WallCreator(assetsManager);
-        floorModel = createFloorModel();
+        floorModel = MapUtils.createFloorModel();
     }
 
-    private Model createFloorModel( ) {
-        ModelBuilder modelBuilder = new ModelBuilder();
-        modelBuilder.begin();
-        MeshPartBuilder meshPartBuilder = modelBuilder.part("floor",
-            GL20.GL_TRIANGLES,
-            VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates,
-            createFloorMaterial());
-        createRect(meshPartBuilder);
-        return modelBuilder.end();
-    }
-
-    private Material createFloorMaterial( ) {
-        Material material = new Material();
-        material.id = "floor_test";
-        BlendingAttribute blendingAttribute = new BlendingAttribute();
-        blendingAttribute.opacity = 1F;
-        material.set(blendingAttribute);
-        return material;
-    }
-
-    private void createRect(final MeshPartBuilder meshPartBuilder) {
-        meshPartBuilder.setUVRange(0, 0, 1, 1);
-        final float OFFSET = -0.5f;
-        meshPartBuilder.rect(
-            auxVector3_4.set(OFFSET, 0, 1 + OFFSET),
-            auxVector3_1.set(1 + OFFSET, 0, 1 + OFFSET),
-            auxVector3_2.set(1 + OFFSET, 0, OFFSET),
-            auxVector3_3.set(OFFSET, 0, OFFSET),
-            auxVector3_5.set(0, 1, 0));
-    }
 
     public MapGraph inflate(String mapName) {
         String path = format(MAP_PATH_TEMP, mapName);

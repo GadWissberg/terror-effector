@@ -23,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.Modes
+import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.UiEvents
 import com.gadarts.te.common.CameraUtils
 
@@ -33,12 +34,13 @@ class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegr
     private lateinit var northPointerModelInstance: ModelInstance
     private lateinit var eastPointerModel: Model
     private lateinit var northPointerModel: Model
-    private var cameraController: CameraController
+    private val cameraHandler: CameraHandler
     private lateinit var gridModel: Model
-    private var camera: OrthographicCamera = CameraUtils.createCamera(1280, 960)
-    private var axisModel: Model
+    private val camera: OrthographicCamera = CameraUtils.createCamera(1280, 960)
+    private val axisModel: Model
     private val batch = ModelBatch()
     private val modelInstances = mutableListOf<ModelInstance>()
+    private lateinit var cursorHandler: CursorHandler
 
     init {
         dispatcher.addListener(this, UiEvents.MODE_SELECTED.ordinal)
@@ -51,15 +53,17 @@ class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegr
         modelInstances.add(ModelInstance(axisModel))
         val gridModelInstance = addGrid(modelBuilder)
         modelInstances.add(gridModelInstance)
-        cameraController = CameraController(camera)
-        inputMultiplexer.addProcessor(cameraController)
+        cameraHandler = CameraHandler(camera)
+        inputMultiplexer.addProcessor(cameraHandler)
         addDirectionsIndicator(modelBuilder)
     }
 
-    override fun handleMessage(msg: Telegram?): Boolean {
+    override fun handleMessage(msg: Telegram): Boolean {
         var result = false
-        if (msg!!.message == UiEvents.MODE_SELECTED.ordinal) {
+        if (msg.message == UiEvents.MODE_SELECTED.ordinal) {
             mode = (msg.extraInfo as Modes)
+            result = true
+        } else if (msg.message == UiEvents.TEXTURE_SELECTED.ordinal) {
             result = true
         }
         return result
@@ -124,19 +128,44 @@ class SceneRenderer(dispatcher: MessageDispatcher) : Table(), Disposable, Telegr
             auxRay.set(camera.unproject(auxVector3_1.set(50F, 50F, 0F)), camera.direction),
             groundPlane, auxVector3_2
         )
-        northPointerModelInstance.transform.setTranslation(auxVector3_2)
-        eastPointerModelInstance.transform.setTranslation(auxVector3_2)
-        cameraController.update()
+        updateDirectionsIndicator()
+        cursorHandler.update()
+        cameraHandler.update()
         camera.update()
+        renderModels()
+    }
+
+    private fun renderModels() {
         batch.begin(camera)
         modelInstances.forEach {
             batch.render(it)
         }
+        cursorHandler.render(batch)
         batch.end()
+    }
+
+    private fun updateDirectionsIndicator() {
+        northPointerModelInstance.transform.setTranslation(auxVector3_2)
+        eastPointerModelInstance.transform.setTranslation(auxVector3_2)
     }
 
     override fun dispose() {
         GeneralUtils.disposeObject(this, SceneRenderer::class)
+    }
+
+    fun init(height: Float) {
+        val screenPosition = localToScreenCoordinates(auxVector2_1.set(0F, 0F))
+        val screenX = screenPosition.x
+        val screenY = TerrorEffectorEditor.WINDOW_HEIGHT - screenPosition.y.toInt()
+        cursorHandler = CursorHandler(camera)
+        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
+        inputMultiplexer.addProcessor(cursorHandler)
+        cursorHandler.setViewportSize(
+            screenX,
+            screenY,
+            TerrorEffectorEditor.WINDOW_WIDTH - screenX,
+            height
+        )
     }
 
 
