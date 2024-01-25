@@ -3,10 +3,17 @@ package com.gadarts.te.renderer.handlers
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.gadarts.te.EditorEvents
+import com.gadarts.te.GeneralUtils
 import com.gadarts.te.renderer.handlers.actions.Action
 
 class ActionsHandler(dispatcher: MessageDispatcher) : BaseHandler(dispatcher) {
     private var currentAction: Action? = null
+
+    init {
+        dispatcher.addListener(this, EditorEvents.ACTION_BEGIN.ordinal)
+        dispatcher.addListener(this, EditorEvents.ACTION_TAKE_STEP.ordinal)
+        dispatcher.addListener(this, EditorEvents.ACTION_DONE.ordinal)
+    }
 
     override fun handleMessage(msg: Telegram): Boolean {
         var handled = false
@@ -30,6 +37,10 @@ class ActionsHandler(dispatcher: MessageDispatcher) : BaseHandler(dispatcher) {
         }
 
         return handled
+    }
+
+    override fun dispose() {
+        GeneralUtils.disposeObject(this, ActionsHandler::class)
     }
 
 }

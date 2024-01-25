@@ -7,7 +7,6 @@ import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.VertexAttributes
 import com.badlogic.gdx.graphics.g3d.Material
 import com.badlogic.gdx.graphics.g3d.Model
@@ -27,15 +26,18 @@ import com.gadarts.te.GeneralUtils
 import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.CameraUtils
+import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.renderer.handlers.ActionsHandler
 import com.gadarts.te.renderer.handlers.CameraHandler
 import com.gadarts.te.renderer.handlers.CursorHandler
 import com.gadarts.te.renderer.handlers.DrawingHandler
+import com.gadarts.te.renderer.model.MapData
 
 
-class SceneRenderer(private val dispatcher: MessageDispatcher) : Table(), Disposable, Telegraph {
+class SceneRenderer(private val dispatcher: MessageDispatcher, gameAssetsManager: GameAssetsManager) : Table(),
+    Disposable, Telegraph {
     private var actionsHandler: ActionsHandler
-    private lateinit var selectedTexture: Texture
     private lateinit var mode: Modes
     private lateinit var eastPointerModelInstance: ModelInstance
     private lateinit var northPointerModelInstance: ModelInstance
@@ -48,7 +50,8 @@ class SceneRenderer(private val dispatcher: MessageDispatcher) : Table(), Dispos
     private val batch = ModelBatch()
     private val modelInstances = mutableListOf<ModelInstance>()
     private lateinit var cursorHandler: CursorHandler
-    private val drawingHandler = DrawingHandler(dispatcher, MAP_SIZE)
+    private val mapData = MapData(MAP_SIZE, gameAssetsManager.getTexture(SurfaceTextures.BLANK))
+    private val drawingHandler = DrawingHandler(dispatcher, gameAssetsManager, mapData)
 
     init {
         dispatcher.addListener(this, EditorEvents.MODE_SELECTED.ordinal)
@@ -71,9 +74,6 @@ class SceneRenderer(private val dispatcher: MessageDispatcher) : Table(), Dispos
         var result = false
         if (msg.message == EditorEvents.MODE_SELECTED.ordinal) {
             mode = (msg.extraInfo as Modes)
-            result = true
-        } else if (msg.message == EditorEvents.TEXTURE_SELECTED.ordinal) {
-            selectedTexture = msg.extraInfo as Texture
             result = true
         }
         return result
@@ -147,6 +147,7 @@ class SceneRenderer(private val dispatcher: MessageDispatcher) : Table(), Dispos
 
     private fun renderModels() {
         batch.begin(camera)
+        mapData.render(batch)
         modelInstances.forEach {
             batch.render(it)
         }

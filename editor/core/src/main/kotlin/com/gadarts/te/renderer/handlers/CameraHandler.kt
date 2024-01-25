@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
+import com.gadarts.te.GeneralUtils
 
 class CameraHandler(private val camera: Camera, dispatcher: MessageDispatcher) : InputProcessor,
     BaseHandler(dispatcher) {
@@ -115,6 +116,10 @@ class CameraHandler(private val camera: Camera, dispatcher: MessageDispatcher) :
 
     override fun handleMessage(msg: Telegram?): Boolean {
         return false
+    }
+
+    override fun dispose() {
+        GeneralUtils.disposeObject(this, CameraHandler::class)
     }
 
 }

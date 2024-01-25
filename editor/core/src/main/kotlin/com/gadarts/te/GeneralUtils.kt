@@ -12,7 +12,11 @@ object GeneralUtils {
                 field.isAccessible = true
                 val fieldValue = field.get(instance)
                 if (fieldValue is Disposable) {
-                    fieldValue.dispose()
+                    try {
+                        fieldValue.dispose()
+                    } catch (_: Exception) {
+
+                    }
                 }
             }
         }

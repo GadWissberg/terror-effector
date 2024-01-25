@@ -1,11 +1,8 @@
 package com.gadarts.te.common.map;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Vector3;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
 import lombok.AccessLevel;
@@ -31,32 +28,18 @@ public class MapNodeData {
     private SurfaceTextures textureDefinition;
     private float height;
 
-    public MapNodeData(final int row, final int col, final MapNodesTypes type) {
-        this(null, row, col, type);
-    }
-
-    public MapNodeData(final Model tileModel, final int row, final int col, final MapNodesTypes type) {
-        initializeFields(row, col, type);
-        if (tileModel != null) {
-            initializeModelInstance(tileModel);
-        }
-    }
-
-    public SurfaceTextures getTextureDefinition( ) {
-        return textureDefinition;
-    }
-
-    private void initializeFields(final int z, final int x, final MapNodesTypes type) {
+    public MapNodeData(int x, int z, MapNodesTypes type, ModelInstance modelInstance, SurfaceTextures textureDefinition) {
         this.mapNodeType = type;
         this.coords = new Coords(x, z);
+        this.textureDefinition = textureDefinition;
+        initializeModelInstance(modelInstance);
     }
 
-    public void initializeModelInstance(final Model tileModel) {
-        this.modelInstance = new ModelInstance(tileModel);
+    public void initializeModelInstance(final ModelInstance modelInstance) {
+        this.modelInstance = modelInstance;
         Material material = modelInstance.materials.get(0);
         material.remove(ColorAttribute.Diffuse);
-        material.set(TextureAttribute.createDiffuse((Texture) null));
-        modelInstance.transform.setTranslation(coords.getX(), 0, coords.getZ());
+        modelInstance.transform.setTranslation(coords.getX() + 0.5F, 0, coords.getZ() + 0.5F);
     }
 
     public void lift(final float delta) {

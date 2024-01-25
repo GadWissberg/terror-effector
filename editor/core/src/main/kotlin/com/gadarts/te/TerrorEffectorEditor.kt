@@ -53,7 +53,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         root: VisTable,
         gameAssetsManager: GameAssetsManager,
     ) {
-        sceneRenderer = SceneRenderer(dispatcher)
+        sceneRenderer = SceneRenderer(dispatcher, gameAssetsManager)
         val gallery = createGallery(gameAssetsManager)
         val scrollPane = VisScrollPane(gallery)
         val heightUnderBars = WINDOW_HEIGHT - (menuBar.table.height + buttonBar.table.height)
@@ -70,8 +70,9 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         SurfaceTextures.entries.forEach {
             addGalleryButton(
                 buttonGroup,
-                gameAssetsManager.getTexture(it),
+                it,
                 gallery,
+                gameAssetsManager
             )
             if (gallery.children.size % 2 == 0) {
                 gallery.row()
@@ -129,15 +130,16 @@ class TerrorEffectorEditor : ApplicationAdapter() {
 
     private fun addGalleryButton(
         buttonGroup: ButtonGroup<VisImageButton>,
-        icon: Texture,
+        icon: SurfaceTextures,
         table: Table,
+        gameAssetsManager: GameAssetsManager,
     ) {
         val up = TextureRegionDrawable(editorAsset.get(BUTTON_GALLERY_UP.getFileName(), Texture::class.java))
         val style = VisImageButton.VisImageButtonStyle(
             up,
             TextureRegionDrawable(editorAsset.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
             TextureRegionDrawable(editorAsset.get(BUTTON_GALLERY_CHECKED.getFileName(), Texture::class.java)),
-            TextureRegionDrawable(icon),
+            TextureRegionDrawable(gameAssetsManager.getTexture(icon)),
             null, null
         )
         val overTexture = editorAsset.get(BUTTON_GALLERY_OVER.getFileName(), Texture::class.java)
