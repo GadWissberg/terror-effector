@@ -3,7 +3,6 @@ package com.gadarts.te.renderer.handlers
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
-import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
@@ -95,7 +94,7 @@ class CursorHandler :
         updateFloorCursorPosition(screenX, screenY)
         val current = floorModelInstanceCursor.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
         if (!prevFloorCursorPosition.epsilonEquals(current.x, 0F, current.z, 0.01F)) {
-            dispatcher.dispatchMessage(EditorEvents.DRAGGED_GRID_CELL.ordinal)
+            dispatcher.dispatchMessage(EditorEvents.DRAGGED_GRID_CELL.ordinal, auxVector2_1.set(current.x, current.z))
         }
         return true
     }
@@ -163,7 +162,4 @@ class CursorHandler :
 
     }
 
-    override fun handleMessage(msg: Telegram?): Boolean {
-        return false
-    }
 }

@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
-import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
@@ -126,10 +125,6 @@ class CameraHandler : InputProcessor,
     companion object {
         const val MAX_ROTATION_ANGLE_STEP: Float = 6.4f
         val groundPlane = Plane(Vector3.Y, 0F)
-    }
-
-    override fun handleMessage(msg: Telegram?): Boolean {
-        return false
     }
 
     override fun dispose() {

@@ -1,20 +1,20 @@
 package com.gadarts.te.renderer.handlers.actions
 
 import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.renderer.handlers.BaseHandler
+import com.gadarts.te.renderer.handlers.HandlerOnEvent
 
 class ActionsHandler : BaseHandler(), InputProcessor {
-    private var currentAction: Action? = null
+    var currentAction: Action? = null
 
-    override fun getSubscribedEvents(): List<EditorEvents> {
-        return listOf(
-            EditorEvents.ACTION_BEGIN,
-            EditorEvents.ACTION_TAKE_STEP,
-            EditorEvents.ACTION_DONE
+    override fun getSubscribedEvents(): Map<EditorEvents, HandlerOnEvent> {
+        return mapOf(
+            EditorEvents.ACTION_BEGIN to ActionsHandlerOnActionBegin(this),
+            EditorEvents.ACTION_TAKE_STEP to ActionsHandlerOnActionTakeStep(this),
+            EditorEvents.ACTION_DONE to ActionsHandlerOnActionDone(this)
         )
     }
 
@@ -22,30 +22,6 @@ class ActionsHandler : BaseHandler(), InputProcessor {
     }
 
     override fun onRender(batch: ModelBatch) {
-    }
-
-    override fun handleMessage(msg: Telegram): Boolean {
-        var handled = false
-
-        when (msg.message) {
-            EditorEvents.ACTION_BEGIN.ordinal -> {
-                currentAction = msg.extraInfo as Action
-                currentAction!!.takeStep()
-                handled = true
-            }
-
-            EditorEvents.ACTION_TAKE_STEP.ordinal -> {
-                currentAction!!.takeStep()
-                handled = true
-            }
-
-            EditorEvents.ACTION_DONE.ordinal -> {
-                currentAction = null
-                handled = true
-            }
-        }
-
-        return handled
     }
 
     override fun dispose() {

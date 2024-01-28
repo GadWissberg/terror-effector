@@ -12,7 +12,12 @@ class PlaceFloorTilesAction(
     private val textureDefinition: SurfaceTextures
 ) : Action {
 
-    override fun takeStep() {
+    override fun begin() {
+        mapData.setTile(position.x.toInt(), position.y.toInt(), selectedTexture, textureDefinition)
+    }
+
+    override fun takeStep(extraInfo: Any) {
+        val position = extraInfo as Vector2
         mapData.setTile(position.x.toInt(), position.y.toInt(), selectedTexture, textureDefinition)
     }
 
