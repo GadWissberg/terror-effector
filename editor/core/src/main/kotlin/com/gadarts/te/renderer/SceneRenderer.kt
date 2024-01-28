@@ -1,7 +1,6 @@
 package com.gadarts.te.renderer
 
 import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
@@ -28,34 +27,28 @@ import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.CameraUtils
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
-import com.gadarts.te.renderer.handlers.ActionsHandler
-import com.gadarts.te.renderer.handlers.CameraHandler
-import com.gadarts.te.renderer.handlers.CursorHandler
-import com.gadarts.te.renderer.handlers.DrawingHandler
+import com.gadarts.te.renderer.handlers.Handlers
+import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.model.MapData
 
 
-class SceneRenderer(private val dispatcher: MessageDispatcher, gameAssetsManager: GameAssetsManager) : Table(),
+class SceneRenderer(private val dispatcher: MessageDispatcher, private val gameAssetsManager: GameAssetsManager) :
+    Table(),
     Disposable, Telegraph {
-    private var actionsHandler: ActionsHandler
     private lateinit var mode: Modes
     private lateinit var eastPointerModelInstance: ModelInstance
     private lateinit var northPointerModelInstance: ModelInstance
     private lateinit var eastPointerModel: Model
     private lateinit var northPointerModel: Model
-    private val cameraHandler: CameraHandler
     private lateinit var gridModel: Model
     private val camera: OrthographicCamera = CameraUtils.createCamera(1280, 960)
     private val axisModel: Model
     private val batch = ModelBatch()
     private val modelInstances = mutableListOf<ModelInstance>()
-    private lateinit var cursorHandler: CursorHandler
     private val mapData = MapData(MAP_SIZE, gameAssetsManager.getTexture(SurfaceTextures.BLANK))
-    private val drawingHandler = DrawingHandler(dispatcher, gameAssetsManager, mapData)
 
     init {
         dispatcher.addListener(this, EditorEvents.MODE_SELECTED.ordinal)
-        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
         val modelBuilder = ModelBuilder()
         axisModel = modelBuilder.createXYZCoordinates(
             1F, Material(ColorAttribute.createDiffuse(Color.RED)),
@@ -64,9 +57,6 @@ class SceneRenderer(private val dispatcher: MessageDispatcher, gameAssetsManager
         modelInstances.add(ModelInstance(axisModel))
         val gridModelInstance = addGrid(modelBuilder)
         modelInstances.add(gridModelInstance)
-        cameraHandler = CameraHandler(camera, dispatcher)
-        actionsHandler = ActionsHandler(dispatcher)
-        inputMultiplexer.addProcessor(cameraHandler)
         addDirectionsIndicator(modelBuilder)
     }
 
@@ -139,8 +129,7 @@ class SceneRenderer(private val dispatcher: MessageDispatcher, gameAssetsManager
             groundPlane, auxVector3_2
         )
         updateDirectionsIndicator()
-        cursorHandler.update()
-        cameraHandler.update()
+        Handlers.entries.forEach { it.handlerInstance.onUpdate() }
         camera.update()
         renderModels()
     }
@@ -151,7 +140,7 @@ class SceneRenderer(private val dispatcher: MessageDispatcher, gameAssetsManager
         modelInstances.forEach {
             batch.render(it)
         }
-        cursorHandler.render(batch)
+        Handlers.entries.forEach { it.handlerInstance.onRender(batch) }
         batch.end()
     }
 
@@ -164,19 +153,18 @@ class SceneRenderer(private val dispatcher: MessageDispatcher, gameAssetsManager
         GeneralUtils.disposeObject(this, SceneRenderer::class)
     }
 
-    fun init(height: Float) {
+    fun init(heightUnderBars: Float) {
         val screenPosition = localToScreenCoordinates(auxVector2_1.set(0F, 0F))
         val screenX = screenPosition.x
         val screenY = TerrorEffectorEditor.WINDOW_HEIGHT - screenPosition.y.toInt()
-        cursorHandler = CursorHandler(camera, MAP_SIZE.toFloat(), dispatcher)
-        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
-        inputMultiplexer.addProcessor(cursorHandler)
-        cursorHandler.setViewportSize(
-            screenX,
-            screenY,
-            TerrorEffectorEditor.WINDOW_WIDTH - screenX,
-            height
-        )
+        val handlersData = HandlersData(camera, screenX, screenY, heightUnderBars, mapData)
+        Handlers.entries.forEach {
+            it.handlerInstance.onInitialize(
+                dispatcher,
+                gameAssetsManager,
+                handlersData,
+            )
+        }
     }
 
 

@@ -5,7 +5,6 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -16,15 +15,14 @@ import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
+import com.gadarts.te.TerrorEffectorEditor
+import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.map.MapUtils
 import kotlin.math.max
 
-class CursorHandler(
-    private val camera: OrthographicCamera,
-    private val mapSize: Float,
-    dispatcher: MessageDispatcher
-) :
-    Disposable, InputProcessor, BaseHandler(dispatcher) {
+class CursorHandler :
+    Disposable, InputProcessor, BaseHandler() {
+    private val prevFloorCursorPosition = Vector3()
     private var viewportScreenY: Float = 0.0f
     private var viewportScreenX: Float = 0.0f
     private var viewportHeight: Float = 0.0f
@@ -41,6 +39,7 @@ class CursorHandler(
         val cursorMaterial = floorModelInstanceCursor.materials.get(0)
         cursorMaterial.set(cursorMaterialBlendingAttribute)
         cursorMaterial.set(ColorAttribute.createDiffuse(Color.GREEN))
+        addToInputMultiplexer(this)
     }
 
     override fun dispose() {
@@ -53,6 +52,20 @@ class CursorHandler(
 
     override fun keyUp(keycode: Int): Boolean {
         return false
+    }
+
+    override fun onInitialize(
+        dispatcher: MessageDispatcher,
+        gameAssetsManager: GameAssetsManager,
+        handlersData: HandlersData,
+    ) {
+        super.onInitialize(dispatcher, gameAssetsManager, handlersData)
+        setViewportSize(
+            handlersData.screenX,
+            handlersData.screenY,
+            TerrorEffectorEditor.WINDOW_WIDTH - handlersData.screenX,
+            handlersData.heightUnderBars
+        )
     }
 
     override fun keyTyped(character: Char): Boolean {
@@ -78,27 +91,43 @@ class CursorHandler(
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-        return false
-    }
-
-    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
-        val position = fetchGridCellAtMouse(screenX, screenY)
-        floorModelInstanceCursor.transform.setTranslation(
-            MathUtils.clamp(position.x.toInt().toFloat(), 0F, mapSize) + 0.5F,
-            0F,
-            MathUtils.clamp(position.z.toInt().toFloat(), 0F, mapSize) + 0.5F
-        )
+        updatePrevCursorPosition()
+        updateFloorCursorPosition(screenX, screenY)
+        val current = floorModelInstanceCursor.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
+        if (!prevFloorCursorPosition.epsilonEquals(current.x, 0F, current.z, 0.01F)) {
+            dispatcher.dispatchMessage(EditorEvents.DRAGGED_GRID_CELL.ordinal)
+        }
         return true
     }
 
+    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        updatePrevCursorPosition()
+        updateFloorCursorPosition(screenX, screenY)
+        return true
+    }
+
+    private fun updatePrevCursorPosition() {
+        val prev = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+        prevFloorCursorPosition.set(prev.x.toInt().toFloat(), 0F, prev.z.toInt().toFloat())
+    }
+
+    private fun updateFloorCursorPosition(screenX: Int, screenY: Int) {
+        val position = fetchGridCellAtMouse(screenX, screenY)
+        floorModelInstanceCursor.transform.setTranslation(
+            MathUtils.clamp(position.x.toInt().toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F,
+            0F,
+            MathUtils.clamp(position.z.toInt().toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F
+        )
+    }
+
     private fun fetchGridCellAtMouse(screenX: Int, screenY: Int): Vector3 {
-        val unproject = camera.unproject(
+        val unproject = handlersData.camera.unproject(
             auxVector3_2.set(screenX.toFloat(), screenY.toFloat(), 0F),
             viewportScreenX, viewportScreenY,
             viewportWidth, viewportHeight
         )
         Intersector.intersectRayPlane(
-            auxRay.set(unproject, camera.direction),
+            auxRay.set(unproject, handlersData.camera.direction),
             groundPlane,
             auxVector3_2
         )
@@ -109,16 +138,17 @@ class CursorHandler(
         return false
     }
 
-    fun update() {
+    override fun onUpdate() {
         cursorMaterialBlendingAttribute.opacity = max(MathUtils.sin(cursorFading / 10F), 0.1F)
         cursorFading += 1
     }
 
-    fun render(batch: ModelBatch) {
+    override fun onRender(batch: ModelBatch) {
         batch.render(floorModelInstanceCursor)
     }
 
-    fun setViewportSize(screenX: Float, screenY: Float, width: Float, height: Float) {
+
+    private fun setViewportSize(screenX: Float, screenY: Float, width: Float, height: Float) {
         viewportScreenX = screenX
         viewportScreenY = screenY
         viewportWidth = width

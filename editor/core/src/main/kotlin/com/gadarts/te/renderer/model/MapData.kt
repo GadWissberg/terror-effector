@@ -11,7 +11,7 @@ import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapNodesTypes
 import com.gadarts.te.common.map.MapUtils
 
-class MapData(mapSize: Int, blankTexture: Texture) : Disposable {
+class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
 
     private val floorModel = MapUtils.createFloorModel()
 

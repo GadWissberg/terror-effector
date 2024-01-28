@@ -6,32 +6,42 @@ import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
-import com.badlogic.gdx.graphics.Camera
+import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
 import com.gadarts.te.GeneralUtils
+import com.gadarts.te.common.assets.GameAssetsManager
 
-class CameraHandler(private val camera: Camera, dispatcher: MessageDispatcher) : InputProcessor,
-    BaseHandler(dispatcher) {
+class CameraHandler : InputProcessor,
+    BaseHandler() {
     private val lastMouseClickPosition = Vector2()
     private val intersectionPoint = Vector3(-1F, -1F, -1F)
     private var ray: Ray? = null
     private var freelook: CameraInputController? = null
 
     init {
-        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
         if (DebugSettings.FREELOOK) {
-            freelook = CameraInputController(camera)
-            inputMultiplexer.addProcessor(freelook)
+            freelook = CameraInputController(handlersData.camera)
+            addToInputMultiplexer(this)
         }
+    }
+
+    override fun onInitialize(
+        dispatcher: MessageDispatcher,
+        gameAssetsManager: GameAssetsManager,
+        handlersData: HandlersData,
+    ) {
+        super.onInitialize(dispatcher, gameAssetsManager, handlersData)
+        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
+        inputMultiplexer.addProcessor(this)
     }
 
     override fun keyDown(keycode: Int): Boolean {
         var result = false
         if (keycode == Input.Keys.CONTROL_LEFT) {
-            ray = camera.getPickRay(Gdx.graphics.width / 2F, Gdx.graphics.height / 2F)
+            ray = handlersData.camera.getPickRay(Gdx.graphics.width / 2F, Gdx.graphics.height / 2F)
             result = true
         }
         return result
@@ -89,7 +99,7 @@ class CameraHandler(private val camera: Camera, dispatcher: MessageDispatcher) :
                 -MAX_ROTATION_ANGLE_STEP,
                 MAX_ROTATION_ANGLE_STEP
             )
-            camera.rotateAround(
+            handlersData.camera.rotateAround(
                 intersectionPoint, Vector3.Y, angle
             )
             lastMouseClickPosition.set(xFloat, yFloat)
@@ -105,8 +115,12 @@ class CameraHandler(private val camera: Camera, dispatcher: MessageDispatcher) :
         return false
     }
 
-    fun update() {
+    override fun onUpdate() {
         freelook?.update()
+    }
+
+    override fun onRender(batch: ModelBatch) {
+
     }
 
     companion object {
