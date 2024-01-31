@@ -134,6 +134,11 @@ class CursorHandler :
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+        dispatcher.dispatchMessage(
+            (if (amountY > 0) EditorEvents.SCROLLED_DOWN else EditorEvents.SCROLLED_UP).ordinal,
+            auxVector2_1.set(position.x, position.z)
+        )
         return false
     }
 

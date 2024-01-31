@@ -28,15 +28,24 @@ class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
     }
 
     fun setTile(x: Int, z: Int, selectedTexture: Texture, textureDefinition: SurfaceTextures) {
-        val modelInstance = ModelInstance(floorModel)
-        (modelInstance.materials.get(0).get(TextureAttribute.Diffuse) as TextureAttribute).textureDescription.texture =
-            selectedTexture
-        val mapNodeData = MapNodeData(x, z, MapNodesTypes.PASSABLE_NODE, modelInstance, textureDefinition)
-        matrix[z][x] = mapNodeData
-        definedTiles.add(mapNodeData)
+        val mapNodeData: MapNodeData
+        if (matrix[z][x] == null) {
+            val modelInstance = ModelInstance(floorModel)
+            mapNodeData = MapNodeData(x, z, MapNodesTypes.PASSABLE_NODE, modelInstance, textureDefinition)
+            definedTiles.add(mapNodeData)
+            matrix[z][x] = mapNodeData
+        } else {
+            mapNodeData = matrix[z][x]!!
+        }
+        (mapNodeData.modelInstance.materials.get(0)
+            .get(TextureAttribute.Diffuse) as TextureAttribute).textureDescription.texture = selectedTexture
     }
 
     fun render(batch: ModelBatch) {
         definedTiles.forEach { batch.render(it.modelInstance) }
+    }
+
+    fun getTile(x: Int, z: Int): MapNodeData? {
+        return matrix[z][x]
     }
 }

@@ -2,16 +2,13 @@ package com.gadarts.te.renderer.handlers
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.InputProcessor
-import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
 import com.gadarts.te.GeneralUtils
-import com.gadarts.te.common.assets.GameAssetsManager
 
 class CameraHandler : InputProcessor,
     BaseHandler() {
@@ -23,18 +20,8 @@ class CameraHandler : InputProcessor,
     init {
         if (DebugSettings.FREELOOK) {
             freelook = CameraInputController(handlersData.camera)
-            addToInputMultiplexer(this)
         }
-    }
-
-    override fun onInitialize(
-        dispatcher: MessageDispatcher,
-        gameAssetsManager: GameAssetsManager,
-        handlersData: HandlersData,
-    ) {
-        super.onInitialize(dispatcher, gameAssetsManager, handlersData)
-        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
-        inputMultiplexer.addProcessor(this)
+        addToInputMultiplexer(this)
     }
 
     override fun keyDown(keycode: Int): Boolean {
