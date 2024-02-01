@@ -6,6 +6,7 @@ import com.gadarts.te.GeneralUtils
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
+import com.gadarts.te.renderer.handlers.drawing.react.*
 
 class DrawingHandlerImpl : BaseHandler(), DrawingHandler {
     override var selectedTexture: SurfaceTextures? = null

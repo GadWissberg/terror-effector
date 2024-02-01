@@ -1,4 +1,4 @@
-package com.gadarts.te.renderer.handlers.actions
+package com.gadarts.te.renderer.handlers.actions.types
 
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.math.Vector2

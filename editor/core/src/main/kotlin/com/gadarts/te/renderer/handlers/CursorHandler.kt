@@ -10,12 +10,14 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.math.*
+import com.badlogic.gdx.math.Matrix4.M13
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapUtils
 import kotlin.math.max
 
@@ -112,10 +114,12 @@ class CursorHandler :
 
     private fun updateFloorCursorPosition(screenX: Int, screenY: Int) {
         val position = fetchGridCellAtMouse(screenX, screenY)
+        val x = position.x.toInt()
+        val z = position.z.toInt()
         floorModelInstanceCursor.transform.setTranslation(
-            MathUtils.clamp(position.x.toInt().toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F,
-            0F,
-            MathUtils.clamp(position.z.toInt().toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F
+            MathUtils.clamp(x.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F,
+            MathUtils.clamp(handlersData.mapData.getTile(x, z)?.height ?: 0F, 0F, MapNodeData.MAX_FLOOR_HEIGHT),
+            MathUtils.clamp(z.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F
         )
     }
 
@@ -139,7 +143,13 @@ class CursorHandler :
             (if (amountY > 0) EditorEvents.SCROLLED_DOWN else EditorEvents.SCROLLED_UP).ordinal,
             auxVector2_1.set(position.x, position.z)
         )
-        return false
+        floorModelInstanceCursor.transform.values[M13] =
+            MathUtils.clamp(
+                handlersData.mapData.getTile(position.x.toInt(), position.z.toInt())?.height ?: 0F,
+                0F,
+                MapNodeData.MAX_FLOOR_HEIGHT
+            )
+        return true
     }
 
     override fun onUpdate() {

@@ -1,4 +1,4 @@
-package com.gadarts.te.renderer.handlers.actions
+package com.gadarts.te.renderer.handlers.actions.handler
 
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.graphics.g3d.ModelBatch
@@ -6,6 +6,7 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
+import com.gadarts.te.renderer.handlers.actions.types.Action
 
 class ActionsHandlerImpl : ActionsHandler, BaseHandler(), InputProcessor {
     override var currentAction: Action? = null

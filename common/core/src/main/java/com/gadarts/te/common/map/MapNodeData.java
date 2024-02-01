@@ -3,6 +3,7 @@ package com.gadarts.te.common.map;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
 import lombok.AccessLevel;
@@ -15,8 +16,8 @@ import static com.badlogic.gdx.math.Matrix4.M13;
 @Setter
 public class MapNodeData {
 
+    public static final float MAX_FLOOR_HEIGHT = 5F;
     private final static Vector3 auxVector = new Vector3();
-
     @Setter(AccessLevel.NONE)
     private Coords coords;
 
@@ -42,17 +43,12 @@ public class MapNodeData {
         modelInstance.transform.setTranslation(coords.getX() + 0.5F, 0, coords.getZ() + 0.5F);
     }
 
-    public void lift(final float delta) {
-        height += delta;
-        if (modelInstance != null) {
-            modelInstance.transform.translate(0, delta, 0);
-        }
-    }
+    public void applyHeight(float value) {
+        value = MathUtils.clamp(value, 0F, MAX_FLOOR_HEIGHT);
 
-    public void applyHeight(final float fixed) {
-        height = fixed;
+        height = value;
         if (modelInstance != null) {
-            modelInstance.transform.val[M13] = fixed;
+            modelInstance.transform.val[M13] = value;
         }
     }
 
@@ -60,7 +56,4 @@ public class MapNodeData {
         return coords.equals(row, col);
     }
 
-    public float getHeight( ) {
-        return height;
-    }
 }

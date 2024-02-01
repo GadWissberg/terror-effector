@@ -10,8 +10,10 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.map.WallCreator
 
 abstract class BaseHandler : Telegraph, Disposable {
+    private lateinit var wallCreator: WallCreator
     protected lateinit var handlersData: HandlersData
     protected lateinit var gameAssetsManager: GameAssetsManager
     protected lateinit var dispatcher: MessageDispatcher
@@ -23,6 +25,7 @@ abstract class BaseHandler : Telegraph, Disposable {
     ) {
         this.dispatcher = dispatcher
         this.gameAssetsManager = gameAssetsManager
+        this.wallCreator = WallCreator(gameAssetsManager)
         this.handlersData = handlersData
         getSubscribedEvents().forEach { dispatcher.addListener(this, it.key.ordinal) }
     }
@@ -46,6 +49,7 @@ abstract class BaseHandler : Telegraph, Disposable {
                 handlersData,
                 gameAssetsManager,
                 dispatcher,
+                wallCreator
             )
             handled = true
         }

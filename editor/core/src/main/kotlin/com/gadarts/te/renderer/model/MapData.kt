@@ -10,6 +10,7 @@ import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapNodesTypes
 import com.gadarts.te.common.map.MapUtils
+import com.gadarts.te.common.map.Wall
 
 class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
 
@@ -42,10 +43,24 @@ class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
     }
 
     fun render(batch: ModelBatch) {
-        definedTiles.forEach { batch.render(it.modelInstance) }
+        definedTiles.forEach {
+            batch.render(it.modelInstance)
+            renderWall(batch, it.walls.eastWall)
+            renderWall(batch, it.walls.northWall)
+            renderWall(batch, it.walls.westWall)
+            renderWall(batch, it.walls.southWall)
+        }
+    }
+
+    private fun renderWall(batch: ModelBatch, wall: Wall?) {
+        if (wall != null) {
+            batch.render(wall.modelInstance)
+        }
     }
 
     fun getTile(x: Int, z: Int): MapNodeData? {
+        if (x < 0 || x >= mapSize || z < 0 || z >= mapSize) return null
+
         return matrix[z][x]
     }
 }

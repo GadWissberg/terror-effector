@@ -1,21 +1,22 @@
-package com.gadarts.te.renderer.handlers.drawing
+package com.gadarts.te.renderer.handlers.actions.handler
 
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.assets.texture.SurfaceTextures
+import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
 
-class DrawingHandlerOnTextureSelected(private val drawingHandler: DrawingHandler) : HandlerOnEvent {
+class ActionsHandlerOnActionDone(private val actionsHandler: ActionsHandler) :
+    HandlerOnEvent {
     override fun react(
         msg: Telegram,
         handlersData: HandlersData,
         gameAssetsManager: GameAssetsManager,
         dispatcher: MessageDispatcher,
+        wallCreator: WallCreator
     ) {
-        drawingHandler.selectedTexture = msg.extraInfo as SurfaceTextures
+        actionsHandler.currentAction = null
     }
-
 
 }
