@@ -8,6 +8,7 @@ import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.utils.Disposable
+import com.gadarts.te.DebugSettings
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.map.WallCreator
@@ -40,6 +41,8 @@ abstract class BaseHandler : Telegraph, Disposable {
     }
 
     override fun handleMessage(msg: Telegram): Boolean {
+        if (DebugSettings.FREELOOK) return false
+
         var handled = false
 
         val subscribedEvents = getSubscribedEvents()

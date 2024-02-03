@@ -3,12 +3,14 @@ package com.gadarts.te.renderer.handlers
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
 import com.gadarts.te.GeneralUtils
+import com.gadarts.te.common.assets.GameAssetsManager
 
 class CameraHandler : InputProcessor,
     BaseHandler() {
@@ -16,13 +18,6 @@ class CameraHandler : InputProcessor,
     private val intersectionPoint = Vector3(-1F, -1F, -1F)
     private var ray: Ray? = null
     private var freelook: CameraInputController? = null
-
-    init {
-        if (DebugSettings.FREELOOK) {
-            freelook = CameraInputController(handlersData.camera)
-        }
-        addToInputMultiplexer(this)
-    }
 
     override fun keyDown(keycode: Int): Boolean {
         var result = false
@@ -48,6 +43,8 @@ class CameraHandler : InputProcessor,
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        if (DebugSettings.FREELOOK) return false
+
         var result = false
         if (button == Input.Buttons.RIGHT && ray != null) {
             Intersector.intersectRayPlane(ray, groundPlane, intersectionPoint)
@@ -99,6 +96,19 @@ class CameraHandler : InputProcessor,
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
         return false
+    }
+
+    override fun onInitialize(
+        dispatcher: MessageDispatcher,
+        gameAssetsManager: GameAssetsManager,
+        handlersData: HandlersData
+    ) {
+        super.onInitialize(dispatcher, gameAssetsManager, handlersData)
+        if (DebugSettings.FREELOOK) {
+            freelook = CameraInputController(handlersData.camera)
+            addToInputMultiplexer(freelook!!)
+        }
+        addToInputMultiplexer(this)
     }
 
     override fun onUpdate() {
