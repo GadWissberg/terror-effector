@@ -1,4 +1,4 @@
-package com.gadarts.te.renderer.handlers
+package com.gadarts.te.renderer.handlers.cursor
 
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
@@ -20,11 +20,14 @@ import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapUtils
+import com.gadarts.te.renderer.handlers.BaseHandler
+import com.gadarts.te.renderer.handlers.HandlersData
 import kotlin.math.abs
 import kotlin.math.max
 
 class CursorHandler :
     Disposable, InputProcessor, BaseHandler() {
+    private val selectedNodes = mutableListOf<SelectedNode>()
     private val originalFloorModelInstanceCursorPosition = Vector3()
     private var selecting: Boolean = false
     private val prevFloorCursorPosition = Vector3()
@@ -45,37 +48,26 @@ class CursorHandler :
         val cursorMaterial = floorModelInstanceCursor.materials.get(0)
         cursorMaterial.set(cursorMaterialBlendingAttribute)
         cursorMaterial.set(ColorAttribute.createDiffuse(Color.GREEN))
-        addToInputMultiplexer(this)
     }
 
     override fun dispose() {
         GeneralUtils.disposeObject(this, CursorHandler::class)
     }
 
-    override fun keyDown(keycode: Int): Boolean {
-        var handled = false
-        if (keycode == Input.Keys.SHIFT_LEFT) {
-            selecting = true
-            handled = true
-            floorModelInstanceCursor.nodes.get(0).localTransform.trn(0.5F, 0F, 0.5F)
-            floorModelInstanceCursor.calculateTransforms()
-            floorModelInstanceCursor.transform.trn(-0.5F, 0F, -0.5F)
-            floorModelInstanceCursor.transform.getTranslation(originalFloorModelInstanceCursorPosition)
-        }
-        return handled
+    private fun turnOnSelectingCursor() {
+        selecting = true
+        floorModelInstanceCursor.nodes.get(0).localTransform.trn(0.5F, 0.01F, 0.5F)
+        floorModelInstanceCursor.calculateTransforms()
+        floorModelInstanceCursor.transform.trn(-0.5F, 0F, -0.5F)
+        floorModelInstanceCursor.transform.getTranslation(originalFloorModelInstanceCursorPosition)
     }
 
-    override fun keyUp(keycode: Int): Boolean {
-        var handled = false
-        if (keycode == Input.Keys.SHIFT_LEFT) {
-            selecting = false
-            handled = true
-            floorModelInstanceCursor.transform.values[Matrix4.M00] = 1F
-            floorModelInstanceCursor.transform.values[Matrix4.M22] = 1F
-            floorModelInstanceCursor.nodes.get(0).localTransform.trn(-0.5F, 0F, -0.5F)
-            floorModelInstanceCursor.calculateTransforms()
-        }
-        return handled
+    private fun turnOffSelectingCursor() {
+        selecting = false
+        floorModelInstanceCursor.transform.values[Matrix4.M00] = 1F
+        floorModelInstanceCursor.transform.values[Matrix4.M22] = 1F
+        floorModelInstanceCursor.nodes.get(0).localTransform.trn(-0.5F, -0.01F, -0.5F)
+        floorModelInstanceCursor.calculateTransforms()
     }
 
     override fun onInitialize(
@@ -84,12 +76,21 @@ class CursorHandler :
         handlersData: HandlersData,
     ) {
         super.onInitialize(dispatcher, gameAssetsManager, handlersData)
+        addToInputMultiplexer(this)
         setViewportSize(
             handlersData.screenX,
             handlersData.screenY,
             TerrorEffectorEditor.WINDOW_WIDTH - handlersData.screenX,
             handlersData.heightUnderBars
         )
+    }
+
+    override fun keyDown(keycode: Int): Boolean {
+        return false
+    }
+
+    override fun keyUp(keycode: Int): Boolean {
+        return false
     }
 
     override fun keyTyped(character: Char): Boolean {
@@ -99,17 +100,36 @@ class CursorHandler :
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
 
-        var result = false
+        var handled = false
         if (button == Input.Buttons.LEFT) {
             val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
             dispatcher.dispatchMessage(EditorEvents.CLICKED_GRID_CELL.ordinal, auxVector2_1.set(position.x, position.z))
-            result = true
+            selectedNodes.clear()
+            handled = true
+        } else if (button == Input.Buttons.RIGHT && !selecting) {
+            turnOnSelectingCursor()
+            handled = true
         }
-        return result
+        return handled
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        return false
+        var handled = false
+        if (button == Input.Buttons.RIGHT && selecting) {
+            handled = true
+            val northWestPosition = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+            val selectionBoxSize = floorModelInstanceCursor.transform.getScale(auxVector3_1)
+            selectedNodes.clear()
+            val northWestX = northWestPosition.x.toInt()
+            val northWestZ = northWestPosition.z.toInt()
+            for (x in northWestX until northWestX + selectionBoxSize.x.toInt()) {
+                for (z in northWestZ until northWestZ + selectionBoxSize.z.toInt()) {
+                    selectedNodes.add(SelectedNode(x, z, ModelInstance(floorModel)))
+                }
+            }
+            turnOffSelectingCursor()
+        }
+        return handled
     }
 
     override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -117,11 +137,18 @@ class CursorHandler :
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-        updatePrevCursorPosition()
-        updateFloorCursorPosition(screenX, screenY)
-        val current = floorModelInstanceCursor.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
-        if (!prevFloorCursorPosition.epsilonEquals(current.x, 0F, current.z, 0.01F)) {
-            dispatcher.dispatchMessage(EditorEvents.DRAGGED_GRID_CELL.ordinal, auxVector2_1.set(current.x, current.z))
+        if (!selecting) {
+            updatePrevCursorPosition()
+            updateFloorCursorPosition(screenX, screenY)
+            val current = floorModelInstanceCursor.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
+            if (!prevFloorCursorPosition.epsilonEquals(current.x, 0F, current.z, 0.01F)) {
+                dispatcher.dispatchMessage(
+                    EditorEvents.DRAGGED_GRID_CELL.ordinal,
+                    auxVector2_1.set(current.x, current.z)
+                )
+            }
+        } else {
+            updateSelectionBox(screenX, screenY)
         }
         return true
     }
@@ -133,28 +160,25 @@ class CursorHandler :
             updatePrevCursorPosition()
             updateFloorCursorPosition(screenX, screenY)
         } else {
-            val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_1)
-            val mousePosition = fetchGridCellAtMouse(screenX, screenY)
-            floorModelInstanceCursor.transform.values[Matrix4.M00] =
-                abs(mousePosition.x.toInt() - (position.x)) + 1F
-            floorModelInstanceCursor.transform.values[Matrix4.M22] =
-                abs(mousePosition.z.toInt() - (position.z)) + 1F
-            if (mousePosition.x.toInt() < (position.x)) {
-                floorModelInstanceCursor.transform.trn(
-                    originalFloorModelInstanceCursorPosition.x - (position.x + mousePosition.x.toInt() + 1F),
-                    0F,
-                    0F
-                )
-            }
-            if (mousePosition.z.toInt() < (position.z)) {
-                floorModelInstanceCursor.transform.trn(
-                    0F,
-                    0F,
-                    originalFloorModelInstanceCursorPosition.z - position.z + mousePosition.z.toInt()
-                )
-            }
+            updateSelectionBox(screenX, screenY)
         }
         return true
+    }
+
+    private fun updateSelectionBox(screenX: Int, screenY: Int) {
+        val mousePosition = fetchGridCellAtMouse(screenX, screenY)
+        val mousePositionX = mousePosition.x.toInt()
+        floorModelInstanceCursor.transform.values[Matrix4.M00] =
+            abs(mousePositionX - (originalFloorModelInstanceCursorPosition.x)) + 1F
+        val mousePositionZ = mousePosition.z.toInt()
+        floorModelInstanceCursor.transform.values[Matrix4.M22] =
+            abs(mousePositionZ - (originalFloorModelInstanceCursorPosition.z)) + 1F
+        if (mousePositionX < (originalFloorModelInstanceCursorPosition.x)) {
+            floorModelInstanceCursor.transform.values[Matrix4.M03] = mousePositionX.toFloat()
+        }
+        if (mousePositionZ < (originalFloorModelInstanceCursorPosition.z)) {
+            floorModelInstanceCursor.transform.values[Matrix4.M23] = mousePositionZ.toFloat()
+        }
     }
 
     private fun updatePrevCursorPosition() {
@@ -209,6 +233,7 @@ class CursorHandler :
 
     override fun onRender(batch: ModelBatch) {
         batch.render(floorModelInstanceCursor)
+        selectedNodes.forEach { batch.render(it.modelInstance) }
     }
 
 
