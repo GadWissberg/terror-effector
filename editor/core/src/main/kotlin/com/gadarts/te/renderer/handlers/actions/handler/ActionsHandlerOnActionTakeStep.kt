@@ -16,7 +16,7 @@ class ActionsHandlerOnActionTakeStep(private val actionsHandler: ActionsHandler)
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator
     ) {
-        actionsHandler.currentAction!!.takeStep(msg.extraInfo)
+        actionsHandler.currentAction?.takeStep(msg.extraInfo)
     }
 
 }

@@ -18,6 +18,7 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapUtils
 import com.gadarts.te.renderer.handlers.BaseHandler
@@ -102,9 +103,15 @@ class CursorHandler :
 
         var handled = false
         if (button == Input.Buttons.LEFT) {
-            val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
-            dispatcher.dispatchMessage(EditorEvents.CLICKED_GRID_CELL.ordinal, auxVector2_1.set(position.x, position.z))
-            selectedNodes.clear()
+            if (selectedNodes.isEmpty()) {
+                val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+                dispatcher.dispatchMessage(
+                    EditorEvents.CLICKED_GRID_CELL.ordinal,
+                    auxVector2_1.set(position.x, position.z)
+                )
+            } else {
+                selectedNodes.clear()
+            }
             handled = true
         } else if (button == Input.Buttons.RIGHT && !selecting) {
             turnOnSelectingCursor()
@@ -192,7 +199,7 @@ class CursorHandler :
         val z = position.z.toInt()
         floorModelInstanceCursor.transform.setTranslation(
             MathUtils.clamp(x.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F,
-            MathUtils.clamp(handlersData.mapData.getTile(x, z)?.height ?: 0F, 0F, MapNodeData.MAX_FLOOR_HEIGHT),
+            MathUtils.clamp(handlersData.mapData.getNode(x, z)?.height ?: 0F, 0F, MapNodeData.MAX_FLOOR_HEIGHT),
             MathUtils.clamp(z.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F
         )
     }
@@ -213,13 +220,19 @@ class CursorHandler :
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
         val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+        auxList.clear()
+        if (selectedNodes.isEmpty()) {
+            auxList.add(Coords(position.x.toInt(), position.z.toInt()))
+        } else {
+            selectedNodes.forEach { auxList.add(Coords(it.x, it.z)) }
+        }
         dispatcher.dispatchMessage(
             (if (amountY > 0) EditorEvents.SCROLLED_DOWN else EditorEvents.SCROLLED_UP).ordinal,
-            auxVector2_1.set(position.x, position.z)
+            auxList
         )
         floorModelInstanceCursor.transform.values[M13] =
             MathUtils.clamp(
-                handlersData.mapData.getTile(position.x.toInt(), position.z.toInt())?.height ?: 0F,
+                handlersData.mapData.getNode(position.x.toInt(), position.z.toInt())?.height ?: 0F,
                 0F,
                 MapNodeData.MAX_FLOOR_HEIGHT
             )
@@ -250,7 +263,7 @@ class CursorHandler :
         private val auxRay = Ray()
         private val groundPlane = Plane(Vector3.Y, 0F)
         private val auxVector2_1 = Vector2()
-
+        private val auxList = mutableListOf<Coords>()
     }
 
 }

@@ -16,8 +16,8 @@ class DrawingHandlerImpl : BaseHandler(), DrawingHandler {
             EditorEvents.CLICKED_GRID_CELL to DrawingHandlerOnClickedGridCell(this),
             EditorEvents.TEXTURE_SELECTED to DrawingHandlerOnTextureSelected(this),
             EditorEvents.DRAGGED_GRID_CELL to DrawingHandlerOnDraggedGridCell(this),
-            EditorEvents.SCROLLED_UP to DrawingHandlerOnScrolledUp(this),
-            EditorEvents.SCROLLED_DOWN to DrawingHandlerOnScrolledDown(this)
+            EditorEvents.SCROLLED_UP to DrawingHandlerOnScrolledUp(),
+            EditorEvents.SCROLLED_DOWN to DrawingHandlerOnScrolledDown()
         )
     }
 

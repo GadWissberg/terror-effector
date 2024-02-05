@@ -58,7 +58,7 @@ class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
         }
     }
 
-    fun getTile(x: Int, z: Int): MapNodeData? {
+    fun getNode(x: Int, z: Int): MapNodeData? {
         if (x < 0 || x >= mapSize || z < 0 || z >= mapSize) return null
 
         return matrix[z][x]

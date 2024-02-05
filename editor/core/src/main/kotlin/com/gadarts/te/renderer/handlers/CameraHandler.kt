@@ -55,7 +55,7 @@ class CameraHandler : InputProcessor,
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         var result = false
-        if (button == Input.Buttons.RIGHT) {
+        if (button == Input.Buttons.RIGHT && !intersectionPoint.epsilonEquals(-1F, -1F, -1F)) {
             intersectionPoint.set(-1F, -1F, -1F)
             result = true
         }

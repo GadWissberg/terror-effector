@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 
-class SelectedNode(x: Int, z: Int, val modelInstance: ModelInstance) {
+class SelectedNode(val x: Int, val z: Int, val modelInstance: ModelInstance) {
     init {
         val material = modelInstance.materials.get(0)
         material.set(ColorAttribute.createDiffuse(Color.SKY))

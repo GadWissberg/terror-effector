@@ -2,8 +2,9 @@ package com.gadarts.te.renderer.handlers.drawing.react
 
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
-import com.badlogic.gdx.math.Vector2
 import com.gadarts.te.EditorEvents
+import com.gadarts.te.common.map.Coords
+import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
@@ -15,15 +16,28 @@ abstract class DrawingHandlerOnScrolledEvent : HandlerOnEvent {
         handlersData: HandlersData,
         wallCreator: WallCreator,
         dispatcher: MessageDispatcher,
-        value: Int
+        value: Int,
     ) {
+        val nodes = msg.extraInfo as List<*>
+        auxList.clear()
+        nodes.forEach {
+            it as Coords
+            val nodeData = handlersData.mapData.getNode(it.x, it.z)
+            if (nodeData != null) {
+                auxList.add(nodeData)
+            }
+        }
         val action = ChangeFloorHeightAction(
-            msg.extraInfo as Vector2,
+            auxList,
             handlersData.mapData,
             value,
             wallCreator
         )
         dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action)
+    }
+
+    companion object {
+        private val auxList = mutableListOf<MapNodeData>()
     }
 
 
