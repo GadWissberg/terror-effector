@@ -14,7 +14,8 @@ class DrawingHandlerImpl : BaseHandler(), DrawingHandler {
     override fun getSubscribedEvents(): Map<EditorEvents, HandlerOnEvent> {
         return mapOf(
             EditorEvents.CLICKED_GRID_CELL to DrawingHandlerOnClickedGridCell(this),
-            EditorEvents.TEXTURE_SELECTED to DrawingHandlerOnTextureSelected(this),
+            EditorEvents.TEXTURE_SELECTED_VIA_GALLERY to DrawingHandlerOnTextureSelected(this),
+            EditorEvents.TEXTURE_SELECTED_FOR_NODES to DrawingHandlerOnTextureSelectedForNodes(this),
             EditorEvents.DRAGGED_GRID_CELL to DrawingHandlerOnDraggedGridCell(this),
             EditorEvents.SCROLLED_UP to DrawingHandlerOnScrolledUp(),
             EditorEvents.SCROLLED_DOWN to DrawingHandlerOnScrolledDown()

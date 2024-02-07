@@ -2,7 +2,9 @@ package com.gadarts.te
 
 enum class EditorEvents {
     MODE_SELECTED,
-    TEXTURE_SELECTED,
+    TEXTURE_SELECTED_VIA_GALLERY,
+    TEXTURE_SET,
+    TEXTURE_SELECTED_FOR_NODES,
     CLICKED_GRID_CELL,
     SCROLLED_UP,
     SCROLLED_DOWN,

@@ -148,7 +148,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         imageButton.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
                 super.clicked(event, x, y)
-                dispatcher.dispatchMessage(EditorEvents.TEXTURE_SELECTED.ordinal, icon)
+                dispatcher.dispatchMessage(EditorEvents.TEXTURE_SELECTED_VIA_GALLERY.ordinal, icon)
             }
         })
         imageButton.imageCell.size(48F, 48F)

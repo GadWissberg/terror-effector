@@ -28,7 +28,7 @@ class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
         GeneralUtils.disposeObject(this, MapData::class)
     }
 
-    fun setTile(x: Int, z: Int, selectedTexture: Texture, textureDefinition: SurfaceTextures) {
+    fun setNode(x: Int, z: Int, selectedTexture: Texture, textureDefinition: SurfaceTextures) {
         val mapNodeData: MapNodeData
         if (matrix[z][x] == null) {
             val modelInstance = ModelInstance(floorModel)
