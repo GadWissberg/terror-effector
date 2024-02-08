@@ -14,7 +14,7 @@ class DrawingHandlerOnScrolledDown : DrawingHandlerOnScrolledEvent() {
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator,
     ) {
-        invokeHeightChange(msg, handlersData, wallCreator, dispatcher, -1)
+        invokeHeightChange(msg, handlersData, wallCreator, dispatcher, -LIFT_STEP_SIZE)
     }
 
 }

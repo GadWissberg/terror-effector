@@ -16,7 +16,7 @@ abstract class DrawingHandlerOnScrolledEvent : HandlerOnEvent {
         handlersData: HandlersData,
         wallCreator: WallCreator,
         dispatcher: MessageDispatcher,
-        value: Int,
+        value: Float,
     ) {
         val nodes = msg.extraInfo as List<*>
         auxList.clear()
@@ -38,6 +38,7 @@ abstract class DrawingHandlerOnScrolledEvent : HandlerOnEvent {
 
     companion object {
         private val auxList = mutableListOf<MapNodeData>()
+        const val LIFT_STEP_SIZE = 0.1F
     }
 
 

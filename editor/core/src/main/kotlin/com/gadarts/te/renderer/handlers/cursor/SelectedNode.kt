@@ -6,11 +6,11 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.gadarts.te.common.map.Coords
 
-class SelectedNode(val coords: Coords, val modelInstance: ModelInstance) {
+class SelectedNode(val coords: Coords, val modelInstance: ModelInstance, height: Float) {
     init {
         val material = modelInstance.materials.get(0)
         material.set(ColorAttribute.createDiffuse(Color.SKY))
         material.set(BlendingAttribute(0.5F))
-        modelInstance.transform.setTranslation(coords.x + 0.5F, 0.01F, coords.z + 0.5F)
+        modelInstance.transform.setTranslation(coords.x + 0.5F, height + 0.01F, coords.z + 0.5F)
     }
 }

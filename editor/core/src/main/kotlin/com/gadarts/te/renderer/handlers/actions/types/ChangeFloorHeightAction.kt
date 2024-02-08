@@ -7,7 +7,7 @@ import com.gadarts.te.renderer.model.MapData
 class ChangeFloorHeightAction(
     private val nodes: List<MapNodeData>,
     private val mapData: MapData,
-    private val valueToAdd: Int,
+    private val valueToAdd: Float,
     private val wallCreator: WallCreator
 ) : SingleStepAction {
     override fun begin() {

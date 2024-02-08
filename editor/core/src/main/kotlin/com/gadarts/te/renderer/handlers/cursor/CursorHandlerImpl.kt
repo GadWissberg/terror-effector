@@ -137,7 +137,13 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             val northWestZ = northWestPosition.z.toInt()
             for (x in northWestX until northWestX + selectionBoxSize.x.toInt()) {
                 for (z in northWestZ until northWestZ + selectionBoxSize.z.toInt()) {
-                    selectedNodes.add(SelectedNode(Coords(x, z), ModelInstance(floorModel)))
+                    val node = handlersData.mapData.getNode(x, z)
+                    selectedNodes.add(
+                        SelectedNode(
+                            Coords(x, z), ModelInstance(floorModel),
+                            node?.height ?: 0F
+                        )
+                    )
                 }
             }
             turnOffSelectingCursor()
