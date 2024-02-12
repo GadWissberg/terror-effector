@@ -24,6 +24,8 @@ import com.gadarts.te.common.map.MapUtils
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
+import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnNodesHeightSet
+import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnTextureSet
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -101,6 +103,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun getSubscribedEvents(): Map<EditorEvents, HandlerOnEvent> {
         return mapOf(
             EditorEvents.TEXTURE_SET to CursorHandlerOnTextureSet(this),
+            EditorEvents.NODES_HEIGHT_SET to CursorHandlerOnNodesHeightSet(this)
         )
     }
 
@@ -127,28 +130,33 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
-        var handled = false
         if (button == Input.Buttons.RIGHT && selecting) {
-            handled = true
-            val northWestPosition = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
-            val selectionBoxSize = floorModelInstanceCursor.transform.getScale(auxVector3_1)
-            selectedNodes.clear()
-            val northWestX = northWestPosition.x.toInt()
-            val northWestZ = northWestPosition.z.toInt()
-            for (x in northWestX until northWestX + selectionBoxSize.x.toInt()) {
-                for (z in northWestZ until northWestZ + selectionBoxSize.z.toInt()) {
-                    val node = handlersData.mapData.getNode(x, z)
+            selectNodes()
+            return true
+        }
+        return false
+    }
+
+    private fun selectNodes() {
+        val northWestPosition = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+        val selectionBoxSize = floorModelInstanceCursor.transform.getScale(auxVector3_1)
+        selectedNodes.clear()
+        val northWestX = northWestPosition.x.toInt()
+        val northWestZ = northWestPosition.z.toInt()
+        for (x in northWestX until northWestX + selectionBoxSize.x.toInt()) {
+            for (z in northWestZ until northWestZ + selectionBoxSize.z.toInt()) {
+                if (x >= 0 && x < handlersData.mapData.mapSize && z >= 0 && z < handlersData.mapData.mapSize) {
                     selectedNodes.add(
                         SelectedNode(
-                            Coords(x, z), ModelInstance(floorModel),
-                            node?.height ?: 0F
+                            Coords(x, z),
+                            ModelInstance(floorModel),
+                            handlersData.mapData.getNode(x, z)?.height ?: 0F
                         )
                     )
                 }
             }
-            turnOffSelectingCursor()
         }
-        return handled
+        turnOffSelectingCursor()
     }
 
     override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -186,6 +194,8 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     private fun updateSelectionBox(screenX: Int, screenY: Int) {
         val mousePosition = fetchGridCellAtMouse(screenX, screenY)
+        mousePosition.x = MathUtils.clamp(mousePosition.x, 0F, handlersData.mapData.mapSize - 1F)
+        mousePosition.z = MathUtils.clamp(mousePosition.z, 0F, handlersData.mapData.mapSize - 1F)
         val mousePositionX = mousePosition.x.toInt()
         floorModelInstanceCursor.transform.values[Matrix4.M00] =
             abs(mousePositionX - (originalFloorModelInstanceCursorPosition.x)) + 1F

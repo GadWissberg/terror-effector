@@ -31,7 +31,8 @@ abstract class DrawingHandlerOnScrolledEvent : HandlerOnEvent {
             auxList,
             handlersData.mapData,
             value,
-            wallCreator
+            wallCreator,
+            dispatcher
         )
         dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action)
     }

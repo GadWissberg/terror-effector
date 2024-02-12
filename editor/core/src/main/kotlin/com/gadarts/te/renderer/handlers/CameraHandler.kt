@@ -14,6 +14,7 @@ import com.gadarts.te.common.assets.GameAssetsManager
 
 class CameraHandler : InputProcessor,
     BaseHandler() {
+    private var panning: Boolean = false
     private val lastMouseClickPosition = Vector2()
     private val intersectionPoint = Vector3(-1F, -1F, -1F)
     private var ray: Ray? = null
@@ -24,6 +25,9 @@ class CameraHandler : InputProcessor,
         if (keycode == Input.Keys.CONTROL_LEFT) {
             ray = handlersData.camera.getPickRay(Gdx.graphics.width / 2F, Gdx.graphics.height / 2F)
             result = true
+        } else if (keycode == Input.Keys.ALT_LEFT) {
+            panning = true
+            result = true
         }
         return result
     }
@@ -33,6 +37,9 @@ class CameraHandler : InputProcessor,
         if (keycode == Input.Keys.CONTROL_LEFT) {
             ray = null
             intersectionPoint.set(-1F, -1F, -1F)
+            result = true
+        } else if (keycode == Input.Keys.ALT_LEFT) {
+            panning = false
             result = true
         }
         return result
@@ -49,6 +56,8 @@ class CameraHandler : InputProcessor,
         if (button == Input.Buttons.RIGHT && ray != null) {
             Intersector.intersectRayPlane(ray, groundPlane, intersectionPoint)
             result = true
+        } else if (panning) {
+            lastMouseClickPosition.set(screenX.toFloat(), screenY.toFloat())
         }
         return result
     }
@@ -58,6 +67,8 @@ class CameraHandler : InputProcessor,
         if (button == Input.Buttons.RIGHT && !intersectionPoint.epsilonEquals(-1F, -1F, -1F)) {
             intersectionPoint.set(-1F, -1F, -1F)
             result = true
+        } else if (panning) {
+            lastMouseClickPosition.set(screenX.toFloat(), screenY.toFloat())
         }
         return result
     }
@@ -68,26 +79,43 @@ class CameraHandler : InputProcessor,
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
-        var result = false
         if (ray != null
             && intersectionPoint.x != -1F
             && intersectionPoint.y != -1F
             && intersectionPoint.z != -1F
         ) {
-            result = true
-            val xFloat = screenX.toFloat()
-            val yFloat = screenY.toFloat()
-            val angle = MathUtils.clamp(
-                (lastMouseClickPosition.x - screenX) * 0.1F,
-                -MAX_ROTATION_ANGLE_STEP,
-                MAX_ROTATION_ANGLE_STEP
-            )
-            handlersData.camera.rotateAround(
-                intersectionPoint, Vector3.Y, angle
-            )
-            lastMouseClickPosition.set(xFloat, yFloat)
+            rotate(screenX, screenY)
+            return true
+        } else if (panning) {
+            pan(screenX, screenY)
+            return true
         }
-        return result
+        return false
+    }
+
+    private fun pan(screenX: Int, screenY: Int) {
+        val xFloat = screenX.toFloat()
+        val yFloat = screenY.toFloat()
+        val velocity: Vector2 = lastMouseClickPosition.sub(xFloat, yFloat).scl(0.024f)
+        val left: Vector3 = auxVector1.set(handlersData.camera.direction).crs(handlersData.camera.up).nor().scl(0.3f)
+        val x: Float = handlersData.camera.direction.x * -velocity.y + left.x * velocity.x
+        val z: Float = handlersData.camera.direction.z * -velocity.y + left.z * velocity.x
+        handlersData.camera.translate(x, 0F, z)
+        lastMouseClickPosition.set(xFloat, yFloat)
+    }
+
+    private fun rotate(screenX: Int, screenY: Int) {
+        val xFloat = screenX.toFloat()
+        val yFloat = screenY.toFloat()
+        val angle = MathUtils.clamp(
+            (lastMouseClickPosition.x - screenX) * 0.1F,
+            -MAX_STEP_ROTATION_ANGLE,
+            MAX_STEP_ROTATION_ANGLE
+        )
+        handlersData.camera.rotateAround(
+            intersectionPoint, Vector3.Y, angle
+        )
+        lastMouseClickPosition.set(xFloat, yFloat)
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
@@ -119,13 +147,14 @@ class CameraHandler : InputProcessor,
 
     }
 
-    companion object {
-        const val MAX_ROTATION_ANGLE_STEP: Float = 6.4f
-        val groundPlane = Plane(Vector3.Y, 0F)
-    }
-
     override fun dispose() {
         GeneralUtils.disposeObject(this, CameraHandler::class)
+    }
+
+    companion object {
+        const val MAX_STEP_ROTATION_ANGLE: Float = 6.4f
+        val groundPlane = Plane(Vector3.Y, 0F)
+        private val auxVector1 = Vector3()
     }
 
 }

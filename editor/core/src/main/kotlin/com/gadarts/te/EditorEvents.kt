@@ -1,6 +1,7 @@
 package com.gadarts.te
 
 enum class EditorEvents {
+    NODES_HEIGHT_SET,
     MODE_SELECTED,
     TEXTURE_SELECTED_VIA_GALLERY,
     TEXTURE_SET,
