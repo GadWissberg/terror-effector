@@ -65,11 +65,12 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         floorModelInstanceCursor.transform.getTranslation(originalFloorModelInstanceCursorPosition)
     }
 
-    private fun turnOffSelectingCursor() {
+    private fun turnOffSelectingCursor(screenX: Int, screenY: Int) {
         selecting = false
         floorModelInstanceCursor.transform.values[Matrix4.M00] = 1F
         floorModelInstanceCursor.transform.values[Matrix4.M22] = 1F
         floorModelInstanceCursor.nodes.get(0).localTransform.trn(-0.5F, -0.01F, -0.5F)
+        updateFloorCursorPosition(screenX, screenY)
         floorModelInstanceCursor.calculateTransforms()
     }
 
@@ -131,13 +132,13 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (button == Input.Buttons.RIGHT && selecting) {
-            selectNodes()
+            selectNodes(screenX, screenY)
             return true
         }
         return false
     }
 
-    private fun selectNodes() {
+    private fun selectNodes(screenX: Int, screenY: Int) {
         val northWestPosition = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
         val selectionBoxSize = floorModelInstanceCursor.transform.getScale(auxVector3_1)
         selectedNodes.clear()
@@ -156,7 +157,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
                 }
             }
         }
-        turnOffSelectingCursor()
+        turnOffSelectingCursor(screenX, screenY)
     }
 
     override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -208,6 +209,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         if (mousePositionZ < (originalFloorModelInstanceCursorPosition.z)) {
             floorModelInstanceCursor.transform.values[Matrix4.M23] = mousePositionZ.toFloat()
         }
+        floorModelInstanceCursor.transform.values[M13] = mousePosition.y + 0.01F
     }
 
     private fun updatePrevCursorPosition() {
