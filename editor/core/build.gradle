@@ -7,4 +7,6 @@ dependencies {
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
   api "com.gadarts.te:common:0.1"
   api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
+  api 'com.squidpony:squidlib-util:3.0.6'
+
 }

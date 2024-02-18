@@ -1,5 +1,6 @@
 package com.gadarts.te.renderer.handlers.cursor
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
@@ -13,10 +14,8 @@ import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.Matrix4.M13
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
-import com.gadarts.te.DebugSettings
-import com.gadarts.te.EditorEvents
-import com.gadarts.te.GeneralUtils
-import com.gadarts.te.TerrorEffectorEditor
+import com.gadarts.te.*
+import com.gadarts.te.common.CameraUtils
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
@@ -24,13 +23,16 @@ import com.gadarts.te.common.map.MapUtils
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
+import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnModeSelected
 import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnNodesHeightSet
 import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnTextureSet
 import kotlin.math.abs
 import kotlin.math.max
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
+    override var selectedMode: Modes = Modes.FLOOR
     override val selectedNodes = mutableListOf<SelectedNode>()
+
     private val originalFloorModelInstanceCursorPosition = Vector3()
     private var selecting: Boolean = false
     private val prevFloorCursorPosition = Vector3()
@@ -104,7 +106,8 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun getSubscribedEvents(): Map<EditorEvents, HandlerOnEvent> {
         return mapOf(
             EditorEvents.TEXTURE_SET to CursorHandlerOnTextureSet(this),
-            EditorEvents.NODES_HEIGHT_SET to CursorHandlerOnNodesHeightSet(this)
+            EditorEvents.NODES_HEIGHT_SET to CursorHandlerOnNodesHeightSet(this),
+            EditorEvents.MODE_SELECTED to CursorHandlerOnModeSelected(this)
         )
     }
 
@@ -184,13 +187,27 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
 
-        if (!selecting) {
-            updatePrevCursorPosition()
-            updateFloorCursorPosition(screenX, screenY)
+        var handled = false
+        if (selectedMode == Modes.FLOOR) {
+            handled = true
+            if (!selecting) {
+                updatePrevCursorPosition()
+                updateFloorCursorPosition(screenX, screenY)
+            } else {
+                updateSelectionBox(screenX, screenY)
+            }
         } else {
-            updateSelectionBox(screenX, screenY)
+            val coords = CameraUtils.findAllCoordsOnRay(screenX, screenY, handlersData.camera)
+            Gdx.app.log("!", "${coords.peekFirst()}")
+            while (!coords.isEmpty()) {
+                val coord = coords.pop()
+                val node = handlersData.mapData.getNode(coord.x, coord.z)
+                if (node != null) {
+                    break
+                }
+            }
         }
-        return true
+        return handled
     }
 
     private fun updateSelectionBox(screenX: Int, screenY: Int) {
@@ -269,7 +286,9 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun onRender(batch: ModelBatch) {
-        batch.render(floorModelInstanceCursor)
+        if (selectedMode == Modes.FLOOR) {
+            batch.render(floorModelInstanceCursor)
+        }
         selectedNodes.forEach { batch.render(it.modelInstance) }
     }
 

@@ -22,7 +22,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
-import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.CameraUtils
 import com.gadarts.te.common.assets.GameAssetsManager
@@ -35,7 +34,6 @@ import com.gadarts.te.renderer.model.MapData
 class SceneRenderer(private val dispatcher: MessageDispatcher, private val gameAssetsManager: GameAssetsManager) :
     Table(),
     Disposable, Telegraph {
-    private lateinit var mode: Modes
     private lateinit var eastPointerModelInstance: ModelInstance
     private lateinit var northPointerModelInstance: ModelInstance
     private lateinit var eastPointerModel: Model
@@ -58,15 +56,6 @@ class SceneRenderer(private val dispatcher: MessageDispatcher, private val gameA
         val gridModelInstance = addGrid(modelBuilder)
         modelInstances.add(gridModelInstance)
         addDirectionsIndicator(modelBuilder)
-    }
-
-    override fun handleMessage(msg: Telegram): Boolean {
-        var result = false
-        if (msg.message == EditorEvents.MODE_SELECTED.ordinal) {
-            mode = (msg.extraInfo as Modes)
-            result = true
-        }
-        return result
     }
 
     private fun addGrid(modelBuilder: ModelBuilder): ModelInstance {
@@ -177,6 +166,10 @@ class SceneRenderer(private val dispatcher: MessageDispatcher, private val gameA
         private const val DIRECTIONS_INDICATOR_ARROW_SCALE = 2.5F
         private const val DIRECTIONS_INDICATOR_ARROW_SIZE = 1F
         private const val MAP_SIZE: Int = 32
+    }
+
+    override fun handleMessage(msg: Telegram?): Boolean {
+        return false
     }
 
 }
