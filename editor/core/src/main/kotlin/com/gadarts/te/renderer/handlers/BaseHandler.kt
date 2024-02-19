@@ -26,7 +26,7 @@ abstract class BaseHandler : Telegraph, Disposable {
     ) {
         this.dispatcher = dispatcher
         this.gameAssetsManager = gameAssetsManager
-        this.wallCreator = WallCreator(gameAssetsManager)
+        this.wallCreator = WallCreator(gameAssetsManager, true)
         this.handlersData = handlersData
         getSubscribedEvents().forEach { dispatcher.addListener(this, it.key.ordinal) }
     }

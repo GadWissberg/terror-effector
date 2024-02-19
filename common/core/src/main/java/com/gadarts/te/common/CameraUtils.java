@@ -28,8 +28,11 @@ public final class CameraUtils {
         return cam;
     }
 
-    public static ArrayDeque<Coord3D> findAllCoordsOnRay(int screenX, int screenY, Camera camera) {
-        Ray ray = camera.getPickRay(screenX, screenY);
+    public static ArrayDeque<Coord3D> findAllCoordsOnRay(int screenX, int screenY,
+                                                         float viewportX, float viewportY,
+                                                         float viewportWidth, float viewportHeight,
+                                                         Camera camera) {
+        Ray ray = camera.getPickRay(screenX, screenY, viewportX, viewportY, viewportWidth, viewportHeight);
         Vector3 intersection = auxVector3;
         Intersector.intersectRayPlane(ray, floorPlane, intersection);
         return (ArrayDeque<Coord3D>) Bresenham.line3D(

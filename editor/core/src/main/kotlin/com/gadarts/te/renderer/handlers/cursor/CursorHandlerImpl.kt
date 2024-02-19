@@ -1,6 +1,5 @@
 package com.gadarts.te.renderer.handlers.cursor
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
@@ -12,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.Matrix4.M13
+import com.badlogic.gdx.math.collision.BoundingBox
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.*
@@ -20,6 +20,7 @@ import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapUtils
+import com.gadarts.te.common.map.Wall
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
@@ -30,6 +31,7 @@ import kotlin.math.abs
 import kotlin.math.max
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
+    private var highlightWall: Wall? = null
     override var selectedMode: Modes = Modes.FLOOR
     override val selectedNodes = mutableListOf<SelectedNode>()
 
@@ -187,9 +189,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
 
-        var handled = false
         if (selectedMode == Modes.FLOOR) {
-            handled = true
             if (!selecting) {
                 updatePrevCursorPosition()
                 updateFloorCursorPosition(screenX, screenY)
@@ -197,17 +197,63 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
                 updateSelectionBox(screenX, screenY)
             }
         } else {
-            val coords = CameraUtils.findAllCoordsOnRay(screenX, screenY, handlersData.camera)
-            Gdx.app.log("!", "${coords.peekFirst()}")
-            while (!coords.isEmpty()) {
-                val coord = coords.pop()
-                val node = handlersData.mapData.getNode(coord.x, coord.z)
-                if (node != null) {
-                    break
-                }
+            highlightWallFromMouse(screenX, screenY)
+        }
+        return true
+    }
+
+    private fun highlightWallFromMouse(screenX: Int, screenY: Int) {
+        val coords = CameraUtils.findAllCoordsOnRay(
+            screenX,
+            screenY,
+            viewportScreenX,
+            viewportScreenY,
+            viewportWidth,
+            viewportHeight,
+            handlersData.camera
+        )
+        val unproject = handlersData.camera.unproject(
+            auxVector3_2.set(screenX.toFloat(), screenY.toFloat(), 0F),
+            viewportScreenX, viewportScreenY,
+            viewportWidth, viewportHeight
+        )
+        highlightWall = null
+        while (!coords.isEmpty()) {
+            val coord = coords.pop()
+            val node = handlersData.mapData.getNode(coord.x, coord.z)
+            if (node != null) {
+                if (tryHighlightWallsOfNode(unproject, node)) break
+                if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x - 1, coord.z))) break
+                if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x + 1, coord.z))) break
+                if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x, coord.z - 1))) break
+                if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x, coord.z + 1))) break
             }
         }
-        return handled
+    }
+
+    private fun tryHighlightWallsOfNode(unproject: Vector3, node: MapNodeData?): Boolean {
+        if (node == null) return false
+
+        if (tryHighlightWallOfNode(unproject, node.walls.southWall)) return true
+        if (tryHighlightWallOfNode(unproject, node.walls.northWall)) return true
+        if (tryHighlightWallOfNode(unproject, node.walls.westWall)) return true
+        if (tryHighlightWallOfNode(unproject, node.walls.eastWall)) return true
+
+        return false
+    }
+
+    private fun tryHighlightWallOfNode(unproject: Vector3, wall: Wall?): Boolean {
+        if (wall != null) {
+            val intersectRayBoundsFast = Intersector.intersectRayBoundsFast(
+                auxRay.set(unproject, handlersData.camera.direction),
+                wall.modelInstance.calculateBoundingBox(auxBoundingBox).mul(wall.modelInstance.transform)
+            )
+            if (intersectRayBoundsFast) {
+                highlightWall = wall
+                return true
+            }
+        }
+        return false
     }
 
     private fun updateSelectionBox(screenX: Int, screenY: Int) {
@@ -288,6 +334,9 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun onRender(batch: ModelBatch) {
         if (selectedMode == Modes.FLOOR) {
             batch.render(floorModelInstanceCursor)
+        } else if (highlightWall != null) {
+            (highlightWall!!.modelInstance.materials.get(0).get(BlendingAttribute.Type) as BlendingAttribute).opacity =
+                0F
         }
         selectedNodes.forEach { batch.render(it.modelInstance) }
     }
@@ -307,6 +356,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         private val groundPlane = Plane(Vector3.Y, 0F)
         private val auxVector2_1 = Vector2()
         private val auxList = mutableListOf<Coords>()
+        private val auxBoundingBox = BoundingBox()
     }
 
 }

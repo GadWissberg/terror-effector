@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
@@ -20,29 +21,17 @@ public class WallCreator implements Disposable {
     private static final Vector3 auxVector3_1 = new Vector3();
     private static final Vector3 auxVector3_2 = new Vector3();
     private final GameAssetsManager assetsManager;
-
+    private final boolean addBlendAttributeWhenCreatingWalls;
     @Getter
     private Model eastWallModel, southWallModel, northWallModel, westWallModel;
 
-    public WallCreator(final GameAssetsManager assetsManager) {
+    public WallCreator(final GameAssetsManager assetsManager, boolean addBlendAttributeWhenCreatingWalls) {
         this.assetsManager = assetsManager;
+        this.addBlendAttributeWhenCreatingWalls = addBlendAttributeWhenCreatingWalls;
         createWestWallModel();
         createSouthWallModel();
         createNorthWallModel();
         createEastWallModel();
-    }
-
-    public static Wall createWall(final MapNodeData n,
-                                  final Model wallModel,
-                                  final GameAssetsManager assetsManager,
-                                  final SurfaceTextures definition) {
-        ModelInstance modelInstance = new ModelInstance(wallModel);
-        TextureAttribute textureAttr = (TextureAttribute) modelInstance.materials.get(0).get(TextureAttribute.Diffuse);
-        textureAttr.textureDescription.texture = assetsManager.getTexture(definition);
-        Wall northWall = new Wall(modelInstance, definition);
-        Coords nodeCoords = n.getCoords();
-        modelInstance.transform.setToTranslation(nodeCoords.getX(), 0, nodeCoords.getZ());
-        return northWall;
     }
 
     public static void adjustWallTexture(ModelInstance modelInstance, float sizeHeight) {
@@ -50,6 +39,36 @@ public class WallCreator implements Disposable {
         int textureHeight = textureAtt.textureDescription.texture.getHeight() / WORLD_UNIT_SIZE;
         textureAtt.scaleV = sizeHeight / textureHeight;
         textureAtt.offsetV = (1F - textureAtt.scaleV);
+    }
+
+    private static void adjustWallTextureAndPosition(Wall wall,
+                                                     float wallNodeHeight,
+                                                     MapNodeData neighborNode) {
+        ModelInstance modelInstance = wall.getModelInstance();
+        float neighborHeight = neighborNode.getHeight();
+        float sizeHeight = Math.abs(wallNodeHeight - neighborHeight);
+        float minHeight = Math.min(wallNodeHeight, neighborHeight);
+        adjustWallTexture(modelInstance, sizeHeight);
+        Coords neighborNodeNodeCoords = neighborNode.getCoords();
+        Vector3 position = auxVector3_1.set(neighborNodeNodeCoords.getX(), minHeight, neighborNodeNodeCoords.getZ());
+        modelInstance.transform.setToTranslationAndScaling(position, auxVector3_2.set(1, sizeHeight, 1));
+    }
+
+    public Wall createWall(MapNodeData n,
+                           Model wallModel,
+                           GameAssetsManager assetsManager,
+                           SurfaceTextures definition) {
+        ModelInstance modelInstance = new ModelInstance(wallModel);
+        Material material = modelInstance.materials.get(0);
+        TextureAttribute textureAttr = (TextureAttribute) material.get(TextureAttribute.Diffuse);
+        if (addBlendAttributeWhenCreatingWalls) {
+            material.set(new BlendingAttribute());
+        }
+        textureAttr.textureDescription.texture = assetsManager.getTexture(definition);
+        Wall northWall = new Wall(modelInstance, definition);
+        Coords nodeCoords = n.getCoords();
+        modelInstance.transform.setToTranslation(nodeCoords.getX(), 0, nodeCoords.getZ());
+        return northWall;
     }
 
     @SuppressWarnings("unused")
@@ -114,19 +133,6 @@ public class WallCreator implements Disposable {
         westWallModel.dispose();
         northWallModel.dispose();
         southWallModel.dispose();
-    }
-
-    private static void adjustWallTextureAndPosition(Wall wall,
-                                                     float wallNodeHeight,
-                                                     MapNodeData neighborNode) {
-        ModelInstance modelInstance = wall.getModelInstance();
-        float neighborHeight = neighborNode.getHeight();
-        float sizeHeight = Math.abs(wallNodeHeight - neighborHeight);
-        float minHeight = Math.min(wallNodeHeight, neighborHeight);
-        adjustWallTexture(modelInstance, sizeHeight);
-        Coords neighborNodeNodeCoords = neighborNode.getCoords();
-        Vector3 position = auxVector3_1.set(neighborNodeNodeCoords.getX(), minHeight, neighborNodeNodeCoords.getZ());
-        modelInstance.transform.setToTranslationAndScaling(position, auxVector3_2.set(1, sizeHeight, 1));
     }
 
     private void createWestWallModel( ) {
