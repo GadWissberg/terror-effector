@@ -1,11 +1,12 @@
 package com.gadarts.te.common.map;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
@@ -21,13 +22,13 @@ public class WallCreator implements Disposable {
     private static final Vector3 auxVector3_1 = new Vector3();
     private static final Vector3 auxVector3_2 = new Vector3();
     private final GameAssetsManager assetsManager;
-    private final boolean addBlendAttributeWhenCreatingWalls;
+    private final boolean addColorAttributeWhenCreatingWalls;
     @Getter
     private Model eastWallModel, southWallModel, northWallModel, westWallModel;
 
-    public WallCreator(final GameAssetsManager assetsManager, boolean addBlendAttributeWhenCreatingWalls) {
+    public WallCreator(final GameAssetsManager assetsManager, boolean addColorAttributeWhenCreatingWalls) {
         this.assetsManager = assetsManager;
-        this.addBlendAttributeWhenCreatingWalls = addBlendAttributeWhenCreatingWalls;
+        this.addColorAttributeWhenCreatingWalls = addColorAttributeWhenCreatingWalls;
         createWestWallModel();
         createSouthWallModel();
         createNorthWallModel();
@@ -61,8 +62,8 @@ public class WallCreator implements Disposable {
         ModelInstance modelInstance = new ModelInstance(wallModel);
         Material material = modelInstance.materials.get(0);
         TextureAttribute textureAttr = (TextureAttribute) material.get(TextureAttribute.Diffuse);
-        if (addBlendAttributeWhenCreatingWalls) {
-            material.set(new BlendingAttribute());
+        if (addColorAttributeWhenCreatingWalls) {
+            material.set(ColorAttribute.createDiffuse(Color.WHITE));
         }
         textureAttr.textureDescription.texture = assetsManager.getTexture(definition);
         Wall northWall = new Wall(modelInstance, definition);

@@ -30,6 +30,7 @@ import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnTextureSet
 import kotlin.math.abs
 import kotlin.math.max
 
+
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
     private var highlightWall: Wall? = null
     override var selectedMode: Modes = Modes.FLOOR
@@ -217,6 +218,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             viewportScreenX, viewportScreenY,
             viewportWidth, viewportHeight
         )
+        resetWallHighlight()
         highlightWall = null
         while (!coords.isEmpty()) {
             val coord = coords.pop()
@@ -228,6 +230,14 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
                 if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x, coord.z - 1))) break
                 if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x, coord.z + 1))) break
             }
+        }
+    }
+
+    private fun resetWallHighlight() {
+        if (highlightWall != null) {
+            (highlightWall!!.modelInstance.materials.get(0).get(ColorAttribute.Diffuse) as ColorAttribute).color.set(
+                Color.WHITE
+            )
         }
     }
 
@@ -335,10 +345,13 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         if (selectedMode == Modes.FLOOR) {
             batch.render(floorModelInstanceCursor)
         } else if (highlightWall != null) {
-            (highlightWall!!.modelInstance.materials.get(0).get(BlendingAttribute.Type) as BlendingAttribute).opacity =
-                0F
+            (highlightWall!!.modelInstance.materials.get(0).get(ColorAttribute.Diffuse) as ColorAttribute).color.set(
+                Color.GREEN
+            )
         }
-        selectedNodes.forEach { batch.render(it.modelInstance) }
+        selectedNodes.forEach {
+            batch.render(it.modelInstance)
+        }
     }
 
 

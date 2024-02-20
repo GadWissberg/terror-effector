@@ -15,7 +15,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import com.gadarts.te.IconsTextures.*
+import com.gadarts.te.assets.IconsTextures
+import com.gadarts.te.assets.IconsTextures.*
+import com.gadarts.te.assets.ShaderLoader
+import com.gadarts.te.assets.Shaders
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.renderer.SceneRenderer
@@ -23,7 +26,7 @@ import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.*
 
 class TerrorEffectorEditor : ApplicationAdapter() {
-    private lateinit var editorAsset: AssetManager
+    private lateinit var editorAssetManager: AssetManager
     private lateinit var sceneRenderer: SceneRenderer
     private lateinit var stage: Stage
     private val dispatcher: MessageDispatcher = MessageDispatcher()
@@ -33,15 +36,19 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         VisUI.load()
         val gameAssetsManager = GameAssetsManager("../game/assets/")
         gameAssetsManager.loadGameFiles()
-        editorAsset = AssetManager()
-        loadEditorAssets(editorAsset)
+        editorAssetManager = AssetManager()
+        editorAssetManager.setLoader(
+            String::class.java,
+            ShaderLoader(editorAssetManager.fileHandleResolver)
+        )
+        loadEditorAssets(editorAssetManager)
         stage = Stage(ScreenViewport())
         stage.isDebugAll = DebugSettings.SHOW_BORDERS
         val root = VisTable(true)
         root.setFillParent(true)
         val menuBar = addMenuBar(root)
         menuBar.table.pack()
-        val buttonBar = addButtonsBar(editorAsset, root)
+        val buttonBar = addButtonsBar(editorAssetManager, root)
         Gdx.input.inputProcessor = InputMultiplexer(stage)
         stage.addActor(root)
         addSplitView(menuBar, buttonBar, root, gameAssetsManager)
@@ -53,7 +60,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         root: VisTable,
         gameAssetsManager: GameAssetsManager,
     ) {
-        sceneRenderer = SceneRenderer(dispatcher, gameAssetsManager)
+        sceneRenderer = SceneRenderer(dispatcher, gameAssetsManager, editorAssetManager)
         val gallery = createGallery(gameAssetsManager)
         val scrollPane = VisScrollPane(gallery)
         val heightUnderBars = WINDOW_HEIGHT - (menuBar.table.height + buttonBar.table.height)
@@ -134,15 +141,15 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         table: Table,
         gameAssetsManager: GameAssetsManager,
     ) {
-        val up = TextureRegionDrawable(editorAsset.get(BUTTON_GALLERY_UP.getFileName(), Texture::class.java))
+        val up = TextureRegionDrawable(editorAssetManager.get(BUTTON_GALLERY_UP.getFileName(), Texture::class.java))
         val style = VisImageButton.VisImageButtonStyle(
             up,
-            TextureRegionDrawable(editorAsset.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
-            TextureRegionDrawable(editorAsset.get(BUTTON_GALLERY_CHECKED.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(editorAssetManager.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(editorAssetManager.get(BUTTON_GALLERY_CHECKED.getFileName(), Texture::class.java)),
             TextureRegionDrawable(gameAssetsManager.getTexture(icon)),
             null, null
         )
-        val overTexture = editorAsset.get(BUTTON_GALLERY_OVER.getFileName(), Texture::class.java)
+        val overTexture = editorAssetManager.get(BUTTON_GALLERY_OVER.getFileName(), Texture::class.java)
         style.over = TextureRegionDrawable(overTexture)
         val imageButton = VisImageButton(style)
         imageButton.addListener(object : ClickListener() {
@@ -162,15 +169,15 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         icon: Texture,
         table: Table,
     ) {
-        val up = TextureRegionDrawable(editorAsset.get(BUTTON_UP.getFileName(), Texture::class.java))
+        val up = TextureRegionDrawable(editorAssetManager.get(BUTTON_UP.getFileName(), Texture::class.java))
         val style = VisImageButton.VisImageButtonStyle(
             up,
-            TextureRegionDrawable(editorAsset.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
-            TextureRegionDrawable(editorAsset.get(BUTTON_CHECKED.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(editorAssetManager.get(BUTTON_DOWN.getFileName(), Texture::class.java)),
+            TextureRegionDrawable(editorAssetManager.get(BUTTON_CHECKED.getFileName(), Texture::class.java)),
             TextureRegionDrawable(icon),
             null, null
         )
-        style.over = TextureRegionDrawable(editorAsset.get(BUTTON_OVER.getFileName(), Texture::class.java))
+        style.over = TextureRegionDrawable(editorAssetManager.get(BUTTON_OVER.getFileName(), Texture::class.java))
         val imageButton = VisImageButton(style)
         imageButton.addListener(clickListener)
         table.add(imageButton).pad(5F)
@@ -182,6 +189,12 @@ class TerrorEffectorEditor : ApplicationAdapter() {
             editorAssetsManager.load(
                 it.getFileName(),
                 Texture::class.java
+            )
+        }
+        Shaders.entries.forEach {
+            editorAssetsManager.load(
+                it.getFileName(),
+                String::class.java
             )
         }
         editorAssetsManager.finishLoading()

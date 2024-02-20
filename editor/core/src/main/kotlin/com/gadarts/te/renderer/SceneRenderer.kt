@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.VertexAttributes
@@ -31,7 +32,11 @@ import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.model.MapData
 
 
-class SceneRenderer(private val dispatcher: MessageDispatcher, private val gameAssetsManager: GameAssetsManager) :
+class SceneRenderer(
+    private val dispatcher: MessageDispatcher,
+    private val gameAssetsManager: GameAssetsManager,
+    editorAssetManager: AssetManager
+) :
     Table(),
     Disposable, Telegraph {
     private lateinit var eastPointerModelInstance: ModelInstance
@@ -41,7 +46,8 @@ class SceneRenderer(private val dispatcher: MessageDispatcher, private val gameA
     private lateinit var gridModel: Model
     private val camera: OrthographicCamera = CameraUtils.createCamera(1280, 960)
     private val axisModel: Model
-    private val batch = ModelBatch()
+    private val modelsShaderProvider: ModelsShaderProvider = ModelsShaderProvider(editorAssetManager)
+    private val batch = ModelBatch(modelsShaderProvider)
     private val modelInstances = mutableListOf<ModelInstance>()
     private val mapData = MapData(MAP_SIZE, gameAssetsManager.getTexture(SurfaceTextures.BLANK))
 

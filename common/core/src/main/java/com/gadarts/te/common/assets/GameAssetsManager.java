@@ -14,8 +14,8 @@ import com.gadarts.te.common.assets.texture.TextureDefinition;
 import java.util.Arrays;
 
 public class GameAssetsManager extends AssetManager {
-    private final String assetsLocation;
     public static final String PATH_SEPARATOR = "/";
+    private final String assetsLocation;
 
     public GameAssetsManager( ) {
         this("");
@@ -26,6 +26,7 @@ public class GameAssetsManager extends AssetManager {
         FileHandleResolver resolver = new InternalFileHandleResolver();
         setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
     }
+
 
     public void loadGameFiles(final AssetsTypes... assetsTypesToExclude) {
         Arrays.stream(AssetsTypes.values())
