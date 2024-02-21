@@ -32,6 +32,7 @@ import kotlin.math.max
 
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
+    private val selectedWalls = mutableListOf<Wall>()
     private var highlightWall: Wall? = null
     override var selectedMode: Modes = Modes.FLOOR
     override val selectedNodes = mutableListOf<SelectedNode>()
@@ -116,24 +117,36 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
-
-        var handled = false
         if (button == Input.Buttons.LEFT) {
-            if (selectedNodes.isEmpty()) {
-                val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
-                dispatcher.dispatchMessage(
-                    EditorEvents.CLICKED_GRID_CELL.ordinal,
-                    listOf(Coords(position.x.toInt(), position.z.toInt()))
-                )
+            if (selectedMode == Modes.FLOOR) {
+                if (selectedNodes.isEmpty()) {
+                    val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+                    dispatcher.dispatchMessage(
+                        EditorEvents.CLICKED_GRID_CELL.ordinal,
+                        listOf(Coords(position.x.toInt(), position.z.toInt()))
+                    )
+                } else {
+                    selectedNodes.clear()
+                }
             } else {
-                selectedNodes.clear()
+                handleSelectingWall()
             }
-            handled = true
+            return true
         } else if (button == Input.Buttons.RIGHT && !selecting) {
             turnOnSelectingCursor()
-            handled = true
+            return true
         }
-        return handled
+        return false
+    }
+
+    private fun handleSelectingWall() {
+        if (highlightWall != null) {
+            if (selectedWalls.contains(highlightWall)) {
+                selectedWalls.remove(highlightWall)
+            } else {
+                selectedWalls.add(highlightWall!!)
+            }
+        }
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -344,10 +357,18 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun onRender(batch: ModelBatch) {
         if (selectedMode == Modes.FLOOR) {
             batch.render(floorModelInstanceCursor)
-        } else if (highlightWall != null) {
-            (highlightWall!!.modelInstance.materials.get(0).get(ColorAttribute.Diffuse) as ColorAttribute).color.set(
-                Color.GREEN
-            )
+        } else {
+            if (highlightWall != null) {
+                (highlightWall!!.modelInstance.materials.get(0)
+                    .get(ColorAttribute.Diffuse) as ColorAttribute).color.set(
+                    Color.GREEN
+                )
+            }
+            selectedWalls.forEach {
+                (it.modelInstance.materials.get(0).get(ColorAttribute.Diffuse) as ColorAttribute).color.set(
+                    Color.BLUE
+                )
+            }
         }
         selectedNodes.forEach {
             batch.render(it.modelInstance)
