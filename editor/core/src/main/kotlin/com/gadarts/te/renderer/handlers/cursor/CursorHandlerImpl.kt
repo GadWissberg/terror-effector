@@ -32,7 +32,7 @@ import kotlin.math.max
 
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
-    private val selectedWalls = mutableListOf<Wall>()
+    override val selectedWalls = mutableListOf<Wall>()
     private var highlightWall: Wall? = null
     override var selectedMode: Modes = Modes.FLOOR
     override val selectedNodes = mutableListOf<SelectedNode>()
