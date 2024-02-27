@@ -9,5 +9,6 @@ enum class Handlers(val handlerInstance: BaseHandler) {
     CURSOR(CursorHandlerImpl()),
     ACTIONS(ActionsHandlerImpl()),
     DRAWING(DrawingHandlerImpl()),
+    MAP_FILE(PersistenceHandler()),
 
 }

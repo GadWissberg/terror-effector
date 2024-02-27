@@ -14,16 +14,18 @@ import com.gadarts.te.common.map.Wall
 
 class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
 
-    private val floorModel = MapUtils.createFloorModel()
+    var matrix = Array(mapSize) {
+        arrayOfNulls<MapNodeData?>(mapSize)
+    }
+
+    val floorModel = MapUtils.createFloorModel()
+
+    val definedNodes = mutableListOf<MapNodeData>()
 
     init {
         floorModel.materials.get(0).set(TextureAttribute.createDiffuse(blankTexture))
     }
 
-    private val matrix = Array(mapSize) {
-        arrayOfNulls<MapNodeData?>(mapSize)
-    }
-    private val definedTiles = mutableListOf<MapNodeData>()
     override fun dispose() {
         GeneralUtils.disposeObject(this, MapData::class)
     }
@@ -33,7 +35,7 @@ class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
         if (matrix[z][x] == null) {
             val modelInstance = ModelInstance(floorModel)
             mapNodeData = MapNodeData(x, z, MapNodesTypes.PASSABLE_NODE, modelInstance, textureDefinition)
-            definedTiles.add(mapNodeData)
+            definedNodes.add(mapNodeData)
             matrix[z][x] = mapNodeData
         } else {
             mapNodeData = matrix[z][x]!!
@@ -43,7 +45,7 @@ class MapData(val mapSize: Int, blankTexture: Texture) : Disposable {
     }
 
     fun render(batch: ModelBatch) {
-        definedTiles.forEach {
+        definedNodes.forEach {
             batch.render(it.modelInstance)
             renderWall(batch, it.walls.eastWall)
             renderWall(batch, it.walls.northWall)

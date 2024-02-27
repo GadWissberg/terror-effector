@@ -24,6 +24,7 @@ class DrawingHandlerOnTextureSelectedForWalls(private val drawingHandler: Drawin
         val action = SetWallsTexturesAction(
             selected,
             gameAssetsManager.getTexture(drawingHandler.selectedTexture),
+            drawingHandler.selectedTexture
         )
         dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action)
     }

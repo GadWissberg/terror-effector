@@ -52,7 +52,7 @@ class SceneRenderer(
     private val mapData = MapData(MAP_SIZE, gameAssetsManager.getTexture(SurfaceTextures.BLANK))
 
     init {
-        dispatcher.addListener(this, EditorEvents.MODE_SELECTED.ordinal)
+        dispatcher.addListener(this, EditorEvents.CLICKED_BUTTON_MODE.ordinal)
         val modelBuilder = ModelBuilder()
         axisModel = modelBuilder.createXYZCoordinates(
             1F, Material(ColorAttribute.createDiffuse(Color.RED)),

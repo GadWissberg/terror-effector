@@ -14,7 +14,7 @@ import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.map.WallCreator
 
 abstract class BaseHandler : Telegraph, Disposable {
-    private lateinit var wallCreator: WallCreator
+    protected lateinit var wallCreator: WallCreator
     protected lateinit var handlersData: HandlersData
     protected lateinit var gameAssetsManager: GameAssetsManager
     protected lateinit var dispatcher: MessageDispatcher

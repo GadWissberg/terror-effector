@@ -10,6 +10,14 @@ public class Coords {
     private final int x;
     private final int z;
 
+    @Override
+    public String toString( ) {
+        return "Coords{" +
+            "x=" + x +
+            ", z=" + z +
+            '}';
+    }
+
     public boolean equals(int z, int x) {
         return this.z == z && this.x == x;
     }

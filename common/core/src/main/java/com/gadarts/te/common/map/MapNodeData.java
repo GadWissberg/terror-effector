@@ -43,6 +43,13 @@ public class MapNodeData {
         modelInstance.transform.setTranslation(coords.getX() + 0.5F, 0, coords.getZ() + 0.5F);
     }
 
+    @Override
+    public String toString( ) {
+        return "MapNodeData{" +
+            "coords=" + coords +
+            '}';
+    }
+
     public void applyHeight(float value) {
         value = MathUtils.clamp(value, 0F, MAX_FLOOR_HEIGHT);
 

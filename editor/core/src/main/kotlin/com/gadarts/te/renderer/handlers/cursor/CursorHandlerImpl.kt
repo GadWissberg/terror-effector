@@ -111,7 +111,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         return mapOf(
             EditorEvents.TEXTURE_SET to CursorHandlerOnTextureSet(this),
             EditorEvents.NODES_HEIGHT_SET to CursorHandlerOnNodesHeightSet(this),
-            EditorEvents.MODE_SELECTED to CursorHandlerOnModeSelected(this)
+            EditorEvents.CLICKED_BUTTON_MODE to CursorHandlerOnModeSelected(this)
         )
     }
 

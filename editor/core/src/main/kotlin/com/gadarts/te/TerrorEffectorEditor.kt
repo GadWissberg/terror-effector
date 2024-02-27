@@ -95,6 +95,23 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val buttonBar = MenuBar()
         val buttonGroup = createButtonGroup()
         addModesRadioButtons(buttonGroup, manager, buttonBar)
+        buttonBar.table.add(Separator("vertical")).width(10F).fillY().expandY()
+        addButton(
+            editorAssetManager.get(ICON_FILE_SAVE.getFileName(), Texture::class.java),
+            object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    dispatcher.dispatchMessage(EditorEvents.CLICKED_BUTTON_SAVE.ordinal)
+                }
+            }, buttonBar.table
+        )
+        addButton(
+            editorAssetManager.get(ICON_FILE_LOAD.getFileName(), Texture::class.java),
+            object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    dispatcher.dispatchMessage(EditorEvents.CLICKED_BUTTON_LOAD.ordinal)
+                }
+            }, buttonBar.table
+        )
         root.add(buttonBar.table).fillX().expandX().row()
         buttonBar.table.pack()
         return buttonBar
@@ -110,7 +127,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
             object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     super.clicked(event, x, y)
-                    dispatcher.dispatchMessage(EditorEvents.MODE_SELECTED.ordinal, Modes.FLOOR)
+                    dispatcher.dispatchMessage(EditorEvents.CLICKED_BUTTON_MODE.ordinal, Modes.FLOOR)
                 }
             },
             manager.get(ICON_MODE_FLOOR.getFileName(), Texture::class.java), buttonBar.table
@@ -120,7 +137,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
             object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     super.clicked(event, x, y)
-                    dispatcher.dispatchMessage(EditorEvents.MODE_SELECTED.ordinal, Modes.WALLS)
+                    dispatcher.dispatchMessage(EditorEvents.CLICKED_BUTTON_MODE.ordinal, Modes.WALLS)
                 }
             },
             manager.get(ICON_MODE_WALLS.getFileName(), Texture::class.java), buttonBar.table
@@ -169,6 +186,15 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         icon: Texture,
         table: Table,
     ) {
+        val imageButton = addButton(icon, clickListener, table)
+        buttonGroup.add(imageButton)
+    }
+
+    private fun addButton(
+        icon: Texture,
+        clickListener: ClickListener,
+        table: Table
+    ): VisImageButton {
         val up = TextureRegionDrawable(editorAssetManager.get(BUTTON_UP.getFileName(), Texture::class.java))
         val style = VisImageButton.VisImageButtonStyle(
             up,
@@ -181,7 +207,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val imageButton = VisImageButton(style)
         imageButton.addListener(clickListener)
         table.add(imageButton).pad(5F)
-        buttonGroup.add(imageButton)
+        return imageButton
     }
 
     private fun loadEditorAssets(editorAssetsManager: AssetManager) {

@@ -12,7 +12,9 @@ enum class IconsTextures {
     ICON_MODE_FLOOR,
     ICON_MODE_WALLS,
     ICON_ROTATE_CLOCKWISE,
-    ICON_ROTATE_COUNTER_CLOCKWISE;
+    ICON_ROTATE_COUNTER_CLOCKWISE,
+    ICON_FILE_SAVE,
+    ICON_FILE_LOAD;
 
     fun getFileName(): String {
         return "textures/$name.png"
