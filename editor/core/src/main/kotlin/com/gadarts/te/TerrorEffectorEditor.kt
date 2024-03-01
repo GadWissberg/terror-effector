@@ -10,7 +10,9 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup
+import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import com.badlogic.gdx.utils.ScreenUtils
@@ -19,6 +21,7 @@ import com.gadarts.te.assets.IconsTextures
 import com.gadarts.te.assets.IconsTextures.*
 import com.gadarts.te.assets.ShaderLoader
 import com.gadarts.te.assets.Shaders
+import com.gadarts.te.common.WallObjects
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.renderer.SceneRenderer
@@ -26,6 +29,8 @@ import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.*
 
 class TerrorEffectorEditor : ApplicationAdapter() {
+    private val modeToContentCatalog = mutableMapOf<Modes, WidgetGroup>()
+    private lateinit var contentCatalogDisplay: Stack
     private lateinit var editorAssetManager: AssetManager
     private lateinit var sceneRenderer: SceneRenderer
     private lateinit var stage: Stage
@@ -62,13 +67,53 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     ) {
         sceneRenderer = SceneRenderer(dispatcher, gameAssetsManager, editorAssetManager)
         val gallery = createGallery(gameAssetsManager)
-        val scrollPane = VisScrollPane(gallery)
+        val galleryScrollPane = VisScrollPane(gallery)
+        contentCatalogDisplay = Stack()
         val heightUnderBars = WINDOW_HEIGHT - (menuBar.table.height + buttonBar.table.height)
-        val splitPane = VisSplitPane(scrollPane, sceneRenderer, false)
+        contentCatalogDisplay.add(galleryScrollPane)
+        val envObjectsTree = addEnvObjectsTree()
+        modeToContentCatalog[Modes.FLOOR] = galleryScrollPane
+        modeToContentCatalog[Modes.WALLS] = galleryScrollPane
+        modeToContentCatalog[Modes.ENV_OBJECTS] = envObjectsTree
+        contentCatalogDisplay.add(envObjectsTree)
+        val splitPane = VisSplitPane(contentCatalogDisplay, sceneRenderer, false)
         splitPane.setSplitAmount(0.2F)
         root.add(splitPane).size(WINDOW_WIDTH, heightUnderBars)
         root.pack()
         sceneRenderer.init(heightUnderBars)
+    }
+
+    private fun addEnvObjectsTree(): VisTree<TreeNode, String> {
+        val envObjectsTree = VisTree<TreeNode, String>()
+        val treeRoot = createTreeRoot(envObjectsTree)
+        val wallsNode = TreeNode("Walls", editorAssetManager.get(TREE_ICON_WALL.getFileName(), Texture::class.java))
+        WallObjects.entries.forEach {
+            wallsNode.add(
+                TreeNode(
+                    it.displayName,
+                    editorAssetManager.get(TREE_ICON_WALL.getFileName(), Texture::class.java)
+                )
+            )
+        }
+        treeRoot.add(wallsNode)
+        envObjectsTree.add(treeRoot)
+        envObjectsTree.isVisible = false
+        return envObjectsTree
+    }
+
+    private fun createTreeRoot(envObjectsTree: VisTree<TreeNode, String>): TreeNode {
+        val treeRoot = TreeNode(
+            "Environment Objects",
+            editorAssetManager.get(TREE_ICON_ENV.getFileName(), Texture::class.java)
+        )
+        treeRoot.isExpanded = true
+        envObjectsTree.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                super.clicked(event, x, y)
+                treeRoot.isExpanded = true
+            }
+        })
+        return treeRoot
     }
 
     private fun createGallery(gameAssetsManager: GameAssetsManager): Table {
@@ -93,9 +138,6 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         root: VisTable
     ): MenuBar {
         val buttonBar = MenuBar()
-        val buttonGroup = createButtonGroup()
-        addModesRadioButtons(buttonGroup, manager, buttonBar)
-        buttonBar.table.add(Separator("vertical")).width(10F).fillY().expandY()
         addButton(
             editorAssetManager.get(ICON_FILE_SAVE.getFileName(), Texture::class.java),
             object : ClickListener() {
@@ -112,35 +154,41 @@ class TerrorEffectorEditor : ApplicationAdapter() {
                 }
             }, buttonBar.table
         )
+        buttonBar.table.add(Separator("vertical")).width(10F).fillY().expandY()
+        addModesRadioButtons(manager, buttonBar)
         root.add(buttonBar.table).fillX().expandX().row()
         buttonBar.table.pack()
         return buttonBar
     }
 
     private fun addModesRadioButtons(
-        buttonGroup: ButtonGroup<VisImageButton>,
         manager: AssetManager,
         buttonBar: MenuBar
+    ) {
+        val buttonGroup = createButtonGroup()
+        addModeButton(buttonGroup, manager, buttonBar, Modes.FLOOR, ICON_MODE_FLOOR.getFileName())
+        addModeButton(buttonGroup, manager, buttonBar, Modes.WALLS, ICON_MODE_WALLS.getFileName())
+        addModeButton(buttonGroup, manager, buttonBar, Modes.ENV_OBJECTS, ICON_MODE_ENV_OBJECTS.getFileName())
+    }
+
+    private fun addModeButton(
+        buttonGroup: ButtonGroup<VisImageButton>,
+        manager: AssetManager,
+        buttonBar: MenuBar,
+        mode: Modes,
+        icon: String
     ) {
         addBarRadioButton(
             buttonGroup,
             object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     super.clicked(event, x, y)
-                    dispatcher.dispatchMessage(EditorEvents.CLICKED_BUTTON_MODE.ordinal, Modes.FLOOR)
+                    dispatcher.dispatchMessage(EditorEvents.CLICKED_BUTTON_MODE.ordinal, mode)
+                    contentCatalogDisplay.children.forEach { it.isVisible = false }
+                    modeToContentCatalog[mode]!!.isVisible = true
                 }
             },
-            manager.get(ICON_MODE_FLOOR.getFileName(), Texture::class.java), buttonBar.table
-        )
-        addBarRadioButton(
-            buttonGroup,
-            object : ClickListener() {
-                override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    super.clicked(event, x, y)
-                    dispatcher.dispatchMessage(EditorEvents.CLICKED_BUTTON_MODE.ordinal, Modes.WALLS)
-                }
-            },
-            manager.get(ICON_MODE_WALLS.getFileName(), Texture::class.java), buttonBar.table
+            manager.get(icon, Texture::class.java), buttonBar.table
         )
     }
 
