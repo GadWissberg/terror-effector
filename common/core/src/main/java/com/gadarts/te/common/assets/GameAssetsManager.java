@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.gadarts.te.common.assets.model.ModelDefinition;
+import com.gadarts.te.common.assets.model.Models;
 import com.gadarts.te.common.assets.texture.TextureDefinition;
 
 import java.util.Arrays;
@@ -55,6 +57,10 @@ public class GameAssetsManager extends AssetManager {
 
     public Texture getTexture(final TextureDefinition definition) {
         return get(assetsLocation + definition.getFilePath(), Texture.class);
+    }
+
+    public com.badlogic.gdx.graphics.g3d.Model getModel(final ModelDefinition model) {
+        return get(assetsLocation + model.getFilePath(), com.badlogic.gdx.graphics.g3d.Model.class);
     }
 
     private void loadFile(AssetDefinition def, String fileName, boolean block) {

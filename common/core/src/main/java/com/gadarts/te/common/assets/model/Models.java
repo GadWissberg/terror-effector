@@ -8,7 +8,8 @@ import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
 public enum Models implements ModelDefinition {
-    ;
+    WALL_WITH_RAILING;
+
     private final String filePath;
     private final float alpha;
     private final String textureFileName;

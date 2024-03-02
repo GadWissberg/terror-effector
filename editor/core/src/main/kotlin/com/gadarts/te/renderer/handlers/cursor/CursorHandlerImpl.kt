@@ -3,6 +3,7 @@ package com.gadarts.te.renderer.handlers.cursor
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
+import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
@@ -16,11 +17,9 @@ import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.*
 import com.gadarts.te.common.CameraUtils
+import com.gadarts.te.common.WallObjects
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.map.Coords
-import com.gadarts.te.common.map.MapNodeData
-import com.gadarts.te.common.map.MapUtils
-import com.gadarts.te.common.map.Wall
+import com.gadarts.te.common.map.*
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
@@ -33,10 +32,11 @@ import kotlin.math.max
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
     override val selectedWalls = mutableListOf<Wall>()
-    private var highlightWall: Wall? = null
     override var selectedMode: Modes = Modes.FLOOR
-    override val selectedNodes = mutableListOf<SelectedNode>()
 
+    override val selectedNodes = mutableListOf<SelectedNode>()
+    override var objectModelCursor: ModelInstance? = null
+    private var highlightWall: Wall? = null
     private val originalFloorModelInstanceCursorPosition = Vector3()
     private var selecting: Boolean = false
     private val prevFloorCursorPosition = Vector3()
@@ -45,18 +45,24 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     private var viewportHeight: Float = 0.0f
     private var viewportWidth: Float = 0.0f
     private var cursorFading: Float = 0.0f
-    private val cursorMaterialBlendingAttribute: BlendingAttribute
-    private val floorModelInstanceCursor: ModelInstance
+    private var cursorMaterialBlendingAttribute: BlendingAttribute = BlendingAttribute()
     private val floorModel: Model = MapUtils.createFloorModel()
 
     init {
-        floorModelInstanceCursor = ModelInstance(floorModel)
-        floorModelInstanceCursor.nodes.get(0).isAnimated = true
-        cursorMaterialBlendingAttribute = BlendingAttribute()
         cursorMaterialBlendingAttribute.opacity = 1f
-        val cursorMaterial = floorModelInstanceCursor.materials.get(0)
+        setCursorToFloorModel()
+    }
+
+    private fun addAttributesToCursorModel() {
+        val cursorMaterial = objectModelCursor!!.materials.get(0)
         cursorMaterial.set(cursorMaterialBlendingAttribute)
         cursorMaterial.set(ColorAttribute.createDiffuse(Color.GREEN))
+    }
+
+    override fun setCursorToFloorModel() {
+        objectModelCursor = ModelInstance(floorModel)
+        objectModelCursor!!.nodes.get(0).isAnimated = true
+        addAttributesToCursorModel()
     }
 
     override fun dispose() {
@@ -65,19 +71,19 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     private fun turnOnSelectingCursor() {
         selecting = true
-        floorModelInstanceCursor.nodes.get(0).localTransform.trn(0.5F, 0.01F, 0.5F)
-        floorModelInstanceCursor.calculateTransforms()
-        floorModelInstanceCursor.transform.trn(-0.5F, 0F, -0.5F)
-        floorModelInstanceCursor.transform.getTranslation(originalFloorModelInstanceCursorPosition)
+        objectModelCursor!!.nodes.get(0).localTransform.trn(0.5F, 0.01F, 0.5F)
+        objectModelCursor!!.calculateTransforms()
+        objectModelCursor!!.transform.trn(-0.5F, 0F, -0.5F)
+        objectModelCursor!!.transform.getTranslation(originalFloorModelInstanceCursorPosition)
     }
 
     private fun turnOffSelectingCursor(screenX: Int, screenY: Int) {
         selecting = false
-        floorModelInstanceCursor.transform.values[Matrix4.M00] = 1F
-        floorModelInstanceCursor.transform.values[Matrix4.M22] = 1F
-        floorModelInstanceCursor.nodes.get(0).localTransform.trn(-0.5F, -0.01F, -0.5F)
-        updateFloorCursorPosition(screenX, screenY)
-        floorModelInstanceCursor.calculateTransforms()
+        objectModelCursor!!.transform.values[Matrix4.M00] = 1F
+        objectModelCursor!!.transform.values[Matrix4.M22] = 1F
+        objectModelCursor!!.nodes.get(0).localTransform.trn(-0.5F, -0.01F, -0.5F)
+        updateObjectModelCursorPosition(screenX, screenY)
+        objectModelCursor!!.calculateTransforms()
     }
 
     override fun onInitialize(
@@ -111,7 +117,20 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         return mapOf(
             EditorEvents.TEXTURE_SET to CursorHandlerOnTextureSet(this),
             EditorEvents.NODES_HEIGHT_SET to CursorHandlerOnNodesHeightSet(this),
-            EditorEvents.CLICKED_BUTTON_MODE to CursorHandlerOnModeSelected(this)
+            EditorEvents.CLICKED_BUTTON_MODE to CursorHandlerOnModeSelected(this),
+            EditorEvents.CLICKED_TREE_NODE to object : HandlerOnEvent {
+                override fun react(
+                    msg: Telegram,
+                    handlersData: HandlersData,
+                    gameAssetsManager: GameAssetsManager,
+                    dispatcher: MessageDispatcher,
+                    wallCreator: WallCreator
+                ) {
+                    val wallObject = msg.extraInfo as WallObjects
+                    objectModelCursor = ModelInstance(gameAssetsManager.getModel(wallObject.modelDefinition))
+                    addAttributesToCursorModel()
+                }
+            }
         )
     }
 
@@ -120,7 +139,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         if (button == Input.Buttons.LEFT) {
             if (selectedMode == Modes.FLOOR) {
                 if (selectedNodes.isEmpty()) {
-                    val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+                    val position = objectModelCursor!!.transform.getTranslation(auxVector3_2)
                     dispatcher.dispatchMessage(
                         EditorEvents.CLICKED_GRID_CELL.ordinal,
                         listOf(Coords(position.x.toInt(), position.z.toInt()))
@@ -158,8 +177,8 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     private fun selectNodes(screenX: Int, screenY: Int) {
-        val northWestPosition = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
-        val selectionBoxSize = floorModelInstanceCursor.transform.getScale(auxVector3_1)
+        val northWestPosition = objectModelCursor!!.transform.getTranslation(auxVector3_2)
+        val selectionBoxSize = objectModelCursor!!.transform.getScale(auxVector3_1)
         selectedNodes.clear()
         val northWestX = northWestPosition.x.toInt()
         val northWestZ = northWestPosition.z.toInt()
@@ -186,8 +205,8 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
         if (!selecting) {
             updatePrevCursorPosition()
-            updateFloorCursorPosition(screenX, screenY)
-            val current = floorModelInstanceCursor.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
+            updateObjectModelCursorPosition(screenX, screenY)
+            val current = objectModelCursor!!.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
             if (!prevFloorCursorPosition.epsilonEquals(current.x, 0F, current.z, 0.01F)) {
                 dispatcher.dispatchMessage(
                     EditorEvents.DRAGGED_GRID_CELL.ordinal,
@@ -203,10 +222,10 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
 
-        if (selectedMode == Modes.FLOOR) {
+        if (selectedMode == Modes.FLOOR || selectedMode == Modes.ENV_OBJECTS) {
             if (!selecting) {
                 updatePrevCursorPosition()
-                updateFloorCursorPosition(screenX, screenY)
+                updateObjectModelCursorPosition(screenX, screenY)
             } else {
                 updateSelectionBox(screenX, screenY)
             }
@@ -284,33 +303,38 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         mousePosition.x = MathUtils.clamp(mousePosition.x, 0F, handlersData.mapData.mapSize - 1F)
         mousePosition.z = MathUtils.clamp(mousePosition.z, 0F, handlersData.mapData.mapSize - 1F)
         val mousePositionX = mousePosition.x.toInt()
-        floorModelInstanceCursor.transform.values[Matrix4.M00] =
+        objectModelCursor!!.transform.values[Matrix4.M00] =
             abs(mousePositionX - (originalFloorModelInstanceCursorPosition.x)) + 1F
         val mousePositionZ = mousePosition.z.toInt()
-        floorModelInstanceCursor.transform.values[Matrix4.M22] =
+        objectModelCursor!!.transform.values[Matrix4.M22] =
             abs(mousePositionZ - (originalFloorModelInstanceCursorPosition.z)) + 1F
         if (mousePositionX < (originalFloorModelInstanceCursorPosition.x)) {
-            floorModelInstanceCursor.transform.values[Matrix4.M03] = mousePositionX.toFloat()
+            objectModelCursor!!.transform.values[Matrix4.M03] = mousePositionX.toFloat()
         }
         if (mousePositionZ < (originalFloorModelInstanceCursorPosition.z)) {
-            floorModelInstanceCursor.transform.values[Matrix4.M23] = mousePositionZ.toFloat()
+            objectModelCursor!!.transform.values[Matrix4.M23] = mousePositionZ.toFloat()
         }
-        floorModelInstanceCursor.transform.values[M13] = mousePosition.y + 0.01F
+        objectModelCursor!!.transform.values[M13] = mousePosition.y + 0.01F
     }
 
     private fun updatePrevCursorPosition() {
-        val prev = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+        if (objectModelCursor == null) return
+
+        val prev = objectModelCursor!!.transform.getTranslation(auxVector3_2)
         prevFloorCursorPosition.set(prev.x.toInt().toFloat(), 0F, prev.z.toInt().toFloat())
     }
 
-    private fun updateFloorCursorPosition(screenX: Int, screenY: Int) {
+    private fun updateObjectModelCursorPosition(screenX: Int, screenY: Int) {
+        if (objectModelCursor == null) return
+
         val position = fetchGridCellAtMouse(screenX, screenY)
         val x = position.x.toInt()
         val z = position.z.toInt()
-        floorModelInstanceCursor.transform.setTranslation(
-            MathUtils.clamp(x.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F,
+        val offset = if (selectedMode == Modes.FLOOR) 0.5F else 0F
+        objectModelCursor!!.transform.setTranslation(
+            MathUtils.clamp(x.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + offset,
             MathUtils.clamp(handlersData.mapData.getNode(x, z)?.height ?: 0F, 0F, MapNodeData.MAX_FLOOR_HEIGHT),
-            MathUtils.clamp(z.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + 0.5F
+            MathUtils.clamp(z.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + offset
         )
     }
 
@@ -329,7 +353,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        val position = floorModelInstanceCursor.transform.getTranslation(auxVector3_2)
+        val position = objectModelCursor!!.transform.getTranslation(auxVector3_2)
         auxList.clear()
         if (selectedNodes.isEmpty()) {
             auxList.add(Coords(position.x.toInt(), position.z.toInt()))
@@ -340,7 +364,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             (if (amountY > 0) EditorEvents.SCROLLED_DOWN else EditorEvents.SCROLLED_UP).ordinal,
             auxList
         )
-        floorModelInstanceCursor.transform.values[M13] =
+        objectModelCursor!!.transform.values[M13] =
             MathUtils.clamp(
                 handlersData.mapData.getNode(position.x.toInt(), position.z.toInt())?.height ?: 0F,
                 0F,
@@ -355,9 +379,9 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun onRender(batch: ModelBatch) {
-        if (selectedMode == Modes.FLOOR) {
-            batch.render(floorModelInstanceCursor)
-        } else {
+        if (objectModelCursor != null && (selectedMode == Modes.FLOOR || selectedMode == Modes.ENV_OBJECTS)) {
+            batch.render(objectModelCursor)
+        } else if (selectedMode == Modes.WALLS) {
             if (highlightWall != null) {
                 (highlightWall!!.modelInstance.materials.get(0)
                     .get(ColorAttribute.Diffuse) as ColorAttribute).color.set(

@@ -88,12 +88,17 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val treeRoot = createTreeRoot(envObjectsTree)
         val wallsNode = TreeNode("Walls", editorAssetManager.get(TREE_ICON_WALL.getFileName(), Texture::class.java))
         WallObjects.entries.forEach {
-            wallsNode.add(
-                TreeNode(
-                    it.displayName,
-                    editorAssetManager.get(TREE_ICON_WALL.getFileName(), Texture::class.java)
-                )
+            val wallNode = TreeNode(
+                it.displayName,
+                editorAssetManager.get(TREE_ICON_WALL.getFileName(), Texture::class.java)
             )
+            wallNode.actor.addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    super.clicked(event, x, y)
+                    dispatcher.dispatchMessage(EditorEvents.CLICKED_TREE_NODE.ordinal, it)
+                }
+            })
+            wallsNode.add(wallNode)
         }
         treeRoot.add(wallsNode)
         envObjectsTree.add(treeRoot)
