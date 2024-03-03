@@ -18,12 +18,12 @@ class CursorHandlerOnTextureSet(private val cursorHandler: CursorHandler) : Hand
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator
     ) {
-        if (cursorHandler.selectedMode == Modes.FLOOR && cursorHandler.selectedNodes.isNotEmpty()) {
+        if (handlersData.selectedMode == Modes.FLOOR && cursorHandler.selectedNodes.isNotEmpty()) {
             dispatcher.dispatchMessage(
                 EditorEvents.TEXTURE_SELECTED_FOR_NODES.ordinal,
                 cursorHandler.selectedNodes.map { it.coords }
             )
-        } else if (cursorHandler.selectedMode == Modes.WALLS && cursorHandler.selectedWalls.isNotEmpty()) {
+        } else if (handlersData.selectedMode == Modes.WALLS && cursorHandler.selectedWalls.isNotEmpty()) {
             dispatcher.dispatchMessage(
                 EditorEvents.TEXTURE_SELECTED_FOR_WALLS.ordinal,
                 cursorHandler.selectedWalls

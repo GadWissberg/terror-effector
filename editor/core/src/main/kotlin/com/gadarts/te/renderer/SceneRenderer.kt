@@ -23,10 +23,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
+import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.CameraUtils
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.renderer.handlers.Handlers
 import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.model.MapData
@@ -39,6 +39,9 @@ class SceneRenderer(
 ) :
     Table(),
     Disposable, Telegraph {
+    private lateinit var handlersData: HandlersData
+    private var gridModelInstance: ModelInstance
+    private var axisModelInstance: ModelInstance
     private lateinit var eastPointerModelInstance: ModelInstance
     private lateinit var northPointerModelInstance: ModelInstance
     private lateinit var eastPointerModel: Model
@@ -48,8 +51,7 @@ class SceneRenderer(
     private val axisModel: Model
     private val modelsShaderProvider: ModelsShaderProvider = ModelsShaderProvider(editorAssetManager)
     private val batch = ModelBatch(modelsShaderProvider)
-    private val modelInstances = mutableListOf<ModelInstance>()
-    private val mapData = MapData(MAP_SIZE, gameAssetsManager.getTexture(SurfaceTextures.BLANK))
+    private val mapData = MapData(MAP_SIZE, gameAssetsManager)
 
     init {
         dispatcher.addListener(this, EditorEvents.CLICKED_BUTTON_MODE.ordinal)
@@ -58,9 +60,8 @@ class SceneRenderer(
             1F, Material(ColorAttribute.createDiffuse(Color.RED)),
             ((VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal).toLong())
         )
-        modelInstances.add(ModelInstance(axisModel))
-        val gridModelInstance = addGrid(modelBuilder)
-        modelInstances.add(gridModelInstance)
+        axisModelInstance = ModelInstance(axisModel)
+        gridModelInstance = addGrid(modelBuilder)
         addDirectionsIndicator(modelBuilder)
     }
 
@@ -92,8 +93,6 @@ class SceneRenderer(
             DIRECTIONS_INDICATOR_ARROW_SCALE,
             DIRECTIONS_INDICATOR_ARROW_SCALE
         )
-        modelInstances.add(northPointerModelInstance)
-        modelInstances.add(eastPointerModelInstance)
     }
 
     private fun createDirectionsIndicatorModels(modelBuilder: ModelBuilder) {
@@ -132,9 +131,10 @@ class SceneRenderer(
     private fun renderModels() {
         batch.begin(camera)
         mapData.render(batch)
-        modelInstances.forEach {
-            batch.render(it)
-        }
+        batch.render(northPointerModelInstance)
+        batch.render(eastPointerModelInstance)
+        batch.render(axisModelInstance)
+        batch.render(gridModelInstance)
         Handlers.entries.forEach { it.handlerInstance.onRender(batch) }
         batch.end()
     }
@@ -152,7 +152,7 @@ class SceneRenderer(
         val screenPosition = localToScreenCoordinates(auxVector2_1.set(0F, 0F))
         val screenX = screenPosition.x
         val screenY = TerrorEffectorEditor.WINDOW_HEIGHT - screenPosition.y.toInt()
-        val handlersData = HandlersData(camera, screenX, screenY, heightUnderBars, mapData)
+        handlersData = HandlersData(camera, screenX, screenY, heightUnderBars, mapData, Modes.FLOOR)
         Handlers.entries.forEach {
             it.handlerInstance.onInitialize(
                 dispatcher,
@@ -174,8 +174,14 @@ class SceneRenderer(
         private const val MAP_SIZE: Int = 32
     }
 
-    override fun handleMessage(msg: Telegram?): Boolean {
-        return false
+    override fun handleMessage(msg: Telegram): Boolean {
+        var handled = false
+        if (msg.message == EditorEvents.CLICKED_BUTTON_MODE.ordinal) {
+            handlersData.selectedMode = msg.extraInfo as Modes
+            dispatcher.dispatchMessage(EditorEvents.MODE_CHANGED.ordinal)
+            handled = true
+        }
+        return handled
     }
 
 }

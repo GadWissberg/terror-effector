@@ -2,7 +2,6 @@ package com.gadarts.te.renderer.handlers.cursor.react
 
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
-import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.gadarts.te.Modes
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.map.WallCreator
@@ -18,12 +17,9 @@ class CursorHandlerOnModeSelected(private val cursorHandler: CursorHandler) : Ha
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator
     ) {
-        val mode = (msg.extraInfo as Modes)
-        cursorHandler.selectedMode = mode
-        if (cursorHandler.selectedMode == Modes.FLOOR) {
+        if (handlersData.selectedMode == Modes.FLOOR) {
             cursorHandler.setCursorToFloorModel()
-        }
-        else if (cursorHandler.selectedMode == Modes.ENV_OBJECTS) {
+        } else if (handlersData.selectedMode == Modes.ENV_OBJECTS) {
             cursorHandler.objectModelCursor = null
         }
     }

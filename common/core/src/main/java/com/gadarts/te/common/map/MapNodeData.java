@@ -10,6 +10,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+
 import static com.badlogic.gdx.math.Matrix4.M13;
 
 @Getter
@@ -18,6 +20,7 @@ public class MapNodeData {
 
     public static final float MAX_FLOOR_HEIGHT = 5F;
     private final static Vector3 auxVector = new Vector3();
+
     @Setter(AccessLevel.NONE)
     private Coords coords;
 
@@ -28,6 +31,7 @@ public class MapNodeData {
     private MapNodesTypes mapNodeType;
     private SurfaceTextures textureDefinition;
     private float height;
+    private ArrayList<EnvObject> envObjects = new ArrayList<>();
 
     public MapNodeData(int x, int z, MapNodesTypes type, ModelInstance modelInstance, SurfaceTextures textureDefinition) {
         this.mapNodeType = type;

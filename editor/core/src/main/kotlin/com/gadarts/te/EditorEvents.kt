@@ -16,5 +16,6 @@ enum class EditorEvents {
     DRAGGED_GRID_CELL,
     ACTION_BEGIN,
     ACTION_TAKE_STEP,
-    ACTION_DONE
+    ACTION_DONE,
+    MODE_CHANGED
 }

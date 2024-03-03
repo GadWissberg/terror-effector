@@ -1,6 +1,7 @@
 package com.gadarts.te.renderer.handlers
 
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.gadarts.te.Modes
 import com.gadarts.te.renderer.model.MapData
 
 class HandlersData(
@@ -8,5 +9,6 @@ class HandlersData(
     val screenX: Float,
     val screenY: Float,
     val heightUnderBars: Float,
-    val mapData: MapData
+    val mapData: MapData,
+    var selectedMode: Modes
 )

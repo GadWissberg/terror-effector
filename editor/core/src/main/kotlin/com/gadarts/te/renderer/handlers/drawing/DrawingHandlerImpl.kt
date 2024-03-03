@@ -19,7 +19,7 @@ class DrawingHandlerImpl : BaseHandler(), DrawingHandler {
             EditorEvents.TEXTURE_SELECTED_FOR_WALLS to DrawingHandlerOnTextureSelectedForWalls(this),
             EditorEvents.DRAGGED_GRID_CELL to DrawingHandlerOnDraggedGridCell(this),
             EditorEvents.SCROLLED_UP to DrawingHandlerOnScrolledUp(),
-            EditorEvents.SCROLLED_DOWN to DrawingHandlerOnScrolledDown()
+            EditorEvents.SCROLLED_DOWN to DrawingHandlerOnScrolledDown(),
         )
     }
 
