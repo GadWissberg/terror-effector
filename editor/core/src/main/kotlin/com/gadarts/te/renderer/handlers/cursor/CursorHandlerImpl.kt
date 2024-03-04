@@ -139,34 +139,42 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
         if (button == Input.Buttons.LEFT) {
-            if (handlersData.selectedMode == Modes.FLOOR) {
-                if (selectedNodes.isEmpty()) {
-                    val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-                    dispatcher.dispatchMessage(
-                        EditorEvents.CLICKED_GRID_CELL.ordinal,
-                        listOf(Coords(position.x.toInt(), position.z.toInt()))
-                    )
-                } else {
-                    selectedNodes.clear()
-                }
-            } else if (handlersData.selectedMode == Modes.WALLS) {
-                handleSelectingWall()
-            } else if (handlersData.selectedMode == Modes.ENV_OBJECTS) {
-                val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-                dispatcher.dispatchMessage(
-                    EditorEvents.CLICKED_GRID_CELL.ordinal,
-                    ClickedGridCellEventForEnvObject(
-                        Coords(position.x.toInt(), position.z.toInt()),
-                        objectModelCursor!!.definition!!
-                    )
-                )
-            }
-            return true
+            return handleLeftClick()
         } else if (button == Input.Buttons.RIGHT && !selecting) {
             turnOnSelectingCursor()
             return true
         }
         return false
+    }
+
+    private fun handleLeftClick(): Boolean {
+        if (handlersData.selectedMode == Modes.FLOOR) {
+            if (selectedNodes.isEmpty()) {
+                val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
+                dispatcher.dispatchMessage(
+                    EditorEvents.CLICKED_GRID_CELL.ordinal,
+                    listOf(Coords(position.x.toInt(), position.z.toInt()))
+                )
+            } else {
+                selectedNodes.clear()
+            }
+        } else if (handlersData.selectedMode == Modes.WALLS) {
+            handleSelectingWall()
+        } else if (handlersData.selectedMode == Modes.ENV_OBJECTS && objectModelCursor != null) {
+            handlePlacingEnvObject()
+        }
+        return true
+    }
+
+    private fun handlePlacingEnvObject() {
+        val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
+        dispatcher.dispatchMessage(
+            EditorEvents.CLICKED_GRID_CELL.ordinal,
+            ClickedGridCellEventForEnvObject(
+                Coords(position.x.toInt(), position.z.toInt()),
+                objectModelCursor!!.definition!!
+            )
+        )
     }
 
     private fun handleSelectingWall() {
