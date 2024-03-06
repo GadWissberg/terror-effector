@@ -16,7 +16,7 @@ open class PlaceFloorTilesAction(
     private val wallCreator: WallCreator
 ) : Action {
 
-    override fun begin() {
+    override fun begin(mapData: MapData) {
         nodes.forEach {
             applyAction(it.x, it.z)
         }

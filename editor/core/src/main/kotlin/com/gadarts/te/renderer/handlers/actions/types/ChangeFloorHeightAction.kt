@@ -14,7 +14,7 @@ class ChangeFloorHeightAction(
     private val dispatcher: MessageDispatcher
 ) : SingleStepAction {
 
-    override fun begin() {
+    override fun begin(mapData: MapData) {
         nodes.forEach {
             it.applyHeight(it.height + valueToAdd)
             adjustEastSideWall(it)

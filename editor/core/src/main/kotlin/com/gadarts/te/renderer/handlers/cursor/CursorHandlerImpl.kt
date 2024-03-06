@@ -140,9 +140,18 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         if (DebugSettings.FREELOOK) return false
         if (button == Input.Buttons.LEFT) {
             return handleLeftClick()
-        } else if (button == Input.Buttons.RIGHT && !selecting) {
-            turnOnSelectingCursor()
-            return true
+        } else if (button == Input.Buttons.RIGHT) {
+            if (!selecting && handlersData.selectedMode == Modes.FLOOR) {
+                turnOnSelectingCursor()
+                return true
+            } else if (handlersData.selectedMode == Modes.ENV_OBJECTS) {
+                val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
+                dispatcher.dispatchMessage(
+                    EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
+                    Coords(position.x.toInt(), position.z.toInt())
+                )
+                return true
+            }
         }
         return false
     }
@@ -152,7 +161,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             if (selectedNodes.isEmpty()) {
                 val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
                 dispatcher.dispatchMessage(
-                    EditorEvents.CLICKED_GRID_CELL.ordinal,
+                    EditorEvents.CLICKED_LEFT_ON_GRID_CELL.ordinal,
                     listOf(Coords(position.x.toInt(), position.z.toInt()))
                 )
             } else {
@@ -169,7 +178,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     private fun handlePlacingEnvObject() {
         val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
         dispatcher.dispatchMessage(
-            EditorEvents.CLICKED_GRID_CELL.ordinal,
+            EditorEvents.CLICKED_LEFT_ON_GRID_CELL.ordinal,
             ClickedGridCellEventForEnvObject(
                 Coords(position.x.toInt(), position.z.toInt()),
                 objectModelCursor!!.definition!!

@@ -7,11 +7,10 @@ import com.gadarts.te.renderer.model.MapData
 
 open class PlaceEnvObjectAction(
     private val mapNodeData: MapNodeData,
-    private val mapData: MapData,
     private val definition: WallObjects
 ) : SingleStepAction {
 
-    override fun begin() {
+    override fun begin(mapData: MapData) {
         mapData.insertEnvObject(Coords(mapNodeData.coords), definition)
     }
 

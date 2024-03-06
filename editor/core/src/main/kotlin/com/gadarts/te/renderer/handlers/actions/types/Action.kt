@@ -1,7 +1,9 @@
 package com.gadarts.te.renderer.handlers.actions.types
 
+import com.gadarts.te.renderer.model.MapData
+
 interface Action {
-    fun begin()
+    fun begin(mapData: MapData)
     fun takeStep(extraInfo: Any)
 
     fun isSingleStep(): Boolean {

@@ -19,7 +19,7 @@ class ActionsHandlerOnActionBegin(private val actionsHandler: ActionsHandler) :
         wallCreator: WallCreator
     ) {
         actionsHandler.currentAction = msg.extraInfo as Action
-        actionsHandler.currentAction!!.begin()
+        actionsHandler.currentAction!!.begin(handlersData.mapData)
 
         if (actionsHandler.currentAction!!.isSingleStep()) {
             dispatcher.dispatchMessage(EditorEvents.ACTION_DONE.ordinal)

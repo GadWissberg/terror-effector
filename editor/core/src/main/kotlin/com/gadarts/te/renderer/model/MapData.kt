@@ -87,4 +87,13 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
 
         return matrix[z][x]
     }
+
+    fun getNode(coords: Coords): MapNodeData? {
+        return getNode(coords.x, coords.z)
+    }
+
+    fun deleteEnvObject(toDelete: EnvObject) {
+        placedEnvObjects.remove(toDelete)
+        getNode(toDelete.coords)?.envObjects?.remove(toDelete)
+    }
 }
