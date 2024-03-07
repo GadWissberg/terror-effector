@@ -43,7 +43,11 @@ class DrawingHandlerOnClickedGridCell(private val drawingHandler: DrawingHandler
                 clickedGridCellEventForEnvObject.coords.z
             )
             if (mapNodeData != null) {
-                action = PlaceEnvObjectAction(mapNodeData, clickedGridCellEventForEnvObject.definition)
+                action = PlaceEnvObjectAction(
+                    mapNodeData,
+                    clickedGridCellEventForEnvObject.definition,
+                    clickedGridCellEventForEnvObject.direction
+                )
             }
         }
         action?.let { dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action) }

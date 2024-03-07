@@ -7,10 +7,12 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.gadarts.te.EditorEvents
+import com.gadarts.te.common.WallObjects
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.map.*
 import com.gadarts.te.common.map.MapJsonKeys.*
+import com.gadarts.te.common.map.element.Direction
 import com.google.gson.*
 import java.io.FileReader
 import java.io.FileWriter
@@ -109,8 +111,8 @@ class PersistenceHandler : BaseHandler() {
         val nodesJsonObject = input.getAsJsonObject(NODES)
         val nodesDataJson = nodesJsonObject.getAsJsonArray(NODES_DATA)
         handlersData.mapData.matrix = inflateNodes(nodesJsonObject, handlersData.mapData.definedNodes)
-        nodesDataJson.forEach { inflateNodeHeight(it.asJsonObject) }
-        nodesDataJson.forEach { jsonElement ->
+        nodesDataJson?.forEach { inflateNodeHeight(it.asJsonObject) }
+        nodesDataJson?.forEach { jsonElement ->
             jsonElement as JsonObject
             inflateWalls(
                 handlersData.mapData.matrix[jsonElement[COORD_Z].asInt][jsonElement[COORD_X].asInt]!!,
@@ -321,6 +323,17 @@ class PersistenceHandler : BaseHandler() {
             FileReader(TEMP_PATH).use { reader ->
                 val input: JsonObject = gson.fromJson(reader, JsonObject::class.java)
                 inflateMapStructure(input)
+                input.getAsJsonObject(ELEMENTS).getAsJsonArray(ENV_OBJECTS).forEach {
+                    val envObjectJsonObject = it.asJsonObject
+                    handlersData.mapData.insertEnvObject(
+                        Coords(
+                            envObjectJsonObject.get(COORD_X).asInt,
+                            envObjectJsonObject.get(COORD_Z).asInt
+                        ),
+                        WallObjects.valueOf(envObjectJsonObject.get(DEFINITION).asString),
+                        Direction.valueOf(envObjectJsonObject.get(DIRECTION).asString)
+                    )
+                }
             }
         } catch (e: JsonSyntaxException) {
             throw IOException(e.message)
@@ -350,6 +363,7 @@ class PersistenceHandler : BaseHandler() {
             nodesJson.add(NODES_DATA, nodesDataJson)
         }
         output.add(NODES, nodesJson)
+        output.add(ELEMENTS, deflateMapElements())
         try {
             FileWriter(TEMP_PATH).use { writer ->
                 gson.toJson(output, writer)
@@ -357,6 +371,21 @@ class PersistenceHandler : BaseHandler() {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+    }
+
+    private fun deflateMapElements(): JsonObject {
+        val mapElements = JsonObject()
+        val envObjectsJsonArray = JsonArray()
+        handlersData.mapData.placedEnvObjects.forEach {
+            val envObjectJsonObject = JsonObject()
+            envObjectJsonObject.addProperty(DEFINITION, it.definition.name)
+            envObjectJsonObject.addProperty(DIRECTION, it.direction.name)
+            envObjectJsonObject.addProperty(COORD_X, it.coords.x)
+            envObjectJsonObject.addProperty(COORD_Z, it.coords.z)
+            envObjectsJsonArray.add(envObjectJsonObject)
+        }
+        mapElements.add(ENV_OBJECTS, envObjectsJsonArray)
+        return mapElements
     }
 
     private fun insertIntoMatrix(

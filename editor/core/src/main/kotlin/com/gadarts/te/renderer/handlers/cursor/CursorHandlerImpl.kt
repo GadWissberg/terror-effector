@@ -3,7 +3,6 @@ package com.gadarts.te.renderer.handlers.cursor
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
-import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
@@ -19,13 +18,15 @@ import com.gadarts.te.*
 import com.gadarts.te.common.CameraUtils
 import com.gadarts.te.common.WallObjects
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.map.*
+import com.gadarts.te.common.map.Coords
+import com.gadarts.te.common.map.MapNodeData
+import com.gadarts.te.common.map.MapUtils
+import com.gadarts.te.common.map.Wall
+import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
-import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnModeSelected
-import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnNodesHeightSet
-import com.gadarts.te.renderer.handlers.cursor.react.CursorHandlerOnTextureSet
+import com.gadarts.te.renderer.handlers.cursor.react.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -58,8 +59,18 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun setCursorToFloorModel() {
-        objectModelCursor = ObjectModelCursor(ModelInstance(floorModel), null)
+        objectModelCursor = ObjectModelCursor(ModelInstance(floorModel), null, Direction.EAST)
         objectModelCursor!!.modelInstance.nodes.get(0).isAnimated = true
+        addAttributesToCursorModel()
+    }
+
+    override fun displayObjectOfTreeNode(wallObject: WallObjects) {
+        objectModelCursor =
+            ObjectModelCursor(
+                ModelInstance(gameAssetsManager.getModel(wallObject.modelDefinition)),
+                wallObject,
+                Direction.EAST
+            )
         addAttributesToCursorModel()
     }
 
@@ -116,23 +127,11 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             EditorEvents.TEXTURE_SET to CursorHandlerOnTextureSet(this),
             EditorEvents.NODES_HEIGHT_SET to CursorHandlerOnNodesHeightSet(this),
             EditorEvents.MODE_CHANGED to CursorHandlerOnModeSelected(this),
-            EditorEvents.CLICKED_TREE_NODE to object : HandlerOnEvent {
-                override fun react(
-                    msg: Telegram,
-                    handlersData: HandlersData,
-                    gameAssetsManager: GameAssetsManager,
-                    dispatcher: MessageDispatcher,
-                    wallCreator: WallCreator
-                ) {
-                    val wallObject = msg.extraInfo as WallObjects
-                    objectModelCursor =
-                        ObjectModelCursor(
-                            ModelInstance(gameAssetsManager.getModel(wallObject.modelDefinition)),
-                            wallObject
-                        )
-                    addAttributesToCursorModel()
-                }
-            }
+            EditorEvents.CLICKED_TREE_NODE to CursorHandlerOnClickedTreeNode(this),
+            EditorEvents.CLICKED_BUTTON_ROTATE_CLOCKWISE to CursorHandlerOnClickedButtonRotateClockwise(this),
+            EditorEvents.CLICKED_BUTTON_ROTATE_COUNTER_CLOCKWISE to CursorHandlerOnClickedButtonRotateCounterClockwise(
+                this
+            )
         )
     }
 
@@ -177,11 +176,17 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     private fun handlePlacingEnvObject() {
         val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
+            .sub(
+                objectModelCursor!!.definition!!.modelDefinition.modelOffset.x,
+                objectModelCursor!!.definition!!.modelDefinition.modelOffset.y,
+                objectModelCursor!!.definition!!.modelDefinition.modelOffset.z
+            )
         dispatcher.dispatchMessage(
             EditorEvents.CLICKED_LEFT_ON_GRID_CELL.ordinal,
             ClickedGridCellEventForEnvObject(
                 Coords(position.x.toInt(), position.z.toInt()),
-                objectModelCursor!!.definition!!
+                objectModelCursor!!.definition!!,
+                objectModelCursor!!.getDirection()
             )
         )
     }
@@ -356,13 +361,21 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         if (objectModelCursor == null) return
 
         val position = fetchGridCellAtMouse(screenX, screenY)
-        val x = position.x.toInt()
-        val z = position.z.toInt()
+        val xOffset = objectModelCursor!!.definition?.modelDefinition?.modelOffset?.x ?: 0F
+        val yOffset = objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F
+        val zOffset = objectModelCursor!!.definition?.modelDefinition?.modelOffset?.z ?: 0F
+        val x = position.x.toInt() + xOffset
+        val z = position.z.toInt() + zOffset
         val offset = if (handlersData.selectedMode == Modes.FLOOR) 0.5F else 0F
+        val y = MathUtils.clamp(
+            handlersData.mapData.getNode(x.toInt(), z.toInt())?.height ?: 0F,
+            0F,
+            MapNodeData.MAX_FLOOR_HEIGHT
+        ) + yOffset
         objectModelCursor!!.modelInstance.transform.setTranslation(
-            MathUtils.clamp(x.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + offset,
-            MathUtils.clamp(handlersData.mapData.getNode(x, z)?.height ?: 0F, 0F, MapNodeData.MAX_FLOOR_HEIGHT),
-            MathUtils.clamp(z.toFloat(), 0F, handlersData.mapData.mapSize.toFloat()) + offset
+            MathUtils.clamp(x, xOffset, handlersData.mapData.mapSize.toFloat()) + offset,
+            y,
+            MathUtils.clamp(z, zOffset, handlersData.mapData.mapSize.toFloat()) + offset
         )
     }
 
