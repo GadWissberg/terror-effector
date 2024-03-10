@@ -45,10 +45,10 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
         }
     }
 
-    public MapGraphNode getNode(final int col, final int row) {
-        if (col < 0 || col >= width || row < 0 || row >= depth) return null;
+    public MapGraphNode getNode(int x, int z) {
+        if (x < 0 || x >= width || z < 0 || z >= depth) return null;
 
-        int index = row * width + col;
+        int index = z * width + x;
         MapGraphNode result = null;
         if (0 <= index && index < width * depth) {
             result = nodes.get(index);

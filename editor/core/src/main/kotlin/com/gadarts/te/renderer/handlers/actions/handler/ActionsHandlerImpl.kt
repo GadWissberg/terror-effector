@@ -1,6 +1,7 @@
 package com.gadarts.te.renderer.handlers.actions.handler
 
 import com.badlogic.gdx.InputProcessor
+import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
@@ -22,7 +23,7 @@ class ActionsHandlerImpl : ActionsHandler, BaseHandler(), InputProcessor {
     override fun onUpdate() {
     }
 
-    override fun onRender(batch: ModelBatch) {
+    override fun onRender(batch: ModelBatch, environment: Environment) {
     }
 
     override fun dispose() {

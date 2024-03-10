@@ -8,10 +8,7 @@ import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.VertexAttributes
-import com.badlogic.gdx.graphics.g3d.Material
-import com.badlogic.gdx.graphics.g3d.Model
-import com.badlogic.gdx.graphics.g3d.ModelBatch
-import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Intersector
@@ -26,6 +23,7 @@ import com.gadarts.te.GeneralUtils
 import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.CameraUtils
+import com.gadarts.te.common.LightUtils
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.renderer.handlers.Handlers
 import com.gadarts.te.renderer.handlers.HandlersData
@@ -39,6 +37,7 @@ class SceneRenderer(
 ) :
     Table(),
     Disposable, Telegraph {
+    private var environment: Environment
     private lateinit var handlersData: HandlersData
     private var gridModelInstance: ModelInstance
     private var axisModelInstance: ModelInstance
@@ -63,6 +62,7 @@ class SceneRenderer(
         axisModelInstance = ModelInstance(axisModel)
         gridModelInstance = addGrid(modelBuilder)
         addDirectionsIndicator(modelBuilder)
+        environment = LightUtils.createEnvironment()
     }
 
     private fun addGrid(modelBuilder: ModelBuilder): ModelInstance {
@@ -130,12 +130,12 @@ class SceneRenderer(
 
     private fun renderModels() {
         batch.begin(camera)
-        mapData.render(batch)
+        mapData.render(batch, environment)
         batch.render(northPointerModelInstance)
         batch.render(eastPointerModelInstance)
         batch.render(axisModelInstance)
         batch.render(gridModelInstance)
-        Handlers.entries.forEach { it.handlerInstance.onRender(batch) }
+        Handlers.entries.forEach { it.handlerInstance.onRender(batch, environment) }
         batch.end()
     }
 

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -419,7 +420,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         cursorFading += 1
     }
 
-    override fun onRender(batch: ModelBatch) {
+    override fun onRender(batch: ModelBatch, environment: Environment) {
         if (objectModelCursor != null
             && (handlersData.selectedMode == Modes.FLOOR || handlersData.selectedMode == Modes.ENV_OBJECTS)
         ) {

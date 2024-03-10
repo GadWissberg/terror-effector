@@ -5,9 +5,11 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.gadarts.te.common.LightUtils;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.ModelInstanceComponent;
@@ -19,6 +21,7 @@ public class RenderSystem extends GameSystem {
     private AxisModelHandler axisModelHandler;
     private ImmutableArray<Entity> modelEntities;
     private ModelBatch modelBatch;
+    private Environment environment;
 
 
     @Override
@@ -28,6 +31,7 @@ public class RenderSystem extends GameSystem {
         axisModelHandler.addAxis(engine);
         modelEntities = engine.getEntitiesFor(Family.all(ModelInstanceComponent.class).get());
         modelBatch = new ModelBatch();
+        environment = LightUtils.createEnvironment();
     }
 
     @Override
@@ -42,7 +46,7 @@ public class RenderSystem extends GameSystem {
         for (Entity entity : modelEntities) {
             ModelInstanceComponent modelInstanceComponent = ComponentsMapper.modelInstance.get(entity);
             ModelInstance modelInstance = modelInstanceComponent.getModelInstance();
-            modelBatch.render(modelInstance);
+            modelBatch.render(modelInstance, environment);
         }
         modelBatch.end();
     }

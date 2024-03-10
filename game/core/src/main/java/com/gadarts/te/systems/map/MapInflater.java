@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -26,6 +27,7 @@ import static com.gadarts.te.EntityBuilder.beginBuildingEntity;
 import static com.gadarts.te.common.assets.texture.SurfaceTextures.MISSING;
 import static com.gadarts.te.common.map.MapJsonKeys.*;
 import static com.gadarts.te.common.map.MapNodesTypes.OBSTACLE_KEY_DIAGONAL_FORBIDDEN;
+import static com.gadarts.te.common.map.MapNodesTypes.PASSABLE_NODE;
 import static com.gadarts.te.components.ComponentsMapper.modelInstance;
 import static java.lang.String.format;
 
@@ -42,7 +44,7 @@ public class MapInflater implements Disposable {
     public MapInflater(GameAssetsManager assetsManager, Engine engine) {
         this.assetsManager = assetsManager;
         this.engine = engine;
-        wallCreator = new WallCreator(assetsManager);
+        wallCreator = new WallCreator(assetsManager, false);
         floorModel = MapUtils.createFloorModel();
     }
 
@@ -106,51 +108,53 @@ public class MapInflater implements Disposable {
 
     private void inflateWalls(final JsonObject nodeWallsJsonObject,
                               final MapGraphNode node,
-                              final float height,
                               final MapGraph mapGraph) {
-        inflateEastWall(nodeWallsJsonObject, node, height, mapGraph);
-        inflateSouthWall(nodeWallsJsonObject, node, height, mapGraph);
-        inflateWestWall(nodeWallsJsonObject, node, height, mapGraph);
-        inflateNorthWall(nodeWallsJsonObject, node, height, mapGraph);
+        inflateEastWall(nodeWallsJsonObject, node, mapGraph);
+        inflateSouthWall(nodeWallsJsonObject, node, mapGraph);
+        inflateWestWall(nodeWallsJsonObject, node, mapGraph);
+        inflateNorthWall(nodeWallsJsonObject, node, mapGraph);
     }
 
-    private void inflateEastWall(final JsonObject nodeWallsJsonObject,
-                                 final MapGraphNode node,
-                                 final float height,
-                                 final MapGraph mapGraph) {
-        int col = node.getX();
-        int eastCol = col + 1;
+    private void inflateEastWall(JsonObject nodeWallsJsonObject,
+                                 MapGraphNode node,
+                                 MapGraph mapGraph) {
+        int eastX = node.getX() + 1;
         JsonElement east = nodeWallsJsonObject.get(EAST);
-        if (eastCol < mapGraph.getWidth()) {
-            if (height != mapGraph.getNode(eastCol, node.getZ()).getHeight() && east != null) {
+        if (eastX < mapGraph.getWidth()) {
+            if (node.getHeight() != mapGraph.getNode(eastX, node.getZ()).getHeight() && east != null) {
                 JsonObject asJsonObject = east.getAsJsonObject();
                 WallParameters wallParameters = inflateWallParameters(asJsonObject);
-                applyEastWall(node, height, mapGraph, wallParameters, eastCol);
+                applyEastWall(node, mapGraph, wallParameters, eastX);
             }
         }
     }
 
     private void applyEastWall(MapGraphNode node,
-                               float height,
                                MapGraph mapGraph,
                                WallParameters wallParameters,
-                               int eastNodeCol) {
+                               int eastNodeX) {
         com.gadarts.te.common.assets.texture.SurfaceTextures definition = wallParameters.getDefinition();
         if (definition != MISSING) {
-            MapNodeData nodeData = new MapNodeData(node.getZ(), node.getX(), OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
+            MapNodeData nodeData = new MapNodeData(
+                node.getX(),
+                node.getZ(),
+                PASSABLE_NODE,
+                new ModelInstance((floorModel)),
+                definition);
             NodeWalls walls = nodeData.getWalls();
-            walls.setEastWall(WallCreator.createWall(
+            walls.setEastWall(wallCreator.createWall(
                 nodeData,
                 wallCreator.getEastWallModel(),
                 assetsManager,
                 definition));
             Coords coords = nodeData.getCoords();
-            MapNodeData eastNodeData = new MapNodeData(
+            MapNodeData eastNodeData = new MapNodeData(coords.getX() + 1,
                 coords.getZ(),
-                eastNodeCol,
-                OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
-            nodeData.lift(height);
-            if (eastNodeCol >= 0 && eastNodeCol < mapGraph.getWidth()) {
+                PASSABLE_NODE,
+                new ModelInstance((floorModel)),
+                definition);
+            nodeData.applyHeight(node.getHeight());
+            if (eastNodeX >= 0 && eastNodeX < mapGraph.getWidth()) {
                 eastNodeData.setHeight(mapGraph.getNode(eastNodeData.getCoords()).getHeight());
             }
             wallCreator.adjustEastWall(nodeData, eastNodeData);
@@ -195,41 +199,44 @@ public class MapInflater implements Disposable {
 
     private void inflateSouthWall(final JsonObject nodeWallsJsonObject,
                                   final MapGraphNode node,
-                                  final float height,
                                   final MapGraph mapGraph) {
-        int row = node.getZ();
-        int southRow = row + 1;
+        int southZ = node.getZ() + 1;
         JsonElement south = nodeWallsJsonObject.get(MapJsonKeys.SOUTH);
-        if (southRow < mapGraph.getDepth()) {
-            if (height != mapGraph.getNode(node.getX(), southRow).getHeight() && south != null) {
+        if (southZ < mapGraph.getDepth()) {
+            if (node.getHeight() != mapGraph.getNode(node.getX(), southZ).getHeight() && south != null) {
                 JsonObject asJsonObject = south.getAsJsonObject();
                 WallParameters wallParameters = inflateWallParameters(asJsonObject);
-                applySouthWall(node, height, mapGraph, wallParameters, southRow);
+                applySouthWall(node, mapGraph, wallParameters, southZ);
             }
         }
     }
 
     private void applySouthWall(MapGraphNode node,
-                                float height,
                                 MapGraph mapGraph,
                                 WallParameters wallParameters,
-                                int southNodeRow) {
+                                int southNodeZ) {
         SurfaceTextures definition = wallParameters.getDefinition();
         if (definition != MISSING) {
-            MapNodeData nodeData = new MapNodeData(node.getZ(), node.getX(), OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
+            MapNodeData nodeData = new MapNodeData(
+                node.getZ(),
+                node.getX(),
+                PASSABLE_NODE,
+                new ModelInstance((floorModel)),
+                definition);
             NodeWalls walls = nodeData.getWalls();
-            walls.setSouthWall(WallCreator.createWall(
+            walls.setSouthWall(wallCreator.createWall(
                 nodeData,
                 wallCreator.getSouthWallModel(),
                 assetsManager,
                 definition));
             Coords coords = nodeData.getCoords();
             MapNodeData southNodeData = new MapNodeData(
-                southNodeRow,
                 coords.getX(),
-                OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
-            nodeData.lift(height);
-            if (southNodeRow >= 0 && southNodeRow < mapGraph.getDepth()) {
+                southNodeZ,
+                PASSABLE_NODE, new ModelInstance((floorModel)),
+                definition);
+            nodeData.setHeight(node.getHeight());
+            if (southNodeZ >= 0 && southNodeZ < mapGraph.getDepth()) {
                 southNodeData.setHeight(mapGraph.getNode(southNodeData.getCoords()).getHeight());
             }
             wallCreator.adjustSouthWall(southNodeData, nodeData);
@@ -238,25 +245,31 @@ public class MapInflater implements Disposable {
     }
 
     private void applyNorthWall(MapGraphNode node,
-                                float height,
                                 MapGraph mapGraph,
                                 WallParameters wallParameters,
                                 int northNodeRow) {
         SurfaceTextures definition = wallParameters.getDefinition();
         if (definition != MISSING) {
-            MapNodeData nodeData = new MapNodeData(node.getZ(), node.getX(), OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
+            MapNodeData nodeData = new MapNodeData(
+                node.getX(),
+                node.getZ(),
+                PASSABLE_NODE,
+                new ModelInstance((floorModel)),
+                definition);
             NodeWalls walls = nodeData.getWalls();
-            walls.setNorthWall(WallCreator.createWall(
+            walls.setNorthWall(wallCreator.createWall(
                 nodeData,
                 wallCreator.getNorthWallModel(),
                 assetsManager,
                 definition));
             Coords coords = nodeData.getCoords();
             MapNodeData northNodeData = new MapNodeData(
-                northNodeRow,
                 coords.getX(),
-                OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
-            nodeData.lift(height);
+                coords.getZ() - 1,
+                PASSABLE_NODE,
+                new ModelInstance((floorModel)),
+                definition);
+            nodeData.setHeight(node.getHeight());
             if (northNodeRow >= 0 && northNodeRow < mapGraph.getDepth()) {
                 northNodeData.setHeight(mapGraph.getNode(northNodeData.getCoords()).getHeight());
             }
@@ -267,57 +280,59 @@ public class MapInflater implements Disposable {
 
     private void inflateNorthWall(final JsonObject nodeWallsJsonObject,
                                   final MapGraphNode node,
-                                  final float height,
                                   final MapGraph mapGraph) {
-        int row = node.getZ();
-        int northRow = row - 1;
+        int northZ = node.getZ() - 1;
         JsonElement north = nodeWallsJsonObject.get(MapJsonKeys.NORTH);
-        if (northRow >= 0) {
-            if (height != mapGraph.getNode(node.getX(), northRow).getHeight() && north != null) {
+        if (northZ >= 0) {
+            if (node.getHeight() != mapGraph.getNode(node.getX(), northZ).getHeight() && north != null) {
                 JsonObject asJsonObject = north.getAsJsonObject();
                 WallParameters wallParameters = inflateWallParameters(asJsonObject);
-                applyNorthWall(node, height, mapGraph, wallParameters, northRow);
+                applyNorthWall(node, mapGraph, wallParameters, northZ);
             }
         }
     }
 
     private void inflateWestWall(final JsonObject nodeWallsJsonObject,
                                  final MapGraphNode node,
-                                 final float height,
                                  final MapGraph mapGraph) {
         int col = node.getX();
         int westCol = col - 1;
         JsonElement west = nodeWallsJsonObject.get(WEST);
         if (westCol >= 0) {
-            if (height != mapGraph.getNode(westCol, node.getZ()).getHeight() && west != null) {
+            if (node.getHeight() != mapGraph.getNode(westCol, node.getZ()).getHeight() && west != null) {
                 JsonObject asJsonObject = west.getAsJsonObject();
                 WallParameters wallParameters = inflateWallParameters(asJsonObject);
-                applyWestWall(node, height, mapGraph, wallParameters, westCol);
+                applyWestWall(node, mapGraph, wallParameters, westCol);
             }
         }
     }
 
     private void applyWestWall(MapGraphNode node,
-                               float height,
                                MapGraph mapGraph,
                                WallParameters wallParameters,
-                               int westNodeCol) {
+                               int westNodeX) {
         SurfaceTextures definition = wallParameters.getDefinition();
         if (definition != MISSING) {
-            MapNodeData nodeData = new MapNodeData(node.getZ(), node.getX(), OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
+            MapNodeData nodeData = new MapNodeData(
+                node.getX(),
+                node.getZ(),
+                PASSABLE_NODE,
+                new ModelInstance((floorModel)),
+                definition);
             NodeWalls walls = nodeData.getWalls();
-            walls.setWestWall(WallCreator.createWall(
+            walls.setWestWall(wallCreator.createWall(
                 nodeData,
                 wallCreator.getWestWallModel(),
                 assetsManager,
                 definition));
             Coords coords = nodeData.getCoords();
-            MapNodeData westNodeData = new MapNodeData(
+            MapNodeData westNodeData = new MapNodeData(node.getX() - 1,
                 coords.getZ(),
-                westNodeCol,
-                OBSTACLE_KEY_DIAGONAL_FORBIDDEN);
-            nodeData.lift(height);
-            if (westNodeCol >= 0 && westNodeCol < mapGraph.getWidth()) {
+                PASSABLE_NODE,
+                new ModelInstance((floorModel)),
+                definition);
+            nodeData.setHeight(node.getHeight());
+            if (westNodeX >= 0 && westNodeX < mapGraph.getWidth()) {
                 westNodeData.setHeight(mapGraph.getNode(westNodeData.getCoords()).getHeight());
             }
             wallCreator.adjustWestWall(
@@ -341,7 +356,7 @@ public class MapInflater implements Disposable {
             JsonObject nodeDataJsonObject = nodeDataJson.getAsJsonObject();
             MapGraphNode node = getNodeByJson(mapGraph, nodeDataJsonObject);
             if (nodeDataJsonObject.has(WALLS)) {
-                inflateWalls(nodeDataJsonObject.getAsJsonObject(WALLS), node, node.getHeight(), mapGraph);
+                inflateWalls(nodeDataJsonObject.getAsJsonObject(WALLS), node, mapGraph);
             }
         });
         JsonElement heightsElement = mapJsonObject.get(NODES).getAsJsonObject().get(HEIGHTS);
@@ -360,15 +375,14 @@ public class MapInflater implements Disposable {
             heights.forEach(jsonElement -> {
                 JsonObject tileJsonObject = jsonElement.getAsJsonObject();
                 MapGraphNode node = getNodeByJson(mapGraph, tileJsonObject);
-                float height = tileJsonObject.get(HEIGHT).getAsFloat();
-                inflateWalls(tileJsonObject, node, height, mapGraph);
+                inflateWalls(tileJsonObject, node, mapGraph);
             });
         });
     }
 
     private MapGraph createMapGraph(final JsonObject mapJsonObj) {
-        JsonObject tilesJsonObject = mapJsonObj.get(NODES).getAsJsonObject();
-        return new MapGraph(tilesJsonObject.get(WIDTH).getAsInt(), tilesJsonObject.get(DEPTH).getAsInt());
+        JsonObject nodesJsonObject = mapJsonObj.get(NODES).getAsJsonObject();
+        return new MapGraph(nodesJsonObject.get(WIDTH).getAsInt(), nodesJsonObject.get(DEPTH).getAsInt());
     }
 
     @Override

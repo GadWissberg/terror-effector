@@ -2,6 +2,7 @@ package com.gadarts.te.renderer.handlers
 
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
+import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -343,6 +344,8 @@ class PersistenceHandler : BaseHandler() {
     private fun save() {
         val output = JsonObject()
         val nodesJson = JsonObject()
+        nodesJson.addProperty(WIDTH, handlersData.mapData.mapSize)
+        nodesJson.addProperty(DEPTH, handlersData.mapData.mapSize)
         val matrix = ByteArray(handlersData.mapData.mapSize * handlersData.mapData.mapSize)
         val nodesDataJson = JsonArray()
         val nodes: Array<Array<MapNodeData?>> = handlersData.mapData.matrix
@@ -447,7 +450,7 @@ class PersistenceHandler : BaseHandler() {
 
     }
 
-    override fun onRender(batch: ModelBatch) {
+    override fun onRender(batch: ModelBatch, environment: Environment) {
     }
 
     override fun dispose() {

@@ -6,6 +6,7 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
+import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.DebugSettings
@@ -61,5 +62,5 @@ abstract class BaseHandler : Telegraph, Disposable {
     }
 
     abstract fun onUpdate()
-    abstract fun onRender(batch: ModelBatch)
+    abstract fun onRender(batch: ModelBatch, environment: Environment)
 }

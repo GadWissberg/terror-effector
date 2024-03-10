@@ -1,6 +1,7 @@
 package com.gadarts.te.renderer.model
 
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -69,20 +70,20 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
             .get(TextureAttribute.Diffuse) as TextureAttribute).textureDescription.texture = selectedTexture
     }
 
-    fun render(batch: ModelBatch) {
+    fun render(batch: ModelBatch, environment: Environment) {
         definedNodes.forEach {
-            batch.render(it.modelInstance)
-            renderWall(batch, it.walls.eastWall)
-            renderWall(batch, it.walls.northWall)
-            renderWall(batch, it.walls.westWall)
-            renderWall(batch, it.walls.southWall)
+            batch.render(it.modelInstance, environment)
+            renderWall(batch, it.walls.eastWall, environment)
+            renderWall(batch, it.walls.northWall, environment)
+            renderWall(batch, it.walls.westWall, environment)
+            renderWall(batch, it.walls.southWall, environment)
         }
-        placedEnvObjects.forEach { batch.render(it.modelInstance) }
+        placedEnvObjects.forEach { batch.render(it.modelInstance, environment) }
     }
 
-    private fun renderWall(batch: ModelBatch, wall: Wall?) {
+    private fun renderWall(batch: ModelBatch, wall: Wall?, environment: Environment) {
         if (wall != null) {
-            batch.render(wall.modelInstance)
+            batch.render(wall.modelInstance, environment)
         }
     }
 
