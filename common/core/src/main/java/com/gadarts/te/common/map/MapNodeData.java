@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
-import com.gadarts.te.common.map.element.EnvObject;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +31,6 @@ public class MapNodeData {
     private MapNodesTypes mapNodeType;
     private SurfaceTextures textureDefinition;
     private float height;
-    private ArrayList<EnvObject> envObjects = new ArrayList<>();
 
     public MapNodeData(int x, int z, MapNodesTypes type, ModelInstance modelInstance, SurfaceTextures textureDefinition) {
         this.mapNodeType = type;

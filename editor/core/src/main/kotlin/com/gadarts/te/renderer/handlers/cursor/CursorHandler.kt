@@ -1,11 +1,11 @@
 package com.gadarts.te.renderer.handlers.cursor
 
-import com.gadarts.te.common.WallObjects
+import com.gadarts.te.common.definitions.EnvObjectDefinition
 import com.gadarts.te.common.map.Wall
 
 interface CursorHandler {
     fun setCursorToFloorModel()
-    fun displayObjectOfTreeNode(wallObject: WallObjects)
+    fun displayObjectOfTreeNode(envObjectDefinition: EnvObjectDefinition)
 
     val selectedNodes: List<SelectedNode>
     val selectedWalls: List<Wall>

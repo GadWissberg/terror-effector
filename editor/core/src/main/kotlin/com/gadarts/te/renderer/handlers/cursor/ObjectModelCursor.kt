@@ -3,12 +3,13 @@ package com.gadarts.te.renderer.handlers.cursor
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
-import com.gadarts.te.common.WallObjects
+import com.gadarts.te.common.definitions.EnvObjectDefinition
+import com.gadarts.te.common.definitions.WallObjects
 import com.gadarts.te.common.map.element.Direction
 
 class ObjectModelCursor(
     val modelInstance: ModelInstance,
-    val definition: WallObjects?,
+    val definition: EnvObjectDefinition?,
     private var direction: Direction
 ) {
     fun rotateClockwise() {

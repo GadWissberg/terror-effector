@@ -8,9 +8,9 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.gadarts.te.EditorEvents
-import com.gadarts.te.common.WallObjects
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
+import com.gadarts.te.common.definitions.WallObjects
 import com.gadarts.te.common.map.*
 import com.gadarts.te.common.map.MapJsonKeys.*
 import com.gadarts.te.common.map.element.Direction
@@ -381,7 +381,7 @@ class PersistenceHandler : BaseHandler() {
         val envObjectsJsonArray = JsonArray()
         handlersData.mapData.placedEnvObjects.forEach {
             val envObjectJsonObject = JsonObject()
-            envObjectJsonObject.addProperty(DEFINITION, it.definition.name)
+            envObjectJsonObject.addProperty(DEFINITION, it.definition.name())
             envObjectJsonObject.addProperty(DIRECTION, it.direction.name)
             envObjectJsonObject.addProperty(COORD_X, it.coords.x)
             envObjectJsonObject.addProperty(COORD_Z, it.coords.z)

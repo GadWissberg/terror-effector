@@ -20,13 +20,13 @@ allprojects {
 configure(subprojects) {
   apply plugin: 'java-library'
   apply plugin: 'kotlin'
-  sourceCompatibility = 11
+  sourceCompatibility = 17
   compileJava {
     options.incremental = true
   }
 
   kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
   }
 }
 

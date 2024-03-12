@@ -10,8 +10,9 @@ import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.handlers.actions.types.DeleteEnvObjectAction
+import com.gadarts.te.renderer.handlers.drawing.DrawingHandler
 
-class DrawingHandlerOnClickedRightOnGridCell :
+class DrawingHandlerOnClickedRightOnGridCell(private val drawingHandler: DrawingHandler) :
     HandlerOnEvent {
     override fun react(
         msg: Telegram,
@@ -23,8 +24,10 @@ class DrawingHandlerOnClickedRightOnGridCell :
         if (handlersData.selectedMode == Modes.ENV_OBJECTS) {
             val position = msg.extraInfo as Coords
             handlersData.mapData.getNode(position)?.let {
-                if (it.envObjects.isNotEmpty()) {
-                    val action = DeleteEnvObjectAction(it.envObjects.first())
+                handlersData.mapData.placedEnvObjects.find {
+                    it.coords.equals(position)
+                }?.let { placedEnvObject ->
+                    val action = DeleteEnvObjectAction(placedEnvObject)
                     dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action)
                 }
             }

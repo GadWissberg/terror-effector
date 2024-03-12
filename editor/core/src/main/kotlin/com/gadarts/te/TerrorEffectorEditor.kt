@@ -21,9 +21,11 @@ import com.gadarts.te.assets.IconsTextures
 import com.gadarts.te.assets.IconsTextures.*
 import com.gadarts.te.assets.ShaderLoader
 import com.gadarts.te.assets.Shaders
-import com.gadarts.te.common.WallObjects
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
+import com.gadarts.te.common.definitions.EnvObjectDefinition
+import com.gadarts.te.common.definitions.Obstacles
+import com.gadarts.te.common.definitions.WallObjects
 import com.gadarts.te.renderer.SceneRenderer
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.*
@@ -104,24 +106,32 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     private fun addEnvObjectsTree(): VisTree<TreeNode, String> {
         val envObjectsTree = VisTree<TreeNode, String>()
         val treeRoot = createTreeRoot(envObjectsTree)
-        val wallsNode = TreeNode("Walls", editorAssetManager.get(TREE_ICON_WALL.getFileName(), Texture::class.java))
-        WallObjects.entries.forEach {
-            val wallNode = TreeNode(
+        addNodeToEnvObjectsTree(treeRoot, "Walls", TREE_ICON_WALL, WallObjects.entries.toTypedArray())
+        addNodeToEnvObjectsTree(treeRoot, "Obstacles", TREE_ICON_OBSTACLE, Obstacles.entries.toTypedArray())
+        envObjectsTree.add(treeRoot)
+        envObjectsTree.isVisible = false
+        return envObjectsTree
+    }
+
+    private fun addNodeToEnvObjectsTree(
+        treeRoot: TreeNode, label: String, icon: IconsTextures, entries: Array<out EnvObjectDefinition>
+    ) {
+        val iconTexture = editorAssetManager.get(icon.getFileName(), Texture::class.java)
+        val treeNode = TreeNode(label, iconTexture)
+        entries.forEach {
+            val definitionNode = TreeNode(
                 it.displayName,
-                editorAssetManager.get(TREE_ICON_WALL.getFileName(), Texture::class.java)
+                iconTexture
             )
-            wallNode.actor.addListener(object : ClickListener() {
+            definitionNode.actor.addListener(object : ClickListener() {
                 override fun clicked(event: InputEvent?, x: Float, y: Float) {
                     super.clicked(event, x, y)
                     dispatcher.dispatchMessage(EditorEvents.CLICKED_TREE_NODE.ordinal, it)
                 }
             })
-            wallsNode.add(wallNode)
+            treeNode.add(definitionNode)
         }
-        treeRoot.add(wallsNode)
-        envObjectsTree.add(treeRoot)
-        envObjectsTree.isVisible = false
-        return envObjectsTree
+        treeRoot.add(treeNode)
     }
 
     private fun createTreeRoot(envObjectsTree: VisTree<TreeNode, String>): TreeNode {

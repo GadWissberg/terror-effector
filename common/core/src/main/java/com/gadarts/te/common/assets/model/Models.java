@@ -9,28 +9,29 @@ import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
 public enum Models implements ModelDefinition {
-    WALL_WITH_RAILING,
-    WALL_WITH_RAILING_HALF(new ModelOffset(1F, 0F, 0.5F));
+    WALL_WITH_RAILING(new ModelOffset(0.5F, 0F, 0.5F)),
+    WALL_WITH_RAILING_HALF(new ModelOffset(1F, 0F, 0.5F)),
+    CRATE_0_CLEAN("crate_0", "crate_0_texture_0"),
+    CRATE_0_UCI("crate_0", "crate_0_texture_1"),
+    CRATE_1_CLEAN(new ModelOffset(0.5F, 0.25F, 0.5F), "crate_1", "crate_1_texture_0"),
+    CRATE_1_UCI(new ModelOffset(0.5F, 0.25F, 0.5F), "crate_1", "crate_1_texture_1");
 
     private final String filePath;
-    private final float alpha;
-    private final String textureFileName;
     private final ModelOffset modelOffset;
-
-    Models( ) {
-        this(new ModelOffset(0.5F, 0F, 0.5F));
-    }
+    private final String textureFileName;
 
     Models(ModelOffset offset) {
-        this(1.0F, null, null, offset);
+        this(offset, null, null);
     }
 
-    Models(final float alpha, String fileName, String textureFileName, ModelOffset offset) {
-        String name = fileName != null ? fileName : name().toLowerCase();
-        this.filePath = FOLDER + PATH_SEPARATOR + name + "." + FORMAT;
-        this.textureFileName = textureFileName;
-        this.alpha = alpha;
+    Models(String modelFileName, String textureFileName) {
+        this(new ModelOffset(0.5F, 0.5F, 0.5F), modelFileName, textureFileName);
+    }
+
+    Models(ModelOffset offset, String modelFileName, String textureFileName) {
+        this.filePath = FOLDER + PATH_SEPARATOR + ((modelFileName != null) ? modelFileName : name().toLowerCase()) + "." + FORMAT;
         this.modelOffset = offset;
+        this.textureFileName = textureFileName;
     }
 
 

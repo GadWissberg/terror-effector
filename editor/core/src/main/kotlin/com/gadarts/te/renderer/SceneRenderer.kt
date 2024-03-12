@@ -22,9 +22,9 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.GeneralUtils
 import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
-import com.gadarts.te.common.CameraUtils
-import com.gadarts.te.common.LightUtils
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.utils.CameraUtils
+import com.gadarts.te.common.utils.LightUtils
 import com.gadarts.te.renderer.handlers.Handlers
 import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.model.MapData

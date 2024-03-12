@@ -14,6 +14,7 @@ import com.gadarts.te.common.assets.model.Models;
 import com.gadarts.te.common.assets.texture.TextureDefinition;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class GameAssetsManager extends AssetManager {
     public static final String PATH_SEPARATOR = "/";
@@ -29,6 +30,9 @@ public class GameAssetsManager extends AssetManager {
         setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
     }
 
+    public Texture getModelExplicitTexture(final ModelDefinition model) {
+        return get(assetsLocation + Models.FOLDER + "/" + model.getTextureFileName() + ".png", Texture.class);
+    }
 
     public void loadGameFiles(final AssetsTypes... assetsTypesToExclude) {
         Arrays.stream(AssetsTypes.values())
@@ -73,6 +77,17 @@ public class GameAssetsManager extends AssetManager {
         if (block) {
             finishLoadingAsset(path);
         }
+        loadModelExplicitTexture(def);
     }
+
+    private void loadModelExplicitTexture(AssetDefinition def) {
+        if (def instanceof ModelDefinition modelDef) {
+            Optional.ofNullable(modelDef.getTextureFileName()).ifPresent(t -> {
+                String fileName = assetsLocation + ModelDefinition.FOLDER + "/" + t + ".png";
+                load(fileName, Texture.class);
+            });
+        }
+    }
+
 
 }

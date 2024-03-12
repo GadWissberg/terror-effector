@@ -17,7 +17,8 @@ enum class IconsTextures {
     ICON_FILE_SAVE,
     ICON_FILE_LOAD,
     TREE_ICON_ENV,
-    TREE_ICON_WALL;
+    TREE_ICON_WALL,
+    TREE_ICON_OBSTACLE;
 
     fun getFileName(): String {
         return "textures/$name.png"

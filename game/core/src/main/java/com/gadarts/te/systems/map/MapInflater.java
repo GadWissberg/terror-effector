@@ -13,8 +13,12 @@ import com.badlogic.gdx.utils.Disposable;
 import com.gadarts.te.EntityBuilder;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
+import com.gadarts.te.common.definitions.EnvObjectDefinition;
 import com.gadarts.te.common.map.*;
+import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.model.GameModelInstance;
+import com.gadarts.te.common.utils.EnvObjectUtils;
+import com.gadarts.te.components.ModelInstanceComponent;
 import com.gadarts.te.systems.map.graph.MapGraph;
 import com.gadarts.te.systems.map.graph.MapGraphNode;
 import com.google.gson.*;
@@ -55,7 +59,26 @@ public class MapInflater implements Disposable {
         MapGraph mapGraph = createMapGraph(mapJsonObj);
         inflateNodes(mapJsonObj.get(NODES).getAsJsonObject(), mapGraph);
         inflateHeightsAndWalls(mapJsonObj, mapGraph);
+        inflateElements(mapJsonObj, mapGraph);
         return mapGraph;
+    }
+
+    private void inflateElements(JsonObject mapJsonObj, MapGraph mapGraph) {
+        mapJsonObj.get(ELEMENTS).getAsJsonObject().get(ENV_OBJECTS).getAsJsonArray().forEach(jsonElement -> {
+            Entity entity = engine.createEntity();
+            ModelInstanceComponent component = engine.createComponent(ModelInstanceComponent.class);
+            JsonObject elementJsonObject = jsonElement.getAsJsonObject();
+            Coords coords = new Coords(elementJsonObject.get(COORD_X).getAsInt(), elementJsonObject.get(COORD_Z).getAsInt());
+            EnvObjectDefinition envObjectDefinition = EnvObjectUtils.fromString(elementJsonObject.get(DEFINITION).getAsString());
+            component.init(EnvObjectUtils.createModelInstanceForEnvObject(
+                assetsManager,
+                coords,
+                mapGraph.getNode(coords).getHeight(),
+                envObjectDefinition,
+                Direction.valueOf(elementJsonObject.get(DIRECTION).getAsString())));
+            entity.add(component);
+            engine.addEntity(entity);
+        });
     }
 
     private void inflateNodes(JsonObject nodesJsonObject, MapGraph mapGraph) {
@@ -345,8 +368,9 @@ public class MapInflater implements Disposable {
 
     private void inflateHeightsAndWalls(JsonObject mapJsonObject,
                                         MapGraph mapGraph) {
-        JsonObject nodesJsonObject = mapJsonObject.get(NODES).getAsJsonObject();
-        JsonArray nodesData = nodesJsonObject.getAsJsonArray(NODES_DATA);
+        JsonArray nodesData = mapJsonObject.get(NODES).getAsJsonObject().getAsJsonArray(NODES_DATA);
+        if (nodesData == null) return;
+
         nodesData.forEach(nodeDataJson -> {
             JsonObject nodeDataJsonObject = nodeDataJson.getAsJsonObject();
             MapGraphNode node = getNodeByJson(mapGraph, nodeDataJsonObject);

@@ -16,14 +16,15 @@ import com.badlogic.gdx.math.collision.BoundingBox
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.*
-import com.gadarts.te.common.CameraUtils
-import com.gadarts.te.common.WallObjects
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.definitions.EnvObjectDefinition
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapUtils
 import com.gadarts.te.common.map.Wall
 import com.gadarts.te.common.map.element.Direction
+import com.gadarts.te.common.utils.CameraUtils
+import com.gadarts.te.common.utils.ModelInstanceFactory
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
@@ -65,11 +66,11 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         addAttributesToCursorModel()
     }
 
-    override fun displayObjectOfTreeNode(wallObject: WallObjects) {
+    override fun displayObjectOfTreeNode(envObjectDefinition: EnvObjectDefinition) {
         objectModelCursor =
             ObjectModelCursor(
-                ModelInstance(gameAssetsManager.getModel(wallObject.modelDefinition)),
-                wallObject,
+                ModelInstanceFactory.create(gameAssetsManager, envObjectDefinition.modelDefinition),
+                envObjectDefinition,
                 Direction.EAST
             )
         addAttributesToCursorModel()

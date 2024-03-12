@@ -4,8 +4,8 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
-import com.gadarts.te.common.CameraUtils;
 import com.gadarts.te.common.assets.GameAssetsManager;
+import com.gadarts.te.common.utils.CameraUtils;
 import com.gadarts.te.systems.data.SharedData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 
