@@ -326,11 +326,14 @@ class PersistenceHandler : BaseHandler() {
                 inflateMapStructure(input)
                 input.getAsJsonObject(ELEMENTS).getAsJsonArray(ENV_OBJECTS).forEach {
                     val envObjectJsonObject = it.asJsonObject
+                    val x = envObjectJsonObject.get(COORD_X).asInt
+                    val z = envObjectJsonObject.get(COORD_Z).asInt
                     handlersData.mapData.insertEnvObject(
                         Coords(
-                            envObjectJsonObject.get(COORD_X).asInt,
-                            envObjectJsonObject.get(COORD_Z).asInt
+                            x,
+                            z
                         ),
+                        handlersData.mapData.matrix[z][x]?.height ?: 0F,
                         WallObjects.valueOf(envObjectJsonObject.get(DEFINITION).asString),
                         Direction.valueOf(envObjectJsonObject.get(DIRECTION).asString)
                     )

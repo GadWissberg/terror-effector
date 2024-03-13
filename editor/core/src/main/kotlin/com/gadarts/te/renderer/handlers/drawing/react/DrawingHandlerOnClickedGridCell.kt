@@ -24,7 +24,7 @@ class DrawingHandlerOnClickedGridCell(private val drawingHandler: DrawingHandler
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator,
     ) {
-        var action: Action? = null
+        val action: Action?
         if (handlersData.selectedMode == Modes.FLOOR) {
             val selectedTexture = drawingHandler.selectedTexture ?: return
 
@@ -42,15 +42,14 @@ class DrawingHandlerOnClickedGridCell(private val drawingHandler: DrawingHandler
                 clickedGridCellEventForEnvObject.coords.x,
                 clickedGridCellEventForEnvObject.coords.z
             )
-            if (mapNodeData != null) {
-                action = PlaceEnvObjectAction(
-                    mapNodeData,
-                    clickedGridCellEventForEnvObject.definition,
-                    clickedGridCellEventForEnvObject.direction
-                )
-            }
+            action = PlaceEnvObjectAction(
+                clickedGridCellEventForEnvObject.coords,
+                (mapNodeData?.height ?: 0F),
+                clickedGridCellEventForEnvObject.definition,
+                clickedGridCellEventForEnvObject.direction
+            )
         }
-        action?.let { dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action) }
+        action.let { dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action) }
     }
 
 

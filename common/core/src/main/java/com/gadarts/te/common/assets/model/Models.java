@@ -10,7 +10,7 @@ import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 @Getter
 public enum Models implements ModelDefinition {
     WALL_WITH_RAILING(new ModelOffset(0.5F, 0F, 0.5F)),
-    WALL_WITH_RAILING_HALF(new ModelOffset(1F, 0F, 0.5F)),
+    WALL_WITH_RAILING_HALF(new ModelOffset(0.5F, 0F, 0F)),
     CRATE_0_CLEAN("crate_0", "crate_0_texture_0"),
     CRATE_0_UCI("crate_0", "crate_0_texture_1"),
     CRATE_1_CLEAN(new ModelOffset(0.5F, 0.25F, 0.5F), "crate_1", "crate_1_texture_0"),

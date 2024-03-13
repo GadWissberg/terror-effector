@@ -35,15 +35,13 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
         GeneralUtils.disposeObject(this, MapData::class)
     }
 
-    fun insertEnvObject(coords: Coords, definition: EnvObjectDefinition, direction: Direction) {
-        val mapNodeData = matrix[coords.z][coords.x] ?: return
-
+    fun insertEnvObject(coords: Coords, height: Float, definition: EnvObjectDefinition, direction: Direction) {
         if (placedEnvObjects.find { it.coords.equals(coords) && it.definition == definition } == null) {
             val modelInstance =
                 EnvObjectUtils.createModelInstanceForEnvObject(
                     gameAssetsManager,
-                    mapNodeData.coords,
-                    mapNodeData.height,
+                    coords,
+                    height,
                     definition,
                     direction
                 )

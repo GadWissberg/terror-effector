@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.gadarts.te.common.definitions.EnvObjectDefinition
-import com.gadarts.te.common.definitions.WallObjects
 import com.gadarts.te.common.map.element.Direction
 
 class ObjectModelCursor(
@@ -13,13 +12,13 @@ class ObjectModelCursor(
     private var direction: Direction
 ) {
     fun rotateClockwise() {
-        rotate(90F, -1)
+        rotate(-1)
     }
 
-    private fun rotate(degrees: Float, dir: Int) {
+    private fun rotate(dir: Int) {
         if (definition == null) return
 
-        modelInstance.transform.rotate(Vector3.Y, degrees)
+        modelInstance.transform.rotate(Vector3.Y, dir * 90F)
         direction = Direction.findDirection(direction.getDirection(Vector2()).rotate90(dir))
     }
 
@@ -28,6 +27,6 @@ class ObjectModelCursor(
     }
 
     fun rotateCounterClockwise() {
-        rotate(-90F, 1)
+        rotate(1)
     }
 }
