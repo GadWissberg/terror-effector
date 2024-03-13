@@ -1,5 +1,6 @@
 package com.gadarts.te.renderer.handlers.cursor
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
@@ -51,7 +52,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     init {
         cursorMaterialBlendingAttribute.opacity = 1f
-        setCursorToFloorModel()
     }
 
     private fun addAttributesToCursorModel() {
@@ -61,7 +61,13 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun setCursorToFloorModel() {
-        objectModelCursor = ObjectModelCursor(ModelInstance(floorModel), null, Direction.EAST)
+        objectModelCursor = ObjectModelCursor(
+            ModelInstance(floorModel),
+            null,
+            Direction.EAST,
+            this,
+            handlersData.mapData
+        )
         objectModelCursor!!.modelInstance.nodes.get(0).isAnimated = true
         addAttributesToCursorModel()
     }
@@ -71,9 +77,15 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             ObjectModelCursor(
                 ModelInstanceFactory.create(gameAssetsManager, envObjectDefinition.modelDefinition),
                 envObjectDefinition,
-                Direction.EAST
+                Direction.EAST,
+                this,
+                handlersData.mapData
             )
         addAttributesToCursorModel()
+    }
+
+    override fun fetchGridCellAtMouse(): Vector3 {
+        return fetchGridCellAtMouse(Gdx.input.getX(0), Gdx.input.getY(0))
     }
 
     override fun dispose() {
@@ -93,8 +105,19 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         objectModelCursor!!.modelInstance.transform.values[Matrix4.M00] = 1F
         objectModelCursor!!.modelInstance.transform.values[Matrix4.M22] = 1F
         objectModelCursor!!.modelInstance.nodes.get(0).localTransform.trn(-0.5F, -0.01F, -0.5F)
-        updateObjectModelCursorPosition(screenX, screenY)
+        updateCursorPosition(screenX, screenY)
         objectModelCursor!!.modelInstance.calculateTransforms()
+    }
+
+    private fun updateCursorPosition(screenX: Int, screenY: Int) {
+        if (objectModelCursor == null) return
+
+        val position = fetchGridCellAtMouse(screenX, screenY)
+        if (handlersData.selectedMode == Modes.FLOOR) {
+            objectModelCursor!!.updateObjectModelCursorPosition(position)
+        } else {
+            objectModelCursor!!.updateObjectModelCursorPositionWithOffsets(position)
+        }
     }
 
     override fun onInitialize(
@@ -110,6 +133,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             TerrorEffectorEditor.WINDOW_WIDTH - handlersData.screenX,
             handlersData.heightUnderBars
         )
+        setCursorToFloorModel()
     }
 
     override fun keyDown(keycode: Int): Boolean {
@@ -177,12 +201,13 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     private fun handlePlacingEnvObject() {
-        val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-            .sub(
-                objectModelCursor!!.definition!!.modelDefinition.modelOffset.x,
-                objectModelCursor!!.definition!!.modelDefinition.modelOffset.y,
-                objectModelCursor!!.definition!!.modelDefinition.modelOffset.z
+        auxMatrix.set(objectModelCursor!!.modelInstance.transform)
+            .translate(
+                -objectModelCursor!!.definition!!.modelDefinition.modelOffset.x,
+                -objectModelCursor!!.definition!!.modelDefinition.modelOffset.y,
+                -objectModelCursor!!.definition!!.modelDefinition.modelOffset.z
             )
+        val position = auxMatrix.getTranslation(auxVector3_1)
         dispatcher.dispatchMessage(
             EditorEvents.CLICKED_LEFT_ON_GRID_CELL.ordinal,
             ClickedGridCellEventForEnvObject(
@@ -240,7 +265,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
         if (!selecting) {
             updatePrevCursorPosition()
-            updateObjectModelCursorPosition(screenX, screenY)
+            updateCursorPosition(screenX, screenY)
             val current = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
             if (!prevFloorCursorPosition.epsilonEquals(current.x, 0F, current.z, 0.01F)) {
                 dispatcher.dispatchMessage(
@@ -260,7 +285,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         if (handlersData.selectedMode == Modes.FLOOR || handlersData.selectedMode == Modes.ENV_OBJECTS) {
             if (!selecting) {
                 updatePrevCursorPosition()
-                updateObjectModelCursorPosition(screenX, screenY)
+                updateCursorPosition(screenX, screenY)
             } else {
                 updateSelectionBox(screenX, screenY)
             }
@@ -359,27 +384,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         prevFloorCursorPosition.set(prev.x.toInt().toFloat(), 0F, prev.z.toInt().toFloat())
     }
 
-    private fun updateObjectModelCursorPosition(screenX: Int, screenY: Int) {
-        if (objectModelCursor == null) return
-
-        val position = fetchGridCellAtMouse(screenX, screenY)
-        val xOffset = objectModelCursor!!.definition?.modelDefinition?.modelOffset?.x ?: 0F
-        val yOffset = objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F
-        val zOffset = objectModelCursor!!.definition?.modelDefinition?.modelOffset?.z ?: 0F
-        val x = position.x.toInt() + xOffset
-        val z = position.z.toInt() + zOffset
-        val offset = if (handlersData.selectedMode == Modes.FLOOR) 0.5F else 0F
-        val y = MathUtils.clamp(
-            handlersData.mapData.getNode(x.toInt(), z.toInt())?.height ?: 0F,
-            0F,
-            MapNodeData.MAX_FLOOR_HEIGHT
-        ) + yOffset
-        objectModelCursor!!.modelInstance.transform.setTranslation(
-            MathUtils.clamp(x, xOffset, handlersData.mapData.mapSize.toFloat()) + offset,
-            y,
-            MathUtils.clamp(z, zOffset, handlersData.mapData.mapSize.toFloat()) + offset
-        )
-    }
 
     private fun fetchGridCellAtMouse(screenX: Int, screenY: Int): Vector3 {
         val unproject = handlersData.camera.unproject(
@@ -459,6 +463,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         private val groundPlane = Plane(Vector3.Y, 0F)
         private val auxVector2_1 = Vector2()
         private val auxList = mutableListOf<Coords>()
+        private val auxMatrix = Matrix4()
         private val auxBoundingBox = BoundingBox()
     }
 
