@@ -10,7 +10,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
-import com.gadarts.te.common.definitions.WallObjects
+import com.gadarts.te.common.definitions.EnvObjectsTypes
 import com.gadarts.te.common.map.*
 import com.gadarts.te.common.map.MapJsonKeys.*
 import com.gadarts.te.common.map.element.Direction
@@ -334,7 +334,7 @@ class PersistenceHandler : BaseHandler() {
                             z
                         ),
                         handlersData.mapData.matrix[z][x]?.height ?: 0F,
-                        WallObjects.valueOf(envObjectJsonObject.get(DEFINITION).asString),
+                        EnvObjectsTypes.findDefinition(envObjectJsonObject.get(DEFINITION).asString),
                         Direction.valueOf(envObjectJsonObject.get(DIRECTION).asString)
                     )
                 }

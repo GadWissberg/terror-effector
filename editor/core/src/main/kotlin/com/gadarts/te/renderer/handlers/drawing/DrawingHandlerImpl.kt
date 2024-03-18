@@ -22,6 +22,7 @@ class DrawingHandlerImpl : BaseHandler(), DrawingHandler {
             EditorEvents.DRAGGED_GRID_CELL to DrawingHandlerOnDraggedGridCell(this),
             EditorEvents.SCROLLED_UP to DrawingHandlerOnScrolledUp(),
             EditorEvents.SCROLLED_DOWN to DrawingHandlerOnScrolledDown(),
+            EditorEvents.NODES_HEIGHT_SET to DrawingHandlerOnNodesHeightSet(),
         )
     }
 

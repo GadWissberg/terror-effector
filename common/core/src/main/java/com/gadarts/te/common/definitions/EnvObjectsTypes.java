@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Getter
@@ -19,4 +20,10 @@ public enum EnvObjectsTypes {
     }
 
     private final EnvObjectDefinition[] values;
+
+    public static EnvObjectDefinition findDefinition(String name) {
+        String lowerCase = name.toLowerCase();
+        Optional<EnvObjectDefinition> result = allDefinitions.stream().filter(def -> def.name().toLowerCase().equals(lowerCase)).findAny();
+        return result.orElse(null);
+    }
 }

@@ -169,7 +169,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             if (!selecting && handlersData.selectedMode == Modes.FLOOR) {
                 turnOnSelectingCursor()
                 return true
-            } else if (handlersData.selectedMode == Modes.ENV_OBJECTS) {
+            } else if (handlersData.selectedMode == Modes.ENV_OBJECTS && objectModelCursor != null) {
                 val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
                 dispatcher.dispatchMessage(
                     EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
@@ -413,8 +413,9 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         )
         objectModelCursor!!.modelInstance.transform.values[M13] =
             MathUtils.clamp(
-                handlersData.mapData.getNode(position.x.toInt(), position.z.toInt())?.height ?: 0F,
-                0F,
+                ((handlersData.mapData.getNode(position.x.toInt(), position.z.toInt())?.height)
+                    ?: 0F) + (objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F),
+                objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F,
                 MapNodeData.MAX_FLOOR_HEIGHT
             )
         return true
