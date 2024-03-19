@@ -36,8 +36,8 @@ class ObjectModelCursor(
         position.x = position.x.toInt().toFloat()
         position.z = position.z.toInt().toFloat()
         val mapSize = this.mapData.mapSize.toFloat()
-        position.x = MathUtils.clamp(position.x, 0F, mapSize)
-        position.z = MathUtils.clamp(position.z, 0F, mapSize)
+        position.x = MathUtils.clamp(position.x, 0F, mapSize - 1)
+        position.z = MathUtils.clamp(position.z, 0F, mapSize - 1)
         position.x += 0.5F
         position.z += 0.5F
         position.y = this.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: 0F

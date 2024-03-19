@@ -15,7 +15,8 @@ import com.gadarts.te.common.assets.GameAssetsManager
 
 class CameraHandler : InputProcessor,
     BaseHandler() {
-    private var panning: Boolean = false
+    private var altDown: Boolean = false
+    private var rightDown: Boolean = false
     private val lastMouseClickPosition = Vector2()
     private val intersectionPoint = Vector3(-1F, -1F, -1F)
     private var ray: Ray? = null
@@ -27,7 +28,7 @@ class CameraHandler : InputProcessor,
             ray = handlersData.camera.getPickRay(Gdx.graphics.width / 2F, Gdx.graphics.height / 2F)
             result = true
         } else if (keycode == Input.Keys.ALT_LEFT) {
-            panning = true
+            altDown = true
             result = true
         }
         return result
@@ -40,7 +41,7 @@ class CameraHandler : InputProcessor,
             intersectionPoint.set(-1F, -1F, -1F)
             result = true
         } else if (keycode == Input.Keys.ALT_LEFT) {
-            panning = false
+            altDown = false
             result = true
         }
         return result
@@ -54,10 +55,14 @@ class CameraHandler : InputProcessor,
         if (DebugSettings.FREELOOK) return false
 
         var result = false
-        if (button == Input.Buttons.RIGHT && ray != null) {
+        val isRight = button == Input.Buttons.RIGHT
+        if (isRight) {
+            rightDown = true
+        }
+        if (isRight && ray != null) {
             Intersector.intersectRayPlane(ray, groundPlane, intersectionPoint)
             result = true
-        } else if (panning) {
+        } else if (altDown) {
             lastMouseClickPosition.set(screenX.toFloat(), screenY.toFloat())
         }
         return result
@@ -65,10 +70,11 @@ class CameraHandler : InputProcessor,
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         var result = false
-        if (button == Input.Buttons.RIGHT && !intersectionPoint.epsilonEquals(-1F, -1F, -1F)) {
+        val isRight = button == Input.Buttons.RIGHT
+        if (isRight && !intersectionPoint.epsilonEquals(-1F, -1F, -1F)) {
             intersectionPoint.set(-1F, -1F, -1F)
             result = true
-        } else if (panning) {
+        } else if (altDown && rightDown) {
             lastMouseClickPosition.set(screenX.toFloat(), screenY.toFloat())
         }
         return result
@@ -87,7 +93,7 @@ class CameraHandler : InputProcessor,
         ) {
             rotate(screenX, screenY)
             return true
-        } else if (panning) {
+        } else if (altDown && rightDown) {
             pan(screenX, screenY)
             return true
         }

@@ -88,6 +88,11 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         return fetchGridCellAtMouse(Gdx.input.getX(0), Gdx.input.getY(0))
     }
 
+    override fun clearSelection() {
+        selectedNodes.clear()
+        selectedWalls.clear()
+    }
+
     override fun dispose() {
         GeneralUtils.disposeObject(this, CursorHandlerImpl::class)
     }

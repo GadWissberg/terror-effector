@@ -3,6 +3,7 @@ package com.gadarts.te.renderer.handlers.drawing.react
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.gadarts.te.EditorEvents
+import com.gadarts.te.Modes
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.WallCreator
@@ -18,6 +19,8 @@ abstract class DrawingHandlerOnScrolledEvent : HandlerOnEvent {
         dispatcher: MessageDispatcher,
         value: Float,
     ) {
+        if (handlersData.selectedMode != Modes.FLOOR) return
+
         val nodes = msg.extraInfo as List<*>
         auxList.clear()
         nodes.forEach {

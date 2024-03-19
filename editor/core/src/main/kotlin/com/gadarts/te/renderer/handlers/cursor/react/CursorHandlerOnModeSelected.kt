@@ -17,6 +17,7 @@ class CursorHandlerOnModeSelected(private val cursorHandler: CursorHandler) : Ha
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator
     ) {
+        cursorHandler.clearSelection()
         if (handlersData.selectedMode == Modes.FLOOR) {
             cursorHandler.setCursorToFloorModel()
         } else if (handlersData.selectedMode == Modes.ENV_OBJECTS) {
