@@ -10,7 +10,9 @@ import com.gadarts.te.TerrorEffectorEditor
 fun main() {
     if (StartupHelper.startNewJvmIfRequired())
         return
-    Lwjgl3Application(TerrorEffectorEditor(), Lwjgl3ApplicationConfiguration().apply {
+    val lwjgl3ApplicationConfiguration = Lwjgl3ApplicationConfiguration()
+    lwjgl3ApplicationConfiguration.setResizable(false)
+    Lwjgl3Application(TerrorEffectorEditor(), lwjgl3ApplicationConfiguration.apply {
         setTitle("terror-effector-editor")
         setWindowedMode(1280, 960)
         setWindowIcon(*(arrayOf(128, 64, 32, 16).map { "libgdx$it.png" }.toTypedArray()))
