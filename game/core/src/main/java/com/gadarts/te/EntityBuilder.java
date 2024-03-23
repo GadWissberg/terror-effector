@@ -20,11 +20,6 @@ public class EntityBuilder {
         return instance;
     }
 
-    private void init(Engine engine) {
-        this.engine = engine;
-        this.currentEntity = engine.createEntity();
-    }
-
     public EntityBuilder addModelInstanceComponent(ModelInstance modelInstance) {
         return addModelInstanceComponent(modelInstance, Vector3.Zero);
     }
@@ -47,11 +42,6 @@ public class EntityBuilder {
         return entity;
     }
 
-    private void reset( ) {
-        engine = null;
-        currentEntity = null;
-    }
-
     public EntityBuilder addWallComponent(final MapGraphNode parentNode) {
         WallComponent component = engine.createComponent(WallComponent.class);
         component.init(parentNode);
@@ -64,5 +54,15 @@ public class EntityBuilder {
         floorComponent.init(node, definition);
         currentEntity.add(floorComponent);
         return instance;
+    }
+
+    private void reset( ) {
+        engine = null;
+        currentEntity = null;
+    }
+
+    private void init(Engine engine) {
+        this.engine = engine;
+        this.currentEntity = engine.createEntity();
     }
 }

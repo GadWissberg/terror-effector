@@ -10,8 +10,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-
 import static com.badlogic.gdx.math.Matrix4.M13;
 
 @Getter

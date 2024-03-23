@@ -9,6 +9,7 @@ public interface AssetDefinition {
         return new String[0];
     }
 
+    @SuppressWarnings("rawtypes")
     AssetLoaderParameters getParameters( );
 
     default String getAssetManagerKey( ) {

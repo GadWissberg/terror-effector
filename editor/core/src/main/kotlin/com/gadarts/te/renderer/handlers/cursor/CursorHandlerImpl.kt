@@ -431,7 +431,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         cursorFading += 1
     }
 
-    override fun onRender(batch: ModelBatch, environment: Environment) {
+    override fun onRender(batch: ModelBatch) {
         if (objectModelCursor != null
             && (handlersData.selectedMode == Modes.FLOOR || handlersData.selectedMode == Modes.ENV_OBJECTS)
         ) {

@@ -150,7 +150,7 @@ class CameraHandler : InputProcessor,
         freelook?.update()
     }
 
-    override fun onRender(batch: ModelBatch, environment: Environment) {
+    override fun onRender(batch: ModelBatch) {
 
     }
 

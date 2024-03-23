@@ -10,9 +10,8 @@ import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.handlers.actions.types.DeleteEnvObjectAction
-import com.gadarts.te.renderer.handlers.drawing.DrawingHandler
 
-class DrawingHandlerOnClickedRightOnGridCell(private val drawingHandler: DrawingHandler) :
+class DrawingHandlerOnClickedRightOnGridCell :
     HandlerOnEvent {
     override fun react(
         msg: Telegram,

@@ -42,19 +42,6 @@ public class WallCreator implements Disposable {
         textureAtt.offsetV = (1F - textureAtt.scaleV);
     }
 
-    private static void adjustWallTextureAndPosition(Wall wall,
-                                                     float wallNodeHeight,
-                                                     MapNodeData neighborNode) {
-        ModelInstance modelInstance = wall.getModelInstance();
-        float neighborHeight = neighborNode.getHeight();
-        float sizeHeight = Math.abs(wallNodeHeight - neighborHeight);
-        float minHeight = Math.min(wallNodeHeight, neighborHeight);
-        adjustWallTexture(modelInstance, sizeHeight);
-        Coords neighborNodeNodeCoords = neighborNode.getCoords();
-        Vector3 position = auxVector3_1.set(neighborNodeNodeCoords.getX(), minHeight, neighborNodeNodeCoords.getZ());
-        modelInstance.transform.setToTranslationAndScaling(position, auxVector3_2.set(1, sizeHeight, 1));
-    }
-
     public Wall createWall(MapNodeData n,
                            Model wallModel,
                            GameAssetsManager assetsManager,
@@ -134,6 +121,19 @@ public class WallCreator implements Disposable {
         westWallModel.dispose();
         northWallModel.dispose();
         southWallModel.dispose();
+    }
+
+    private static void adjustWallTextureAndPosition(Wall wall,
+                                                     float wallNodeHeight,
+                                                     MapNodeData neighborNode) {
+        ModelInstance modelInstance = wall.getModelInstance();
+        float neighborHeight = neighborNode.getHeight();
+        float sizeHeight = Math.abs(wallNodeHeight - neighborHeight);
+        float minHeight = Math.min(wallNodeHeight, neighborHeight);
+        adjustWallTexture(modelInstance, sizeHeight);
+        Coords neighborNodeNodeCoords = neighborNode.getCoords();
+        Vector3 position = auxVector3_1.set(neighborNodeNodeCoords.getX(), minHeight, neighborNodeNodeCoords.getZ());
+        modelInstance.transform.setToTranslationAndScaling(position, auxVector3_2.set(1, sizeHeight, 1));
     }
 
     private void createWestWallModel( ) {

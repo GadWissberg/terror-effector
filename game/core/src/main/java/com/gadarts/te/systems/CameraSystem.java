@@ -77,15 +77,6 @@ public class CameraSystem extends GameSystem implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-//        Entity player = getSystemsCommonData().getPlayer();
-//        Vector3 rotationPoint = ComponentsMapper.characterDecal.get(player).getDecal().getPosition();
-//        Camera camera = getSystemsCommonData().getCamera();
-//        camera.rotateAround(rotationPoint, Vector3.Y, (lastRightPressMousePosition.x - screenX) / 2f);
-//        MapGraph map = sharedData.getMapGraph();
-//        pos.x = MathUtils.clamp(pos.x, -EXTRA_LEVEL_PADDING, map.getWidth() + EXTRA_LEVEL_PADDING);
-//        pos.z = MathUtils.clamp(pos.z, -EXTRA_LEVEL_PADDING, map.getDepth() + EXTRA_LEVEL_PADDING);
-//        lastRightPressMousePosition.set(screenX, screenY);
-//        return false;
         return false;
     }
 

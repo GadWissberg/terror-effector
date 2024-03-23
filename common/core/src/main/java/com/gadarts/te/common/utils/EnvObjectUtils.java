@@ -23,12 +23,12 @@ public final class EnvObjectUtils {
         modelInstance.transform.setTranslation(
             new Vector3(
                 ((float) coords.getX()) + 0.5F,
-                height + modelOffset.getY(),
+                height + modelOffset.y(),
                 ((float) coords.getZ()) + 0.5F
             )
         );
         modelInstance.transform.rotate(Vector3.Y, direction.getDirection(new Vector2()).angleDeg());
-        modelInstance.transform.translate(modelOffset.getX(), 0F, modelOffset.getZ());
+        modelInstance.transform.translate(modelOffset.x(), 0F, modelOffset.z());
         return modelInstance;
     }
 

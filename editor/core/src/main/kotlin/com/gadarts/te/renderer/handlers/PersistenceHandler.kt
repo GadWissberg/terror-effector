@@ -2,7 +2,6 @@ package com.gadarts.te.renderer.handlers
 
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
-import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -250,69 +249,98 @@ class PersistenceHandler : BaseHandler() {
         val westWallModel = wallCreator.westWallModel
         val northWallModel = wallCreator.northWallModel
         val southWallModel = wallCreator.southWallModel
-        if (mapNodeData.coords.z > 0
-            && mapNodeData.height < (handlersData.mapData.matrix[mapNodeData.coords.z - 1][mapNodeData.coords.x]?.height
-                ?: 0F)
-        ) {
-            wallsJsonObject[NORTH]?.let {
-                val texture: SurfaceTextures = extractTextureName(it.asJsonObject)
-                val northWall: Wall = wallCreator.createWall(mapNodeData, northWallModel, gameAssetsManager, texture)
-                mapNodeData.walls.northWall = northWall
-                wallCreator.adjustNorthWall(
-                    mapNodeData,
-                    handlersData.mapData.matrix[mapNodeData.coords.z - 1][mapNodeData.coords.x]
-                )
-                inflateNorthWall(
-                    mapNodeData,
-                    northWallModel,
-                    texture,
-                    handlersData.mapData.matrix[mapNodeData.coords.z - 1][mapNodeData.coords.x]!!,
-                    wallCreator
-                )
-            }
-        }
+        inflateNorthWall(mapNodeData, wallsJsonObject, wallCreator, northWallModel)
+        inflateSouthWall(mapNodeData, wallsJsonObject, southWallModel, wallCreator)
+        inflateWestWall(mapNodeData, wallsJsonObject, westWallModel, wallCreator)
+        inflateEastWall(mapNodeData, wallsJsonObject, eastWallModel, wallCreator)
+    }
 
-        if (mapNodeData.coords.z < handlersData.mapData.matrix.size - 1
-            && mapNodeData.height < (handlersData.mapData.matrix[mapNodeData.coords.z + 1][mapNodeData.coords.x]?.height
-                ?: 0F)
-        ) {
-            Optional.ofNullable<JsonElement>(wallsJsonObject[SOUTH]).ifPresent { north: JsonElement ->
-                val texture: SurfaceTextures = extractTextureName(north.asJsonObject)
-                inflateSouthWall(
-                    mapNodeData,
-                    southWallModel,
-                    texture,
-                    handlersData.mapData.matrix[mapNodeData.coords.z + 1][mapNodeData.coords.x]!!,
-                    wallCreator
-                )
-            }
-        }
-
-        if (mapNodeData.coords.x > 0 && mapNodeData.height < (handlersData.mapData.matrix[mapNodeData.coords.z][mapNodeData.coords.x - 1]?.height
-                ?: 0F)
-        ) {
-            Optional.ofNullable<JsonElement>(wallsJsonObject[WEST]).ifPresent { west: JsonElement ->
-                val texture: SurfaceTextures = extractTextureName(west.asJsonObject)
-                inflateWestWall(
-                    mapNodeData,
-                    westWallModel,
-                    texture,
-                    handlersData.mapData.matrix[mapNodeData.coords.z][mapNodeData.coords.x - 1]!!,
-                    wallCreator
-                )
-            }
-        }
-
-        if (mapNodeData.coords.x < handlersData.mapData.matrix[0].size - 1 && mapNodeData.height < (handlersData.mapData.matrix[mapNodeData.coords.z][mapNodeData.coords.x + 1]?.height
-                ?: 0F)
-        ) {
+    private fun inflateEastWall(
+        mapNodeData: MapNodeData,
+        wallsJsonObject: JsonObject,
+        eastWallModel: Model,
+        wallCreator: WallCreator
+    ) {
+        val matrix = handlersData.mapData.matrix
+        val coords = mapNodeData.coords
+        if (coords.x < matrix[0].size - 1 && mapNodeData.height < (matrix[coords.z][coords.x + 1]?.height ?: 0F)) {
             Optional.ofNullable<JsonElement>(wallsJsonObject[EAST]).ifPresent { east: JsonElement ->
                 val texture: SurfaceTextures = extractTextureName(east.asJsonObject)
                 inflateEastWall(
                     mapNodeData,
                     eastWallModel,
                     texture,
-                    handlersData.mapData.matrix[mapNodeData.coords.z][mapNodeData.coords.x + 1]!!,
+                    matrix[coords.z][coords.x + 1]!!,
+                    wallCreator
+                )
+            }
+        }
+    }
+
+    private fun inflateWestWall(
+        mapNodeData: MapNodeData,
+        wallsJsonObject: JsonObject,
+        westWallModel: Model,
+        wallCreator: WallCreator
+    ) {
+        val coords = mapNodeData.coords
+        if (coords.x > 0 && mapNodeData.height < (handlersData.mapData.matrix[coords.z][coords.x - 1]?.height ?: 0F)) {
+            Optional.ofNullable<JsonElement>(wallsJsonObject[WEST]).ifPresent { west: JsonElement ->
+                val texture: SurfaceTextures = extractTextureName(west.asJsonObject)
+                inflateWestWall(
+                    mapNodeData,
+                    westWallModel,
+                    texture,
+                    handlersData.mapData.matrix[coords.z][coords.x - 1]!!,
+                    wallCreator
+                )
+            }
+        }
+    }
+
+    private fun inflateSouthWall(
+        mapNodeData: MapNodeData,
+        wallsJsonObject: JsonObject,
+        southWallModel: Model,
+        wallCreator: WallCreator
+    ) {
+        val coords = mapNodeData.coords
+        val matrix = handlersData.mapData.matrix
+        if (coords.z < matrix.size - 1 && mapNodeData.height < (matrix[coords.z + 1][coords.x]?.height ?: 0F)) {
+            Optional.ofNullable<JsonElement>(wallsJsonObject[SOUTH]).ifPresent { north: JsonElement ->
+                val texture: SurfaceTextures = extractTextureName(north.asJsonObject)
+                inflateSouthWall(
+                    mapNodeData,
+                    southWallModel,
+                    texture,
+                    matrix[coords.z + 1][coords.x]!!,
+                    wallCreator
+                )
+            }
+        }
+    }
+
+    private fun inflateNorthWall(
+        mapNodeData: MapNodeData,
+        wallsJsonObject: JsonObject,
+        wallCreator: WallCreator,
+        northWallModel: Model
+    ) {
+        val coords = mapNodeData.coords
+        if (coords.z > 0 && mapNodeData.height < (handlersData.mapData.matrix[coords.z - 1][coords.x]?.height ?: 0F)) {
+            wallsJsonObject[NORTH]?.let {
+                val texture: SurfaceTextures = extractTextureName(it.asJsonObject)
+                val northWall: Wall = wallCreator.createWall(mapNodeData, northWallModel, gameAssetsManager, texture)
+                mapNodeData.walls.northWall = northWall
+                wallCreator.adjustNorthWall(
+                    mapNodeData,
+                    handlersData.mapData.matrix[coords.z - 1][coords.x]
+                )
+                inflateNorthWall(
+                    mapNodeData,
+                    northWallModel,
+                    texture,
+                    handlersData.mapData.matrix[coords.z - 1][coords.x]!!,
                     wallCreator
                 )
             }
@@ -453,7 +481,7 @@ class PersistenceHandler : BaseHandler() {
 
     }
 
-    override fun onRender(batch: ModelBatch, environment: Environment) {
+    override fun onRender(batch: ModelBatch) {
     }
 
     override fun dispose() {

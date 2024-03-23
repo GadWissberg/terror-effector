@@ -13,17 +13,11 @@ public class MapGraphNode {
     private final int z;
 
     @Setter
-    private Entity door;
-    @Setter
-    private int nodeAmbientOcclusionValue;
-    @Setter
     private MapNodesTypes type;
     @Setter
     private float height;
     @Setter
     private Entity entity;
-    @Setter
-    private boolean reachable;
 
     public MapGraphNode(final int col, final int z, final MapNodesTypes type, final int connections) {
         this.x = col;

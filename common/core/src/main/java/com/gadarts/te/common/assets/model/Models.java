@@ -3,7 +3,6 @@ package com.gadarts.te.common.assets.model;
 import com.badlogic.gdx.assets.AssetLoaderParameters;
 import com.badlogic.gdx.graphics.g3d.Model;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
@@ -50,11 +49,6 @@ public enum Models implements ModelDefinition {
         return Model.class;
     }
 
-    @RequiredArgsConstructor
-    @Getter
-    public static class ModelOffset {
-        private final float x;
-        private final float y;
-        private final float z;
+    public record ModelOffset(float x, float y, float z) {
     }
 }

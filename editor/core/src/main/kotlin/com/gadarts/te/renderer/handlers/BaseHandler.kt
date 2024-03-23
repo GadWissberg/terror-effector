@@ -6,7 +6,6 @@ import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
-import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.DebugSettings
@@ -32,14 +31,6 @@ abstract class BaseHandler : Telegraph, Disposable {
         getSubscribedEvents().forEach { dispatcher.addListener(this, it.key.ordinal) }
     }
 
-    protected open fun getSubscribedEvents(): Map<EditorEvents, HandlerOnEvent> {
-        return emptyMap()
-    }
-
-    protected fun addToInputMultiplexer(inputProcessor: InputProcessor) {
-        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
-        inputMultiplexer.addProcessor(inputProcessor)
-    }
 
     override fun handleMessage(msg: Telegram): Boolean {
         if (DebugSettings.FREELOOK) return false
@@ -62,5 +53,14 @@ abstract class BaseHandler : Telegraph, Disposable {
     }
 
     abstract fun onUpdate()
-    abstract fun onRender(batch: ModelBatch, environment: Environment)
+    abstract fun onRender(batch: ModelBatch)
+
+    protected fun addToInputMultiplexer(inputProcessor: InputProcessor) {
+        val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
+        inputMultiplexer.addProcessor(inputProcessor)
+    }
+
+    protected open fun getSubscribedEvents(): Map<EditorEvents, HandlerOnEvent> {
+        return emptyMap()
+    }
 }

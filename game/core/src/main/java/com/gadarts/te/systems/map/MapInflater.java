@@ -156,23 +156,13 @@ public class MapInflater implements Disposable {
                                MapGraph mapGraph,
                                WallParameters wallParameters,
                                int eastNodeX) {
-        com.gadarts.te.common.assets.texture.SurfaceTextures definition = wallParameters.getDefinition();
+        SurfaceTextures definition = wallParameters.getDefinition();
         if (definition != MISSING) {
-            MapNodeData nodeData = new MapNodeData(
-                node.getX(),
-                node.getZ(),
-                PASSABLE_NODE,
-                new ModelInstance((floorModel)),
-                definition);
+            MapNodeData nodeData = new MapNodeData(node.getX(), node.getZ(), PASSABLE_NODE, new ModelInstance((floorModel)), definition);
             NodeWalls walls = nodeData.getWalls();
-            walls.setEastWall(wallCreator.createWall(
-                nodeData,
-                wallCreator.getEastWallModel(),
-                assetsManager,
-                definition));
-            Coords coords = nodeData.getCoords();
-            MapNodeData eastNodeData = new MapNodeData(coords.getX() + 1,
-                coords.getZ(),
+            walls.setEastWall(wallCreator.createWall(nodeData, wallCreator.getEastWallModel(), assetsManager, definition));
+            MapNodeData eastNodeData = new MapNodeData(nodeData.getCoords().getX() + 1,
+                nodeData.getCoords().getZ(),
                 PASSABLE_NODE,
                 new ModelInstance((floorModel)),
                 definition);

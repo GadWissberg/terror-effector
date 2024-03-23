@@ -32,6 +32,9 @@ class ChangeFloorHeightAction(
                 wallCreator.adjustNorthWall(southNode, it)
             } else if (it.height < southNode.height) {
                 wallCreator.adjustSouthWall(southNode, it)
+            } else {
+                it.walls.southWall = null
+                southNode.walls.northWall = null
             }
         }
     }
@@ -43,6 +46,9 @@ class ChangeFloorHeightAction(
                 wallCreator.adjustEastWall(westNode, it)
             } else if (it.height < westNode.height) {
                 wallCreator.adjustWestWall(westNode, it)
+            } else {
+                it.walls.westWall = null
+                westNode.walls.eastWall = null
             }
         }
     }
@@ -54,6 +60,9 @@ class ChangeFloorHeightAction(
                 wallCreator.adjustSouthWall(it, northNode)
             } else if (it.height < northNode.height) {
                 wallCreator.adjustNorthWall(it, northNode)
+            } else {
+                it.walls.northWall = null
+                northNode.walls.southWall = null
             }
         }
     }
@@ -65,6 +74,9 @@ class ChangeFloorHeightAction(
                 wallCreator.adjustWestWall(it, eastNode)
             } else if (it.height < eastNode.height) {
                 wallCreator.adjustEastWall(it, eastNode)
+            } else {
+                it.walls.eastWall = null
+                eastNode.walls.westWall = null
             }
         }
     }
