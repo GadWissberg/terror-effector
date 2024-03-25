@@ -7,7 +7,8 @@ import java.util.Arrays;
 
 @Getter
 public enum TexturesTypes {
-    Floors(SurfaceTextures.values());
+    Floors(SurfaceTextures.values()),
+    UI(UiTextures.values());
 
     private final TextureDefinition[] definitions;
 

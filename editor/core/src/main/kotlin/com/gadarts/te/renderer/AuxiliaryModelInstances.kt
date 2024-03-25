@@ -14,7 +14,7 @@ import com.badlogic.gdx.math.Plane
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
-import com.gadarts.te.GeneralUtils
+import com.gadarts.te.common.utils.GeneralUtils
 
 class AuxiliaryModelInstances : Disposable {
     private var gridModelInstance: ModelInstance
@@ -104,7 +104,7 @@ class AuxiliaryModelInstances : Disposable {
     }
 
     override fun dispose() {
-        GeneralUtils.disposeObject(this, AuxiliaryModelInstances::class)
+        GeneralUtils.disposeObject(this, AuxiliaryModelInstances::class.java)
     }
 
     companion object {

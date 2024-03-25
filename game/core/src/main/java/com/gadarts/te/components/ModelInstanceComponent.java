@@ -8,13 +8,15 @@ import lombok.Getter;
 @Getter
 public class ModelInstanceComponent implements Component, Pool.Poolable {
     private ModelInstance modelInstance;
+    private boolean applyEnvironment;
 
     @Override
     public void reset( ) {
 
     }
 
-    public void init(ModelInstance modelInstance) {
+    public void init(ModelInstance modelInstance, boolean applyEnvironment) {
         this.modelInstance = modelInstance;
+        this.applyEnvironment = applyEnvironment;
     }
 }

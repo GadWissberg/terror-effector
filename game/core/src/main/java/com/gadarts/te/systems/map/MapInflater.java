@@ -18,6 +18,7 @@ import com.gadarts.te.common.map.*;
 import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.model.GameModelInstance;
 import com.gadarts.te.common.utils.EnvObjectUtils;
+import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.components.ModelInstanceComponent;
 import com.gadarts.te.systems.map.graph.MapGraph;
 import com.gadarts.te.systems.map.graph.MapGraphNode;
@@ -43,13 +44,13 @@ public class MapInflater implements Disposable {
     private final GameAssetsManager assetsManager;
     private final Engine engine;
     private final WallCreator wallCreator;
-    private final Model floorModel;
+    private final Model floorModel = MapUtils.createFloorModel();
+
 
     public MapInflater(GameAssetsManager assetsManager, Engine engine) {
         this.assetsManager = assetsManager;
         this.engine = engine;
         wallCreator = new WallCreator(assetsManager, false);
-        floorModel = MapUtils.createFloorModel();
     }
 
 
@@ -63,6 +64,7 @@ public class MapInflater implements Disposable {
         return mapGraph;
     }
 
+
     private void inflateElements(JsonObject mapJsonObj, MapGraph mapGraph) {
         mapJsonObj.get(ELEMENTS).getAsJsonObject().get(ENV_OBJECTS).getAsJsonArray().forEach(jsonElement -> {
             Entity entity = engine.createEntity();
@@ -71,11 +73,12 @@ public class MapInflater implements Disposable {
             Coords coords = new Coords(elementJsonObject.get(COORD_X).getAsInt(), elementJsonObject.get(COORD_Z).getAsInt());
             EnvObjectDefinition envObjectDefinition = EnvObjectUtils.fromString(elementJsonObject.get(DEFINITION).getAsString());
             component.init(EnvObjectUtils.createModelInstanceForEnvObject(
-                assetsManager,
-                coords,
-                mapGraph.getNode(coords).getHeight(),
-                envObjectDefinition,
-                Direction.valueOf(elementJsonObject.get(DIRECTION).getAsString())));
+                    assetsManager,
+                    coords,
+                    mapGraph.getNode(coords).getHeight(),
+                    envObjectDefinition,
+                    Direction.valueOf(elementJsonObject.get(DIRECTION).getAsString())),
+                false);
             entity.add(component);
             engine.addEntity(entity);
         });
@@ -401,7 +404,6 @@ public class MapInflater implements Disposable {
 
     @Override
     public void dispose( ) {
-        floorModel.dispose();
-        wallCreator.dispose();
+        GeneralUtils.disposeObject(this, MapInflater.class);
     }
 }

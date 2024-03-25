@@ -21,15 +21,19 @@ public class EntityBuilder {
     }
 
     public EntityBuilder addModelInstanceComponent(ModelInstance modelInstance) {
-        return addModelInstanceComponent(modelInstance, Vector3.Zero);
+        return addModelInstanceComponent(modelInstance, Vector3.Zero, true);
     }
 
-    public EntityBuilder addModelInstanceComponent(ModelInstance modelInstance, Vector3 position) {
+    public EntityBuilder addModelInstanceComponent(ModelInstance modelInstance, boolean applyEnvironment) {
+        return addModelInstanceComponent(modelInstance, Vector3.Zero, applyEnvironment);
+    }
+
+    public EntityBuilder addModelInstanceComponent(ModelInstance modelInstance, Vector3 position, boolean applyEnvironment) {
         ModelInstanceComponent component = engine.createComponent(ModelInstanceComponent.class);
         if (!position.isZero()) {
             modelInstance.transform.setTranslation(position);
         }
-        component.init(modelInstance);
+        component.init(modelInstance, applyEnvironment);
         currentEntity.add(component);
         modelInstance.userData = currentEntity;
         return instance;

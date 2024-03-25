@@ -1,4 +1,4 @@
-package com.gadarts.te.systems;
+package com.gadarts.te.systems.render;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -14,9 +14,9 @@ import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.utils.LightUtils;
 import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.ModelInstanceComponent;
+import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.data.SharedData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
-import com.gadarts.te.systems.render.AxisModelHandler;
 
 public class RenderSystem extends GameSystem {
     private AxisModelHandler axisModelHandler;
@@ -44,11 +44,15 @@ public class RenderSystem extends GameSystem {
     public void update(float deltaTime) {
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         ScreenUtils.clear(Color.BLACK, true);
-        modelBatch.begin(sharedData.camera());
+        modelBatch.begin(sharedData.getCamera());
         for (Entity entity : modelEntities) {
             ModelInstanceComponent modelInstanceComponent = ComponentsMapper.modelInstance.get(entity);
             ModelInstance modelInstance = modelInstanceComponent.getModelInstance();
-            modelBatch.render(modelInstance, environment);
+            if (modelInstanceComponent.isApplyEnvironment()) {
+                modelBatch.render(modelInstance, environment);
+            } else {
+                modelBatch.render(modelInstance);
+            }
         }
         modelBatch.end();
     }
