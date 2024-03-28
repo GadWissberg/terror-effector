@@ -5,7 +5,6 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
@@ -16,15 +15,19 @@ import com.badlogic.gdx.math.Matrix4.M13
 import com.badlogic.gdx.math.collision.BoundingBox
 import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
-import com.gadarts.te.*
+import com.gadarts.te.DebugSettings
+import com.gadarts.te.EditorEvents
+import com.gadarts.te.Modes
+import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.definitions.EnvObjectDefinition
+import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapUtils
 import com.gadarts.te.common.map.Wall
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.common.utils.CameraUtils
+import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.common.utils.ModelInstanceFactory
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
@@ -94,7 +97,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun dispose() {
-        GeneralUtils.disposeObject(this, CursorHandlerImpl::class)
+        GeneralUtils.disposeObject(this, CursorHandlerImpl::class.java)
     }
 
     private fun turnOnSelectingCursor() {

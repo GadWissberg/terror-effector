@@ -12,11 +12,11 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.EditorEvents
-import com.gadarts.te.GeneralUtils
 import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.utils.CameraUtils
+import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.common.utils.LightUtils
 import com.gadarts.te.renderer.handlers.Handlers
 import com.gadarts.te.renderer.handlers.HandlersData
@@ -68,7 +68,7 @@ class SceneRenderer(
 
 
     override fun dispose() {
-        GeneralUtils.disposeObject(this, SceneRenderer::class)
+        GeneralUtils.disposeObject(this, SceneRenderer::class.java)
     }
 
     fun init(heightUnderBars: Float) {

@@ -23,9 +23,10 @@ import com.gadarts.te.assets.ShaderLoader
 import com.gadarts.te.assets.Shaders
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
-import com.gadarts.te.common.definitions.EnvObjectDefinition
-import com.gadarts.te.common.definitions.Obstacles
-import com.gadarts.te.common.definitions.WallObjects
+import com.gadarts.te.common.definitions.env.EnvObjectDefinition
+import com.gadarts.te.common.definitions.env.Obstacles
+import com.gadarts.te.common.definitions.env.WallObjects
+import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.renderer.SceneRenderer
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.*
@@ -361,7 +362,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     }
 
     override fun dispose() {
-        GeneralUtils.disposeObject(this, TerrorEffectorEditor::class)
+        GeneralUtils.disposeObject(this, TerrorEffectorEditor::class.java)
         VisUI.dispose()
     }
 

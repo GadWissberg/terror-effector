@@ -1,7 +1,7 @@
 package com.gadarts.te.renderer.handlers.cursor
 
 import com.badlogic.gdx.math.Vector3
-import com.gadarts.te.common.definitions.EnvObjectDefinition
+import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.Wall
 
 interface CursorHandler {

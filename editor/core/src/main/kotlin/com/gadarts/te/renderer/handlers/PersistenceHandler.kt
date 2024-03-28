@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
-import com.gadarts.te.common.definitions.EnvObjectsTypes
+import com.gadarts.te.common.definitions.env.EnvObjectsTypes
 import com.gadarts.te.common.map.*
 import com.gadarts.te.common.map.MapJsonKeys.*
 import com.gadarts.te.common.map.element.Direction

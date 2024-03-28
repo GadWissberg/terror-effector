@@ -1,10 +1,9 @@
 package com.gadarts.te.renderer.handlers.drawing
 
-import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.gadarts.te.EditorEvents
-import com.gadarts.te.GeneralUtils
 import com.gadarts.te.common.assets.texture.SurfaceTextures
+import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.drawing.react.*
@@ -33,7 +32,7 @@ class DrawingHandlerImpl : BaseHandler(), DrawingHandler {
     }
 
     override fun dispose() {
-        GeneralUtils.disposeObject(this, DrawingHandlerImpl::class)
+        GeneralUtils.disposeObject(this, DrawingHandlerImpl::class.java)
     }
 
 }

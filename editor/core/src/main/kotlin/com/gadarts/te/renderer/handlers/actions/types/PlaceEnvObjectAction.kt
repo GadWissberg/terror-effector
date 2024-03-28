@@ -1,6 +1,6 @@
 package com.gadarts.te.renderer.handlers.actions.types
 
-import com.gadarts.te.common.definitions.EnvObjectDefinition
+import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.renderer.model.MapData

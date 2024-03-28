@@ -7,13 +7,13 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.utils.Disposable
-import com.gadarts.te.GeneralUtils
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.texture.SurfaceTextures
-import com.gadarts.te.common.definitions.EnvObjectDefinition
+import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.*
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.common.utils.EnvObjectUtils
+import com.gadarts.te.common.utils.GeneralUtils
 
 class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager) : Disposable {
     val placedEnvObjects = mutableListOf<PlacedEnvObject>()
@@ -32,7 +32,7 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
     }
 
     override fun dispose() {
-        GeneralUtils.disposeObject(this, MapData::class)
+        GeneralUtils.disposeObject(this, MapData::class.java)
     }
 
     fun insertEnvObject(coords: Coords, height: Float, definition: EnvObjectDefinition, direction: Direction) {

@@ -4,14 +4,13 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
-import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.collision.Ray
 import com.gadarts.te.DebugSettings
-import com.gadarts.te.GeneralUtils
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.utils.GeneralUtils
 
 class CameraHandler : InputProcessor,
     BaseHandler() {
@@ -155,7 +154,7 @@ class CameraHandler : InputProcessor,
     }
 
     override fun dispose() {
-        GeneralUtils.disposeObject(this, CameraHandler::class)
+        GeneralUtils.disposeObject(this, CameraHandler::class.java)
     }
 
     companion object {
