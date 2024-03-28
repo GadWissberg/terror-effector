@@ -6,19 +6,33 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.gadarts.te.common.assets.atlas.AtlasDefinition;
+import com.gadarts.te.common.assets.atlas.Atlases;
+import com.gadarts.te.common.assets.declarations.Declaration;
+import com.gadarts.te.common.assets.declarations.Declarations;
+import com.gadarts.te.common.assets.declarations.items.WeaponDeclaration;
+import com.gadarts.te.common.assets.declarations.items.WeaponsDeclarations;
+import com.gadarts.te.common.assets.loaders.DeclarationsLoader;
+import com.gadarts.te.common.assets.loaders.ShaderLoader;
 import com.gadarts.te.common.assets.model.ModelDefinition;
 import com.gadarts.te.common.assets.model.Models;
+import com.gadarts.te.common.assets.shaders.Shaders;
 import com.gadarts.te.common.assets.texture.TextureDefinition;
+import com.google.gson.Gson;
 
 import java.util.Arrays;
 import java.util.Optional;
 
+import static com.gadarts.te.common.assets.AssetsType.generateDefinedGsonBuilder;
+
 public class GameAssetsManager extends AssetManager {
     public static final String PATH_SEPARATOR = "/";
     private final String assetsLocation;
+    private final Gson gson = generateDefinedGsonBuilder().create();
 
     public GameAssetsManager( ) {
         this("");
@@ -28,15 +42,34 @@ public class GameAssetsManager extends AssetManager {
         this.assetsLocation = assetsLocation;
         FileHandleResolver resolver = new InternalFileHandleResolver();
         setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
+        setLoader(String.class, new ShaderLoader(getFileHandleResolver()));
+        setLoader(Declaration.class, DeclarationDefinition.FORMAT, new DeclarationsLoader(resolver, (json, t, c) -> {
+            WeaponDeclaration result;
+            if (json.isJsonPrimitive()) {
+                WeaponsDeclarations declaration = (WeaponsDeclarations) getDeclaration(Declarations.WEAPONS);
+                result = declaration.parse(json.getAsString());
+            } else {
+                result = gson.fromJson(json, t);
+            }
+            return result;
+        }));
+    }
+
+    public TextureAtlas getAtlas(final AtlasDefinition atlas) {
+        return get(assetsLocation + atlas.getFilePath(), TextureAtlas.class);
     }
 
     public Texture getModelExplicitTexture(final ModelDefinition model) {
         return get(assetsLocation + Models.FOLDER + "/" + model.getTextureFileName() + ".png", Texture.class);
     }
 
-    public void loadGameFiles(final AssetsTypes... assetsTypesToExclude) {
-        Arrays.stream(AssetsTypes.values())
-            .filter(type -> Arrays.stream(assetsTypesToExclude).noneMatch(toExclude -> toExclude == type))
+    public Declaration getDeclaration(Declarations declaration) {
+        return get(assetsLocation + declaration.getFilePath(), Declaration.class);
+    }
+
+    public void loadGameFiles(final AssetsType... assetsTypeToExclude) {
+        Arrays.stream(AssetsType.values())
+            .filter(type -> Arrays.stream(assetsTypeToExclude).noneMatch(toExclude -> toExclude == type))
             .filter(type -> !type.isManualLoad())
             .forEach(type -> Arrays.stream(type.getAssetDefinitions()).forEach(def -> {
                 String[] filesList = def.getFilesList();
@@ -48,6 +81,7 @@ public class GameAssetsManager extends AssetManager {
             }));
         finishLoading();
     }
+
 
     @Override
     public <T> void addAsset(final String fileName, final Class<T> type, final T asset) {
@@ -65,6 +99,10 @@ public class GameAssetsManager extends AssetManager {
 
     public com.badlogic.gdx.graphics.g3d.Model getModel(final ModelDefinition model) {
         return get(assetsLocation + model.getFilePath(), com.badlogic.gdx.graphics.g3d.Model.class);
+    }
+
+    public String getShader(Shaders shaders) {
+        return get(assetsLocation + shaders.getFilePath(), String.class);
     }
 
     private void loadFile(AssetDefinition def, String fileName, boolean block) {

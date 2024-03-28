@@ -1,7 +1,10 @@
 package com.gadarts.te.systems;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.gadarts.te.common.assets.GameAssetsManager;
@@ -17,11 +20,14 @@ public class CameraSystem extends GameSystem implements InputProcessor {
     private final Vector2 lastRightPressMousePosition = new Vector2();
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager) {
+    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
+        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
         int viewportWidth = (FULL_SCREEN ? FULL_SCREEN_RES_WIDTH : WINDOWED_RES_WIDTH);
         int viewportHeight = (FULL_SCREEN ? FULL_SCREEN_RES_HEIGHT : WINDOWED_RES_HEIGHT);
         OrthographicCamera cam = CameraUtils.createCamera(viewportWidth, viewportHeight);
         sharedDataBuilder.setCamera(cam);
+        InputMultiplexer multiplexer = (InputMultiplexer) Gdx.input.getInputProcessor();
+        multiplexer.addProcessor(this);
     }
 
     @Override

@@ -10,16 +10,24 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Pools;
 import com.gadarts.te.EntityBuilder;
 import com.gadarts.te.common.assets.GameAssetsManager;
+import com.gadarts.te.common.assets.atlas.Atlases;
+import com.gadarts.te.common.assets.declarations.CharacterDeclaration;
+import com.gadarts.te.common.assets.declarations.player.PlayerDeclaration;
+import com.gadarts.te.common.assets.declarations.player.PlayerWeaponDeclaration;
+import com.gadarts.te.common.assets.declarations.player.PlayerWeaponsDeclarations;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
-import com.gadarts.te.common.definitions.EnvObjectDefinition;
+import com.gadarts.te.common.definitions.env.EnvObjectDefinition;
 import com.gadarts.te.common.map.*;
 import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.model.GameModelInstance;
 import com.gadarts.te.common.utils.EnvObjectUtils;
 import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.components.ModelInstanceComponent;
+import com.gadarts.te.components.cd.CharacterAnimations;
+import com.gadarts.te.components.character.CharacterSpriteData;
 import com.gadarts.te.systems.map.graph.MapGraph;
 import com.gadarts.te.systems.map.graph.MapGraphNode;
 import com.google.gson.*;
@@ -28,8 +36,12 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import static com.gadarts.te.DebugSettings.STARTING_WEAPON;
 import static com.gadarts.te.EntityBuilder.beginBuildingEntity;
+import static com.gadarts.te.common.assets.atlas.Atlases.PLAYER_GENERIC;
+import static com.gadarts.te.common.assets.declarations.Declarations.PLAYER_WEAPONS;
 import static com.gadarts.te.common.assets.texture.SurfaceTextures.MISSING;
+import static com.gadarts.te.common.definitions.character.SpriteType.IDLE;
 import static com.gadarts.te.common.map.MapJsonKeys.*;
 import static com.gadarts.te.common.map.MapNodesTypes.OBSTACLE_KEY_DIAGONAL_FORBIDDEN;
 import static com.gadarts.te.common.map.MapNodesTypes.PASSABLE_NODE;
@@ -61,9 +73,33 @@ public class MapInflater implements Disposable {
         inflateNodes(mapJsonObj.get(NODES).getAsJsonObject(), mapGraph);
         inflateHeightsAndWalls(mapJsonObj, mapGraph);
         inflateElements(mapJsonObj, mapGraph);
+        inflatePlayer();
         return mapGraph;
     }
 
+    private void inflatePlayer( ) {
+        EntityBuilder builder = beginBuildingEntity(engine).addPlayerComponent(assetsManager.get(PLAYER_GENERIC.name()));
+        PlayerDeclaration declaration = PlayerDeclaration.getInstance();
+        CharacterSpriteData characterSpriteData = createCharacterSpriteData(declaration);
+        PlayerWeaponDeclaration weaponDec = ((PlayerWeaponsDeclarations) assetsManager.getDeclaration(PLAYER_WEAPONS))
+            .parse(STARTING_WEAPON);
+        CharacterAnimations animations = assetsManager.get(weaponDec.relatedAtlas().name());
+        Atlases atlas = weaponDec.relatedAtlas();
+        Direction direction = Direction.EAST;
+        builder.addCharacterComponent(characterSpriteData, direction)
+            .addCharacterDecalComponent(assetsManager.get(atlas.name()), IDLE, direction, new Vector3(0.5F, 0F, 0.5F))
+            .addAnimationComponent(animations.get(IDLE, direction));
+        builder.finishAndAddToEngine();
+    }
+
+    private CharacterSpriteData createCharacterSpriteData(CharacterDeclaration declaration) {
+        CharacterSpriteData characterSpriteData = Pools.obtain(CharacterSpriteData.class);
+        characterSpriteData.init(
+            IDLE,
+            declaration.getPrimaryAttackHitFrameIndex(),
+            declaration.isSingleDeathAnimation());
+        return characterSpriteData;
+    }
 
     private void inflateElements(JsonObject mapJsonObj, MapGraph mapGraph) {
         mapJsonObj.get(ELEMENTS).getAsJsonObject().get(ENV_OBJECTS).getAsJsonArray().forEach(jsonElement -> {

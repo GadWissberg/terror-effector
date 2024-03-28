@@ -1,5 +1,6 @@
 package com.gadarts.te.systems.ui;
 
+import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.gadarts.te.common.assets.GameAssetsManager;
@@ -17,8 +18,8 @@ public class InterfaceSystem extends GameSystem {
     private final Model floorModel = MapUtils.createFloorModel();
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager) {
-        super.initialize(sharedDataBuilder, assetsManager);
+    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
+        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
         uiStage = new Stage();
         cursorHandler = new CursorHandler(uiStage);
     }

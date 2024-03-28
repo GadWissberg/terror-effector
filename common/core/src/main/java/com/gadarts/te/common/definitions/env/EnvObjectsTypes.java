@@ -1,4 +1,4 @@
-package com.gadarts.te.common.definitions;
+package com.gadarts.te.common.definitions.env;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

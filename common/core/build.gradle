@@ -11,6 +11,7 @@ dependencies {
   compileOnly "org.projectlombok:lombok:$lombokVersion"
   annotationProcessor "org.projectlombok:lombok:$lombokVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+  implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1'
 
 }
 repositories {

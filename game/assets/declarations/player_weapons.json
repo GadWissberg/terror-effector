@@ -1,0 +1,32 @@
+{
+  "player_weapons_declarations": [
+    {
+      "id": "punch",
+      "hit_frame_index": 3,
+      "melee": true,
+      "hidden_from_map": true,
+      "declaration": "punch",
+      "related_atlas": "player_melee",
+      "hud_icon": "hud_weapon_icon_fist"
+    },
+    {
+      "id": "glock",
+      "hit_frame_index": 3,
+      "symbol_width": 2,
+      "symbol_height": 2,
+      "symbol": "weapon_colt",
+      "declaration": "glock",
+      "related_atlas": "player_glock",
+      "mask": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "model_declaration": "glock",
+      "hud_icon": "hud_weapon_icon_glock",
+      "ammo_type": "bullet",
+      "magazine_size": 17
+    }
+  ]
+}

@@ -5,8 +5,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.assets.model.Models;
-import com.gadarts.te.common.definitions.EnvObjectDefinition;
-import com.gadarts.te.common.definitions.EnvObjectsTypes;
+import com.gadarts.te.common.definitions.env.EnvObjectDefinition;
+import com.gadarts.te.common.definitions.env.EnvObjectsTypes;
 import com.gadarts.te.common.map.Coords;
 import com.gadarts.te.common.map.element.Direction;
 

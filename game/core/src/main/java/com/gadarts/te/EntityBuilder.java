@@ -5,9 +5,14 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
-import com.gadarts.te.components.FloorComponent;
-import com.gadarts.te.components.ModelInstanceComponent;
-import com.gadarts.te.components.WallComponent;
+import com.gadarts.te.common.definitions.character.SpriteType;
+import com.gadarts.te.common.map.element.Direction;
+import com.gadarts.te.components.*;
+import com.gadarts.te.components.cd.CharacterAnimation;
+import com.gadarts.te.components.cd.CharacterAnimations;
+import com.gadarts.te.components.cd.CharacterDecalComponent;
+import com.gadarts.te.components.character.CharacterComponent;
+import com.gadarts.te.components.character.CharacterSpriteData;
 import com.gadarts.te.systems.map.graph.MapGraphNode;
 
 public class EntityBuilder {
@@ -17,6 +22,37 @@ public class EntityBuilder {
 
     public static EntityBuilder beginBuildingEntity(Engine engine) {
         instance.init(engine);
+        return instance;
+    }
+
+    public EntityBuilder addCharacterDecalComponent(final CharacterAnimations animations,
+                                                    final SpriteType spriteType,
+                                                    final Direction direction,
+                                                    final Vector3 position) {
+        CharacterDecalComponent characterDecalComponent = engine.createComponent(CharacterDecalComponent.class);
+        characterDecalComponent.init(animations, spriteType, direction, position);
+        currentEntity.add(characterDecalComponent);
+        return instance;
+    }
+
+    public void addAnimationComponent(CharacterAnimation characterAnimation) {
+        AnimationComponent animComponent = engine.createComponent(AnimationComponent.class);
+        animComponent.init(characterAnimation.getFrameDuration(), characterAnimation);
+        currentEntity.add(animComponent);
+    }
+
+    public EntityBuilder addCharacterComponent(CharacterSpriteData characterSpriteData,
+                                               Direction direction) {
+        CharacterComponent charComponent = engine.createComponent(CharacterComponent.class);
+        charComponent.init(characterSpriteData, direction);
+        currentEntity.add(charComponent);
+        return instance;
+    }
+
+    public EntityBuilder addPlayerComponent(CharacterAnimations general) {
+        PlayerComponent playerComponent = engine.createComponent(PlayerComponent.class);
+        playerComponent.init(general);
+        currentEntity.add(playerComponent);
         return instance;
     }
 

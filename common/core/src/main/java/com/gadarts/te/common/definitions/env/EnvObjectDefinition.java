@@ -1,4 +1,4 @@
-package com.gadarts.te.common.definitions;
+package com.gadarts.te.common.definitions.env;
 
 import com.gadarts.te.common.assets.model.Models;
 
