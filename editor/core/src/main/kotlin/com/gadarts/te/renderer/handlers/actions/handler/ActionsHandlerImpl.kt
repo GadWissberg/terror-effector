@@ -22,7 +22,7 @@ class ActionsHandlerImpl : ActionsHandler, BaseHandler(), InputProcessor {
     override fun onUpdate() {
     }
 
-    override fun onRender(batch: ModelBatch) {
+    override fun onModelsRender(batch: ModelBatch) {
     }
 
     override fun dispose() {

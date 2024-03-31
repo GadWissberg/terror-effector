@@ -93,10 +93,13 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val heightUnderBars = WINDOW_HEIGHT - (menuBar.table.height + buttonBar.height)
         contentCatalogDisplay.add(galleryScrollPane)
         val envObjectsTree = addEnvObjectsTree()
+        contentCatalogDisplay.add(envObjectsTree)
+        val charactersTree = addCharactersTree()
+        contentCatalogDisplay.add(charactersTree)
         modeToContentCatalog[Modes.FLOOR] = galleryScrollPane
         modeToContentCatalog[Modes.WALLS] = galleryScrollPane
         modeToContentCatalog[Modes.ENV_OBJECTS] = envObjectsTree
-        contentCatalogDisplay.add(envObjectsTree)
+        modeToContentCatalog[Modes.CHARACTERS] = charactersTree
         val splitPane = VisSplitPane(contentCatalogDisplay, sceneRenderer, false)
         splitPane.setSplitAmount(0.2F)
         root.add(splitPane).size(WINDOW_WIDTH, heightUnderBars)
@@ -112,6 +115,26 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         envObjectsTree.add(treeRoot)
         envObjectsTree.isVisible = false
         return envObjectsTree
+    }
+
+    private fun addCharactersTree(): VisTree<TreeNode, String> {
+        val tree = VisTree<TreeNode, String>()
+        val treeRoot = createTreeRoot(tree)
+        val iconTexture = editorAssetManager.get(TREE_ICON_CHARACTER.getFileName(), Texture::class.java)
+        val definitionNode = TreeNode(
+            "Player",
+            iconTexture
+        )
+        definitionNode.actor.addListener(object : ClickListener() {
+            override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                super.clicked(event, x, y)
+                dispatcher.dispatchMessage(EditorEvents.CLICKED_TREE_NODE.ordinal)
+            }
+        })
+        treeRoot.add(definitionNode)
+        tree.add(treeRoot)
+        tree.isVisible = false
+        return tree
     }
 
     private fun addNodeToEnvObjectsTree(
@@ -172,7 +195,10 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         addButtonToButtonsBar(buttonBar, ICON_FILE_SAVE, EditorEvents.CLICKED_BUTTON_SAVE.ordinal)
         addButtonToButtonsBar(buttonBar, ICON_FILE_LOAD, EditorEvents.CLICKED_BUTTON_LOAD.ordinal)
         buttonBar.table.add(Separator("vertical")).width(10F).fillY().expandY()
-        addModesRadioButtons(buttonBar)
+        val buttonGroup = createButtonGroup()
+        Modes.entries.forEach {
+            addModeButton(buttonGroup, buttonBar, it, it.icon.getFileName())
+        }
         root.add(buttonBar.table).fillX().expandX().row()
         buttonBar.table.pack()
         return buttonBar
@@ -189,14 +215,6 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         )
     }
 
-    private fun addModesRadioButtons(
-        buttonBar: MenuBar
-    ) {
-        val buttonGroup = createButtonGroup()
-        addModeButton(buttonGroup, buttonBar, Modes.FLOOR, ICON_MODE_FLOOR.getFileName())
-        addModeButton(buttonGroup, buttonBar, Modes.WALLS, ICON_MODE_WALLS.getFileName())
-        addModeButton(buttonGroup, buttonBar, Modes.ENV_OBJECTS, ICON_MODE_ENV_OBJECTS.getFileName())
-    }
 
     private fun addModeButton(
         buttonGroup: ButtonGroup<VisImageButton>,

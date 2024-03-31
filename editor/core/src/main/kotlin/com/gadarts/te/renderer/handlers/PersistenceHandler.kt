@@ -3,7 +3,6 @@ package com.gadarts.te.renderer.handlers
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.graphics.g3d.Model
-import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.gadarts.te.EditorEvents
@@ -481,8 +480,6 @@ class PersistenceHandler : BaseHandler() {
 
     }
 
-    override fun onRender(batch: ModelBatch) {
-    }
 
     override fun dispose() {
     }

@@ -12,13 +12,15 @@ enum class IconsTextures {
     ICON_MODE_FLOOR,
     ICON_MODE_WALLS,
     ICON_MODE_ENV_OBJECTS,
+    ICON_MODE_CHARACTERS,
     ICON_ROTATE_CLOCKWISE,
     ICON_ROTATE_COUNTER_CLOCKWISE,
     ICON_FILE_SAVE,
     ICON_FILE_LOAD,
     TREE_ICON_ENV,
     TREE_ICON_WALL,
-    TREE_ICON_OBSTACLE;
+    TREE_ICON_OBSTACLE,
+    TREE_ICON_CHARACTER;
 
     fun getFileName(): String {
         return "textures/$name.png"

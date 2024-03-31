@@ -1,6 +1,5 @@
 package com.gadarts.te.renderer.handlers.drawing
 
-import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.utils.GeneralUtils
@@ -26,9 +25,6 @@ class DrawingHandlerImpl : BaseHandler(), DrawingHandler {
     }
 
     override fun onUpdate() {
-    }
-
-    override fun onRender(batch: ModelBatch) {
     }
 
     override fun dispose() {

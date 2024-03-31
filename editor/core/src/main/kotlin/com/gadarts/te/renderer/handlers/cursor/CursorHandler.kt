@@ -9,6 +9,7 @@ interface CursorHandler {
     fun displayObjectOfTreeNode(envObjectDefinition: EnvObjectDefinition)
     fun fetchGridCellAtMouse(): Vector3
     fun clearSelection()
+    fun displayPlayerCursor()
 
     val selectedNodes: List<SelectedNode>
     val selectedWalls: List<Wall>

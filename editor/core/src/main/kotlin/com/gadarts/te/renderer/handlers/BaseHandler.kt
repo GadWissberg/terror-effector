@@ -7,6 +7,7 @@ import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.ai.msg.Telegraph
 import com.badlogic.gdx.graphics.g3d.ModelBatch
+import com.badlogic.gdx.graphics.g3d.decals.DecalBatch
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.DebugSettings
 import com.gadarts.te.EditorEvents
@@ -53,7 +54,9 @@ abstract class BaseHandler : Telegraph, Disposable {
     }
 
     abstract fun onUpdate()
-    abstract fun onRender(batch: ModelBatch)
+    open fun onModelsRender(batch: ModelBatch) {
+
+    }
 
     protected fun addToInputMultiplexer(inputProcessor: InputProcessor) {
         val inputMultiplexer = Gdx.input.inputProcessor as InputMultiplexer
@@ -62,5 +65,9 @@ abstract class BaseHandler : Telegraph, Disposable {
 
     protected open fun getSubscribedEvents(): Map<EditorEvents, HandlerOnEvent> {
         return emptyMap()
+    }
+
+    open fun onDecalsRender(decalsBatch: DecalBatch) {
+
     }
 }

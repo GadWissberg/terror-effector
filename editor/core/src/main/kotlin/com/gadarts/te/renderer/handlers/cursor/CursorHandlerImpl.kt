@@ -5,11 +5,14 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
+import com.badlogic.gdx.graphics.g3d.decals.Decal
+import com.badlogic.gdx.graphics.g3d.decals.DecalBatch
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.Matrix4.M13
 import com.badlogic.gdx.math.collision.BoundingBox
@@ -20,6 +23,10 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.assets.atlas.Atlases
+import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_SCALE
+import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
+import com.gadarts.te.common.definitions.character.SpriteType
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
@@ -27,17 +34,20 @@ import com.gadarts.te.common.map.MapUtils
 import com.gadarts.te.common.map.Wall
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.common.utils.CameraUtils
+import com.gadarts.te.common.utils.CharacterUtils
 import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.common.utils.ModelInstanceFactory
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.handlers.cursor.react.*
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
+    private var decalCursor: Decal? = null
     override val selectedWalls = mutableListOf<Wall>()
     override val selectedNodes = mutableListOf<SelectedNode>()
     override var objectModelCursor: ObjectModelCursor? = null
@@ -96,6 +106,16 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         selectedWalls.clear()
     }
 
+    override fun displayPlayerCursor() {
+        objectModelCursor = null
+        val idle: String = SpriteType.IDLE.name + "_0_" + Direction.SOUTH.name.lowercase(Locale.getDefault())
+        val atlas: TextureAtlas = gameAssetsManager.getAtlas(Atlases.PLAYER_MELEE)
+        val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
+        val decal = Decal.newDecal(region, true)
+        decal.setScale(BILLBOARD_SCALE)
+        decalCursor = decal
+    }
+
     override fun dispose() {
         GeneralUtils.disposeObject(this, CursorHandlerImpl::class.java)
     }
@@ -118,13 +138,25 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     private fun updateCursorPosition(screenX: Int, screenY: Int) {
-        if (objectModelCursor == null) return
+        if (objectModelCursor == null && decalCursor == null) return
 
         val position = fetchGridCellAtMouse(screenX, screenY)
-        if (handlersData.selectedMode == Modes.FLOOR) {
-            objectModelCursor!!.updateObjectModelCursorPosition(position)
-        } else {
-            objectModelCursor!!.updateObjectModelCursorPositionWithOffsets(position)
+        when (handlersData.selectedMode) {
+            Modes.FLOOR -> {
+                objectModelCursor!!.updateObjectModelCursorPosition(position)
+            }
+
+            Modes.CHARACTERS -> {
+                decalCursor!!.setPosition(
+                    position.x,
+                    handlersData.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: (0F + BILLBOARD_Y),
+                    position.z
+                )
+            }
+
+            else -> {
+                objectModelCursor!!.updateObjectModelCursorPositionWithOffsets(position)
+            }
         }
     }
 
@@ -167,6 +199,16 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
                 this
             )
         )
+    }
+
+    override fun onDecalsRender(decalsBatch: DecalBatch) {
+        if (decalCursor != null) {
+            applyFrameSeenFromCameraForCharacterDecal()
+            decalCursor!!.lookAt(
+                auxVector3_1.set(decalCursor!!.position).sub(handlersData.camera.direction), handlersData.camera.up
+            )
+            decalsBatch.add(decalCursor)
+        }
     }
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -434,7 +476,23 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         cursorFading += 1
     }
 
-    override fun onRender(batch: ModelBatch) {
+    override fun onModelsRender(batch: ModelBatch) {
+        renderModels(batch)
+    }
+
+    private fun applyFrameSeenFromCameraForCharacterDecal() {
+        if (decalCursor == null) return
+
+        val dirSeenFromCamera: Direction =
+            CharacterUtils.calculateDirectionSeenFromCamera(handlersData.camera, Direction.SOUTH)
+        val hashMap: HashMap<Direction, TextureAtlas.AtlasRegion> = gameAssetsManager.get(Atlases.PLAYER_GLOCK.name)
+        val textureRegion = hashMap[dirSeenFromCamera]
+        if (textureRegion !== decalCursor!!.textureRegion) {
+            decalCursor!!.textureRegion = textureRegion
+        }
+    }
+
+    private fun renderModels(batch: ModelBatch) {
         if (objectModelCursor != null
             && (handlersData.selectedMode == Modes.FLOOR || handlersData.selectedMode == Modes.ENV_OBJECTS)
         ) {

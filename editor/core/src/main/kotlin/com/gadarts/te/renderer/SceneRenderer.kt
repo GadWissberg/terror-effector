@@ -8,6 +8,8 @@ import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g3d.Environment
 import com.badlogic.gdx.graphics.g3d.ModelBatch
+import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy
+import com.badlogic.gdx.graphics.g3d.decals.DecalBatch
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
@@ -35,7 +37,8 @@ class SceneRenderer(
     private val auxiliaryModelInstances = AuxiliaryModelInstances()
     private val camera: OrthographicCamera = CameraUtils.createCamera(1280, 960)
     private val modelsShaderProvider: ModelsShaderProvider = ModelsShaderProvider(editorAssetManager)
-    private val batch = ModelBatch(modelsShaderProvider)
+    private val modelsBatch = ModelBatch(modelsShaderProvider)
+    private val decalsBatch = DecalBatch(200, CameraGroupStrategy(camera))
     private val mapData = MapData(MAP_SIZE, gameAssetsManager)
 
     init {
@@ -59,11 +62,15 @@ class SceneRenderer(
     }
 
     private fun renderModels() {
-        batch.begin(camera)
-        mapData.render(batch, environment)
-        auxiliaryModelInstances.render(batch)
-        Handlers.entries.forEach { it.handlerInstance.onRender(batch) }
-        batch.end()
+        modelsBatch.begin(camera)
+        mapData.render(modelsBatch, environment)
+        auxiliaryModelInstances.render(modelsBatch)
+        Handlers.entries.forEach { it.handlerInstance.onModelsRender(modelsBatch) }
+        modelsBatch.end()
+        Gdx.gl.glDepthMask(false)
+        Handlers.entries.forEach { it.handlerInstance.onDecalsRender(decalsBatch) }
+        decalsBatch.flush()
+        Gdx.gl.glDepthMask(true)
     }
 
 

@@ -8,6 +8,7 @@ import com.gadarts.te.components.GameComponent;
 import lombok.Getter;
 
 import static com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_SCALE;
+import static com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y;
 
 @Getter
 public class CharacterDecalComponent implements GameComponent {
@@ -35,8 +36,9 @@ public class CharacterDecalComponent implements GameComponent {
                                       final SpriteType type,
                                       final Direction direction,
                                       final Vector3 position) {
-        decal = Decal.newDecal(animations.get(type, direction).getKeyFrames()[0], true);//Optimize this - it creates an object each time.
+        decal = Decal.newDecal(animations.get(type, direction).getKeyFrames()[0], true);
         decal.setScale(BILLBOARD_SCALE);
+        position.y += BILLBOARD_Y;
         decal.setPosition(position);
     }
 

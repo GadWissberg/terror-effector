@@ -17,8 +17,13 @@ class CursorHandlerOnClickedTreeNode(private val cursorHandler: CursorHandler) :
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator
     ) {
-        val envObjectDefinition = msg.extraInfo as EnvObjectDefinition
-        cursorHandler.displayObjectOfTreeNode(envObjectDefinition)
+        if (msg.extraInfo == null) {
+            cursorHandler.displayPlayerCursor()
+        } else {
+            val envObjectDefinition = msg.extraInfo as EnvObjectDefinition
+            cursorHandler.displayObjectOfTreeNode(envObjectDefinition)
+        }
+
     }
 
 }
