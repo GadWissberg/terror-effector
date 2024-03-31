@@ -1,8 +1,10 @@
 package com.gadarts.te.systems.map;
 
+import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.gadarts.te.DebugSettings;
 import com.gadarts.te.common.assets.GameAssetsManager;
+import com.gadarts.te.components.PlayerComponent;
 import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 
@@ -14,6 +16,7 @@ public class MapSystem extends GameSystem {
         super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
         mapInflater = new MapInflater(assetsManager, getEngine());
         sharedDataBuilder.setMapGraph(mapInflater.inflate(DebugSettings.TEST_LEVEL.toLowerCase()));
+        sharedDataBuilder.setPlayer(getEngine().getEntitiesFor(Family.all(PlayerComponent.class).get()).first());
     }
 
 

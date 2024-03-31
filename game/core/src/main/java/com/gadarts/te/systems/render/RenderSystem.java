@@ -92,7 +92,7 @@ public class RenderSystem extends GameSystem {
     @Override
     public void onSystemReady(SharedData sharedData) {
         super.onSystemReady(sharedData);
-        strategies.createDecalGroupStrategies(sharedData.getCamera(), assetsManager);
+        strategies.createDecalGroupStrategies(sharedData.camera(), assetsManager);
         this.decalBatch = new DecalBatch(DECALS_POOL_SIZE, strategies.getRegularDecalGroupStrategy());
     }
 
@@ -100,7 +100,7 @@ public class RenderSystem extends GameSystem {
     public void update(float deltaTime) {
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         ScreenUtils.clear(Color.BLACK, true);
-        modelBatch.begin(sharedData.getCamera());
+        modelBatch.begin(sharedData.camera());
         for (Entity entity : modelEntities) {
             ModelInstanceComponent modelInstanceComponent = ComponentsMapper.modelInstance.get(entity);
             ModelInstance modelInstance = modelInstanceComponent.getModelInstance();
@@ -134,7 +134,7 @@ public class RenderSystem extends GameSystem {
 
         Decal decal = ComponentsMapper.characterDecal.get(entity).getDecal();
         Vector3 decalPosition = decal.getPosition();
-        OrthographicCamera camera = sharedData.getCamera();
+        OrthographicCamera camera = sharedData.camera();
         decal.lookAt(auxVector.set(decalPosition).sub(camera.direction), camera.up);
         decalBatch.add(decal);
     }
@@ -142,7 +142,7 @@ public class RenderSystem extends GameSystem {
     private void updateCharacterDecal(Entity entity) {
         CharacterComponent characterComp = ComponentsMapper.character.get(entity);
         CharacterSpriteData charSpriteData = characterComp.getCharacterSpriteData();
-        Direction direction = CharacterUtils.calculateDirectionSeenFromCamera(sharedData.getCamera(), characterComp.getFacingDirection());
+        Direction direction = CharacterUtils.calculateDirectionSeenFromCamera(sharedData.camera(), characterComp.getFacingDirection());
         SpriteType spriteType = charSpriteData.getSpriteType();
         boolean sameSpriteType = spriteType.equals(ComponentsMapper.characterDecal.get(entity).getSpriteType());
         Direction characterFacingDirection = ComponentsMapper.characterDecal.get(entity).getDirection();
@@ -166,7 +166,7 @@ public class RenderSystem extends GameSystem {
                 } else {
                     anim.setPlayMode(Animation.PlayMode.NORMAL);
                     Direction direction = CharacterUtils.calculateDirectionSeenFromCamera(
-                        sharedData.getCamera(),
+                        sharedData.camera(),
                         characterComponent.getFacingDirection());
                     CharacterAnimation animation = fetchCharacterAnimationByDirectionAndType(
                         entity,

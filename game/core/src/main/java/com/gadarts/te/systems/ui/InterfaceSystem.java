@@ -37,8 +37,8 @@ public class InterfaceSystem extends GameSystem {
             assetsManager.getTexture(UiTextures.NODE_CURSOR),
             getEngine(),
             floorModel,
-            sharedData.getMapGraph(),
-            sharedData.getCamera());
+            sharedData.mapGraph(),
+            sharedData.camera());
     }
 
     @Override

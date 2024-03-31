@@ -6,17 +6,22 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.utils.CameraUtils;
+import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.systems.data.SharedData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
+import com.gadarts.te.systems.map.graph.MapGraph;
 
 import static com.gadarts.te.DebugSettings.FULL_SCREEN;
 import static com.gadarts.te.TerrorEffector.*;
 
 public class CameraSystem extends GameSystem implements InputProcessor {
 
+    private static final float EXTRA_LEVEL_PADDING = 16;
     private final Vector2 lastRightPressMousePosition = new Vector2();
 
     @Override
@@ -32,7 +37,7 @@ public class CameraSystem extends GameSystem implements InputProcessor {
 
     @Override
     public void update(float deltaTime) {
-        sharedData.getCamera().update();
+        sharedData.camera().update();
     }
 
     @Override
@@ -65,7 +70,6 @@ public class CameraSystem extends GameSystem implements InputProcessor {
         boolean result = false;
         if (button == Input.Buttons.RIGHT) {
             lastRightPressMousePosition.set(screenX, screenY);
-            lastRightPressMousePosition.set(screenX, screenY);
             result = true;
         }
         return result;
@@ -73,7 +77,12 @@ public class CameraSystem extends GameSystem implements InputProcessor {
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
+        boolean handled = false;
+        if (button == Input.Buttons.RIGHT) {
+            lastRightPressMousePosition.set(-1F, -1F);
+            handled = true;
+        }
+        return handled;
     }
 
     @Override
@@ -83,7 +92,18 @@ public class CameraSystem extends GameSystem implements InputProcessor {
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;
+        boolean handled = false;
+        if (!lastRightPressMousePosition.epsilonEquals(-1F, -1F)) {
+            Vector3 rotationPoint = ComponentsMapper.characterDecal.get(sharedData.player()).getDecal().getPosition();
+            OrthographicCamera camera = sharedData.camera();
+            camera.rotateAround(rotationPoint, Vector3.Y, (lastRightPressMousePosition.x - screenX) / 2f);
+            MapGraph mapGraph = sharedData.mapGraph();
+            camera.position.x = MathUtils.clamp(camera.position.x, -EXTRA_LEVEL_PADDING, mapGraph.getWidth() + EXTRA_LEVEL_PADDING);
+            camera.position.z = MathUtils.clamp(camera.position.z, -EXTRA_LEVEL_PADDING, mapGraph.getDepth() + EXTRA_LEVEL_PADDING);
+            lastRightPressMousePosition.set(screenX, screenY);
+            handled = true;
+        }
+        return handled;
     }
 
     @Override
