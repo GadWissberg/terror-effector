@@ -2,12 +2,16 @@ package com.gadarts.te.common.utils;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.gadarts.te.common.map.element.Direction;
+
+import static com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_SCALE;
 
 public class CharacterUtils {
     private final static Vector2 auxVector2_1 = new Vector2();
@@ -46,4 +50,11 @@ public class CharacterUtils {
         }
         return direction;
     }
+
+    public static Decal createCharacterDecal(TextureRegion region) {
+        Decal decal = Decal.newDecal(region, true);
+        decal.setScale(BILLBOARD_SCALE);
+        return decal;
+    }
+
 }

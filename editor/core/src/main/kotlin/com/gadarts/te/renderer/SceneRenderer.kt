@@ -63,11 +63,12 @@ class SceneRenderer(
 
     private fun renderModels() {
         modelsBatch.begin(camera)
-        mapData.render(modelsBatch, environment)
         auxiliaryModelInstances.render(modelsBatch)
+        mapData.onModelsRender(modelsBatch, environment)
         Handlers.entries.forEach { it.handlerInstance.onModelsRender(modelsBatch) }
         modelsBatch.end()
         Gdx.gl.glDepthMask(false)
+        mapData.onDecalsRender(decalsBatch, handlersData.camera)
         Handlers.entries.forEach { it.handlerInstance.onDecalsRender(decalsBatch) }
         decalsBatch.flush()
         Gdx.gl.glDepthMask(true)

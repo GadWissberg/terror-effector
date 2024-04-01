@@ -7,6 +7,8 @@ import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup
@@ -22,14 +24,19 @@ import com.gadarts.te.assets.IconsTextures.*
 import com.gadarts.te.assets.ShaderLoader
 import com.gadarts.te.assets.Shaders
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.assets.declarations.CharacterDeclaration
+import com.gadarts.te.common.assets.declarations.player.PlayerDeclaration
 import com.gadarts.te.common.assets.texture.SurfaceTextures
+import com.gadarts.te.common.definitions.character.SpriteType
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.definitions.env.Obstacles
 import com.gadarts.te.common.definitions.env.WallObjects
+import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.renderer.SceneRenderer
 import com.kotcrab.vis.ui.VisUI
 import com.kotcrab.vis.ui.widget.*
+import java.util.*
 
 class TerrorEffectorEditor : ApplicationAdapter() {
     private val modeToContentCatalog = mutableMapOf<Modes, WidgetGroup>()
@@ -44,12 +51,17 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         VisUI.load()
         val gameAssetsManager = GameAssetsManager("../game/assets/")
         gameAssetsManager.loadGameFiles()
+        generateFramesMapForCharacter(PlayerDeclaration.getInstance(), gameAssetsManager)
         editorAssetManager = AssetManager()
         editorAssetManager.setLoader(
             String::class.java,
             ShaderLoader(editorAssetManager.fileHandleResolver)
         )
         loadEditorAssets(editorAssetManager)
+        createUi(gameAssetsManager)
+    }
+
+    private fun createUi(gameAssetsManager: GameAssetsManager) {
         stage = Stage(ScreenViewport())
         stage.isDebugAll = DebugSettings.SHOW_BORDERS
         val root = VisTable(true)
@@ -62,6 +74,23 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         Gdx.input.inputProcessor = InputMultiplexer(stage)
         stage.addActor(root)
         addSplitView(menuBar, buttonsBarTable, root, gameAssetsManager)
+    }
+
+    private fun generateFramesMapForCharacter(
+        characterDeclaration: CharacterDeclaration,
+        gameAssetsManager: GameAssetsManager
+    ) {
+        if (characterDeclaration.atlasDefinition == null) return
+
+        val atlas: TextureAtlas = gameAssetsManager.getAtlas(characterDeclaration.atlasDefinition)
+        val playerFrames: EnumMap<Direction, AtlasRegion> =
+            EnumMap(com.gadarts.te.common.map.element.Direction::class.java)
+        Arrays.stream(Direction.entries.toTypedArray()).forEach { direction ->
+            val name: String = SpriteType.IDLE.name + "_0_" + direction.name
+            playerFrames[direction] = atlas.findRegion(name.lowercase(Locale.getDefault()))
+        }
+        val format: String = java.lang.String.format(FRAMES_KEY_CHARACTER, characterDeclaration.name())
+        gameAssetsManager.addAsset(format, MutableMap::class.java, playerFrames)
     }
 
     private fun addModeButtonsBar(buttonsBarTable: VisTable) {
@@ -387,5 +416,6 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     companion object {
         const val WINDOW_WIDTH = 1280F
         const val WINDOW_HEIGHT = 960F
+        const val FRAMES_KEY_CHARACTER = "frames/%s"
     }
 }

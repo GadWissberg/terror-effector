@@ -24,7 +24,6 @@ import com.gadarts.te.Modes
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.atlas.Atlases
-import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_SCALE
 import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
 import com.gadarts.te.common.definitions.character.SpriteType
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
@@ -41,20 +40,21 @@ import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.handlers.cursor.react.*
+import com.gadarts.te.renderer.handlers.utils.DecalUtils
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
-    private var decalCursor: Decal? = null
+    override var decalCursor: Decal? = null
     override val selectedWalls = mutableListOf<Wall>()
     override val selectedNodes = mutableListOf<SelectedNode>()
     override var objectModelCursor: ObjectModelCursor? = null
     private val originalFloorModelInstanceCursorPosition = Vector3()
     private val prevFloorCursorPosition = Vector3()
     private val floorModel: Model = MapUtils.createFloorModel()
-    private var highlightWall: Wall? = null
+    override var highlightWall: Wall? = null
     private var selecting: Boolean = false
     private var viewportScreenY: Float = 0.0f
     private var viewportScreenX: Float = 0.0f
@@ -111,9 +111,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         val idle: String = SpriteType.IDLE.name + "_0_" + Direction.SOUTH.name.lowercase(Locale.getDefault())
         val atlas: TextureAtlas = gameAssetsManager.getAtlas(Atlases.PLAYER_MELEE)
         val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
-        val decal = Decal.newDecal(region, true)
-        decal.setScale(BILLBOARD_SCALE)
-        decalCursor = decal
+        decalCursor = CharacterUtils.createCharacterDecal(region)
     }
 
     override fun dispose() {
@@ -138,24 +136,23 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     private fun updateCursorPosition(screenX: Int, screenY: Int) {
-        if (objectModelCursor == null && decalCursor == null) return
-
         val position = fetchGridCellAtMouse(screenX, screenY)
         when (handlersData.selectedMode) {
             Modes.FLOOR -> {
-                objectModelCursor!!.updateObjectModelCursorPosition(position)
+                objectModelCursor?.updateObjectModelCursorPosition(position)
             }
 
             Modes.CHARACTERS -> {
-                decalCursor!!.setPosition(
+                CursorUtils.stickPositionToGrid(position, handlersData.mapData.matrix)
+                decalCursor?.setPosition(
                     position.x,
-                    handlersData.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: (0F + BILLBOARD_Y),
+                    (handlersData.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: 0F) + BILLBOARD_Y,
                     position.z
                 )
             }
 
             else -> {
-                objectModelCursor!!.updateObjectModelCursorPositionWithOffsets(position)
+                objectModelCursor?.updateObjectModelCursorPositionWithOffsets(position)
             }
         }
     }
@@ -203,10 +200,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     override fun onDecalsRender(decalsBatch: DecalBatch) {
         if (decalCursor != null) {
-            applyFrameSeenFromCameraForCharacterDecal()
-            decalCursor!!.lookAt(
-                auxVector3_1.set(decalCursor!!.position).sub(handlersData.camera.direction), handlersData.camera.up
-            )
+            DecalUtils.applyFrameSeenFromCameraForCharacterDecal(decalCursor!!, handlersData.camera, gameAssetsManager)
             decalsBatch.add(decalCursor)
         }
     }
@@ -214,7 +208,12 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
         if (button == Input.Buttons.LEFT) {
-            return handleLeftClick()
+            return onLeftClickMapping[handlersData.selectedMode]?.execute(
+                selectedNodes,
+                dispatcher,
+                this,
+                selectedWalls
+            ) ?: false
         } else if (button == Input.Buttons.RIGHT) {
             if (!selecting && handlersData.selectedMode == Modes.FLOOR) {
                 turnOnSelectingCursor()
@@ -231,52 +230,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         return false
     }
 
-    private fun handleLeftClick(): Boolean {
-        if (handlersData.selectedMode == Modes.FLOOR) {
-            if (selectedNodes.isEmpty()) {
-                val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-                dispatcher.dispatchMessage(
-                    EditorEvents.CLICKED_LEFT_ON_GRID_CELL.ordinal,
-                    listOf(Coords(position.x.toInt(), position.z.toInt()))
-                )
-            } else {
-                selectedNodes.clear()
-            }
-        } else if (handlersData.selectedMode == Modes.WALLS) {
-            handleSelectingWall()
-        } else if (handlersData.selectedMode == Modes.ENV_OBJECTS && objectModelCursor != null) {
-            handlePlacingEnvObject()
-        }
-        return true
-    }
 
-    private fun handlePlacingEnvObject() {
-        auxMatrix.set(objectModelCursor!!.modelInstance.transform)
-            .translate(
-                -objectModelCursor!!.definition!!.modelDefinition.modelOffset.x,
-                -objectModelCursor!!.definition!!.modelDefinition.modelOffset.y,
-                -objectModelCursor!!.definition!!.modelDefinition.modelOffset.z
-            )
-        val position = auxMatrix.getTranslation(auxVector3_1)
-        dispatcher.dispatchMessage(
-            EditorEvents.CLICKED_LEFT_ON_GRID_CELL.ordinal,
-            ClickedGridCellEventForEnvObject(
-                Coords(position.x.toInt(), position.z.toInt()),
-                objectModelCursor!!.definition!!,
-                objectModelCursor!!.getDirection()
-            )
-        )
-    }
-
-    private fun handleSelectingWall() {
-        if (highlightWall != null) {
-            if (selectedWalls.contains(highlightWall)) {
-                selectedWalls.remove(highlightWall)
-            } else {
-                selectedWalls.add(highlightWall!!)
-            }
-        }
-    }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (button == Input.Buttons.RIGHT && selecting) {
@@ -332,7 +286,10 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
 
-        if (handlersData.selectedMode == Modes.FLOOR || handlersData.selectedMode == Modes.ENV_OBJECTS) {
+        if (handlersData.selectedMode == Modes.FLOOR
+            || handlersData.selectedMode == Modes.ENV_OBJECTS
+            || handlersData.selectedMode == Modes.CHARACTERS
+        ) {
             if (!selecting) {
                 updatePrevCursorPosition()
                 updateCursorPosition(screenX, screenY)
@@ -446,7 +403,11 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             groundPlane,
             auxVector3_2
         )
-        return auxVector3_2
+        return auxVector3_2.set(
+            MathUtils.clamp(auxVector3_2.x, 0F, handlersData.mapData.mapSize.toFloat()),
+            auxVector3_2.y,
+            MathUtils.clamp(auxVector3_2.z, 0F, handlersData.mapData.mapSize.toFloat())
+        )
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
@@ -480,17 +441,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         renderModels(batch)
     }
 
-    private fun applyFrameSeenFromCameraForCharacterDecal() {
-        if (decalCursor == null) return
-
-        val dirSeenFromCamera: Direction =
-            CharacterUtils.calculateDirectionSeenFromCamera(handlersData.camera, Direction.SOUTH)
-        val hashMap: HashMap<Direction, TextureAtlas.AtlasRegion> = gameAssetsManager.get(Atlases.PLAYER_GLOCK.name)
-        val textureRegion = hashMap[dirSeenFromCamera]
-        if (textureRegion !== decalCursor!!.textureRegion) {
-            decalCursor!!.textureRegion = textureRegion
-        }
-    }
 
     private fun renderModels(batch: ModelBatch) {
         if (objectModelCursor != null
@@ -530,7 +480,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         private val groundPlane = Plane(Vector3.Y, 0F)
         private val auxVector2_1 = Vector2()
         private val auxList = mutableListOf<Coords>()
-        private val auxMatrix = Matrix4()
         private val auxBoundingBox = BoundingBox()
     }
 

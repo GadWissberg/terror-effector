@@ -1,7 +1,6 @@
 package com.gadarts.te.renderer.handlers.cursor
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
@@ -33,16 +32,10 @@ class ObjectModelCursor(
     }
 
     fun updateObjectModelCursorPosition(position: Vector3) {
-        position.x = position.x.toInt().toFloat()
-        position.z = position.z.toInt().toFloat()
-        val mapSize = this.mapData.mapSize.toFloat()
-        position.x = MathUtils.clamp(position.x, 0F, mapSize - 1)
-        position.z = MathUtils.clamp(position.z, 0F, mapSize - 1)
-        position.x += 0.5F
-        position.z += 0.5F
-        position.y = this.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: 0F
+        CursorUtils.stickPositionToGrid(position, mapData.matrix)
         modelInstance.transform.setTranslation(position)
     }
+
 
     private fun rotate(dir: Int) {
         if (definition == null) return
