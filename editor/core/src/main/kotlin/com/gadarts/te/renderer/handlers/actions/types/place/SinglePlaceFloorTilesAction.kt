@@ -1,9 +1,10 @@
-package com.gadarts.te.renderer.handlers.actions.types
+package com.gadarts.te.renderer.handlers.actions.types.place
 
 import com.badlogic.gdx.graphics.Texture
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.WallCreator
+import com.gadarts.te.renderer.handlers.actions.types.SingleStepAction
 import com.gadarts.te.renderer.model.MapData
 
 class SinglePlaceFloorTilesAction(

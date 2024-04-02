@@ -9,7 +9,8 @@ import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
-import com.gadarts.te.renderer.handlers.actions.types.DeleteEnvObjectAction
+import com.gadarts.te.renderer.handlers.actions.types.delete.DeleteCharacterAction
+import com.gadarts.te.renderer.handlers.actions.types.delete.DeleteEnvObjectAction
 
 class DrawingHandlerOnClickedRightOnGridCell :
     HandlerOnEvent {
@@ -30,7 +31,18 @@ class DrawingHandlerOnClickedRightOnGridCell :
                     dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action)
                 }
             }
+        } else if (handlersData.selectedMode == Modes.CHARACTERS) {
+            val position = msg.extraInfo as Coords
+            handlersData.mapData.getNode(position)?.let {
+                handlersData.mapData.placedCharacters.find {
+                    it.coords.equals(position)
+                }?.let { placedCharacter ->
+                    val action = DeleteCharacterAction(placedCharacter)
+                    dispatcher.dispatchMessage(EditorEvents.ACTION_BEGIN.ordinal, action)
+                }
+            }
         }
     }
+
 
 }

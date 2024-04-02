@@ -1,11 +1,13 @@
 package com.gadarts.te.renderer.model
 
 import com.badlogic.gdx.graphics.g3d.decals.Decal
+import com.gadarts.te.common.definitions.character.CharacterDefinition
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.element.Direction
 
 class PlacedCharacter(
-    val coords: Coords,
-    val decal: Decal,
-    val direction: Direction
-)
+    coords: Coords,
+    definition: CharacterDefinition,
+    direction: Direction,
+    val decal: Decal
+) : PlacedElement(coords, definition, direction)

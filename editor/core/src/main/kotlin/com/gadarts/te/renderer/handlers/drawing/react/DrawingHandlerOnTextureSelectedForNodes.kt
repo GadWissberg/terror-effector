@@ -8,7 +8,7 @@ import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
-import com.gadarts.te.renderer.handlers.actions.types.SinglePlaceFloorTilesAction
+import com.gadarts.te.renderer.handlers.actions.types.place.SinglePlaceFloorTilesAction
 import com.gadarts.te.renderer.handlers.drawing.DrawingHandler
 
 class DrawingHandlerOnTextureSelectedForNodes(private val drawingHandler: DrawingHandler) :

@@ -6,8 +6,8 @@ import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.element.Direction
 
 class PlacedEnvObject(
-    val coords: Coords,
-    val definition: EnvObjectDefinition,
-    val modelInstance: ModelInstance,
-    val direction: Direction
-)
+    coords: Coords,
+    definition: EnvObjectDefinition,
+    direction: Direction,
+    val modelInstance: ModelInstance
+) : PlacedElement(coords, definition, direction)

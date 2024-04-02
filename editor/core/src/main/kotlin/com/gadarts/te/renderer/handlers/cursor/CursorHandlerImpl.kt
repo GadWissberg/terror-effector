@@ -215,21 +215,31 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
                 selectedWalls
             ) ?: false
         } else if (button == Input.Buttons.RIGHT) {
-            if (!selecting && handlersData.selectedMode == Modes.FLOOR) {
-                turnOnSelectingCursor()
-                return true
-            } else if (handlersData.selectedMode == Modes.ENV_OBJECTS && objectModelCursor != null) {
-                val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-                dispatcher.dispatchMessage(
-                    EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
-                    Coords(position.x.toInt(), position.z.toInt())
-                )
-                return true
-            }
+            return handleRightClick()
         }
         return false
     }
 
+    private fun handleRightClick(): Boolean {
+        if (!selecting && handlersData.selectedMode == Modes.FLOOR) {
+            turnOnSelectingCursor()
+            return true
+        } else if (handlersData.selectedMode == Modes.ENV_OBJECTS && objectModelCursor != null) {
+            val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
+            dispatcher.dispatchMessage(
+                EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
+                Coords(position.x.toInt(), position.z.toInt())
+            )
+            return true
+        } else if (handlersData.selectedMode == Modes.CHARACTERS && decalCursor != null) {
+            dispatcher.dispatchMessage(
+                EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
+                Coords(decalCursor!!.position.x.toInt(), decalCursor!!.position.z.toInt())
+            )
+            return true
+        }
+        return false
+    }
 
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
@@ -433,7 +443,11 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun onUpdate() {
-        cursorMaterialBlendingAttribute.opacity = max(MathUtils.sin(cursorFading / 10F), 0.1F)
+        val alpha = max(MathUtils.sin(cursorFading / 10F), 0.1F)
+        cursorMaterialBlendingAttribute.opacity = alpha
+        if (decalCursor != null) {
+            decalCursor!!.setColor(decalCursor!!.color.r, decalCursor!!.color.r, decalCursor!!.color.r, alpha)
+        }
         cursorFading += 1
     }
 

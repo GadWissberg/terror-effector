@@ -14,6 +14,7 @@ import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.atlas.Atlases
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
+import com.gadarts.te.common.definitions.character.FriendlyDefinition
 import com.gadarts.te.common.definitions.character.SpriteType
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.*
@@ -26,7 +27,7 @@ import java.util.*
 
 class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager) : Disposable {
     val placedEnvObjects = mutableListOf<PlacedEnvObject>()
-    private val placedCharacters = mutableListOf<PlacedCharacter>()
+    val placedCharacters = mutableListOf<PlacedCharacter>()
 
     var matrix = Array(mapSize) {
         arrayOfNulls<MapNodeData?>(mapSize)
@@ -55,7 +56,7 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
                     definition,
                     direction
                 )
-            val element = PlacedEnvObject(coords, definition, modelInstance, direction)
+            val element = PlacedEnvObject(coords, definition, direction, modelInstance)
             placedEnvObjects.add(element)
         }
     }
@@ -67,7 +68,7 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
             val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
             val decal = CharacterUtils.createCharacterDecal(region)
             decal.setPosition(coords.x.toFloat() + 0.5F, height + BILLBOARD_Y, coords.z.toFloat() + 0.5F)
-            val element = PlacedCharacter(coords, decal, direction)
+            val element = PlacedCharacter(coords, FriendlyDefinition.PLAYER, direction, decal)
             placedCharacters.add(element)
         }
     }
@@ -115,6 +116,10 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
 
     fun deleteEnvObject(toDelete: PlacedEnvObject) {
         placedEnvObjects.remove(toDelete)
+    }
+
+    fun deleteCharacter(toDelete: PlacedCharacter) {
+        placedCharacters.remove(toDelete)
     }
 
     fun onDecalsRender(decalsBatch: DecalBatch, camera: OrthographicCamera) {

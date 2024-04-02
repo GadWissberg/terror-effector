@@ -10,9 +10,9 @@ import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
 import com.gadarts.te.renderer.handlers.actions.types.Action
-import com.gadarts.te.renderer.handlers.actions.types.PlaceCharacterAction
-import com.gadarts.te.renderer.handlers.actions.types.PlaceEnvObjectAction
-import com.gadarts.te.renderer.handlers.actions.types.PlaceFloorTilesAction
+import com.gadarts.te.renderer.handlers.actions.types.place.PlaceCharacterAction
+import com.gadarts.te.renderer.handlers.actions.types.place.PlaceEnvObjectAction
+import com.gadarts.te.renderer.handlers.actions.types.place.PlaceFloorTilesAction
 import com.gadarts.te.renderer.handlers.cursor.extra.ClickedGridCellEventForCharacterExtraInfo
 import com.gadarts.te.renderer.handlers.cursor.extra.ClickedGridCellEventForEnvObjectExtraInfo
 import com.gadarts.te.renderer.handlers.drawing.DrawingHandler

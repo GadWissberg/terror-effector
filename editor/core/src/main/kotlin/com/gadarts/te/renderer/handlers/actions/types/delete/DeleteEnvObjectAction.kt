@@ -1,5 +1,6 @@
-package com.gadarts.te.renderer.handlers.actions.types
+package com.gadarts.te.renderer.handlers.actions.types.delete
 
+import com.gadarts.te.renderer.handlers.actions.types.SingleStepAction
 import com.gadarts.te.renderer.model.MapData
 import com.gadarts.te.renderer.model.PlacedEnvObject
 
