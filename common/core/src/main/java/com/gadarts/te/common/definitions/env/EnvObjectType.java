@@ -9,14 +9,14 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Getter
-public enum EnvObjectsTypes {
+public enum EnvObjectType {
     OBSTACLES(Obstacles.values()),
     WALL_OBJECTS(WallObjects.values());
 
     public static final ArrayList<EnvObjectDefinition> allDefinitions = new ArrayList<>();
 
     static {
-        Arrays.stream(EnvObjectsTypes.values()).forEach(type -> allDefinitions.addAll(Arrays.stream(type.getValues()).toList()));
+        Arrays.stream(EnvObjectType.values()).forEach(type -> allDefinitions.addAll(Arrays.stream(type.getValues()).toList()));
     }
 
     private final EnvObjectDefinition[] values;

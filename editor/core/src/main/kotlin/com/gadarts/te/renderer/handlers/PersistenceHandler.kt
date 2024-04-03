@@ -12,6 +12,7 @@ import com.gadarts.te.common.definitions.env.EnvObjectsTypes
 import com.gadarts.te.common.map.*
 import com.gadarts.te.common.map.MapJsonKeys.*
 import com.gadarts.te.common.map.element.Direction
+import com.gadarts.te.renderer.model.PlacedElement
 import com.google.gson.*
 import java.io.FileReader
 import java.io.FileWriter
@@ -351,23 +352,48 @@ class PersistenceHandler : BaseHandler() {
             FileReader(TEMP_PATH).use { reader ->
                 val input: JsonObject = gson.fromJson(reader, JsonObject::class.java)
                 inflateMapStructure(input)
-                input.getAsJsonObject(ELEMENTS).getAsJsonArray(ENV_OBJECTS).forEach {
-                    val envObjectJsonObject = it.asJsonObject
-                    val x = envObjectJsonObject.get(COORD_X).asInt
-                    val z = envObjectJsonObject.get(COORD_Z).asInt
+                inflateMapElements(
+                    input,
+                    ENV_OBJECTS
+                ) { x: Int, z: Int, height: Float, definition: String, direction: Direction ->
                     handlersData.mapData.insertEnvObject(
-                        Coords(
-                            x,
-                            z
-                        ),
-                        handlersData.mapData.matrix[z][x]?.height ?: 0F,
-                        EnvObjectsTypes.findDefinition(envObjectJsonObject.get(DEFINITION).asString),
-                        Direction.valueOf(envObjectJsonObject.get(DIRECTION).asString)
+                        Coords(x, z),
+                        height,
+                        EnvObjectsTypes.findDefinition(definition),
+                        direction
+                    )
+                }
+                inflateMapElements(
+                    input,
+                    CHARACTERS
+                ) { x: Int, z: Int, height: Float, _: String, direction: Direction ->
+                    handlersData.mapData.insertCharacter(
+                        Coords(x, z),
+                        height,
+                        direction
                     )
                 }
             }
         } catch (e: JsonSyntaxException) {
             throw IOException(e.message)
+        }
+    }
+
+    private fun inflateMapElements(
+        input: JsonObject,
+        jsonKey: String,
+        inflationMethod: (x: Int, z: Int, height: Float, definition: String, direction: Direction) -> Unit
+    ) {
+        if (!input.has(ELEMENTS) || !input.getAsJsonObject(ELEMENTS).has(jsonKey)) return
+
+        input.getAsJsonObject(ELEMENTS).getAsJsonArray(jsonKey).forEach {
+            val elementJsonObject = it.asJsonObject
+            val x = elementJsonObject.get(COORD_X).asInt
+            val z = elementJsonObject.get(COORD_Z).asInt
+            val y = handlersData.mapData.matrix[z][x]?.height ?: 0F
+            val definition = elementJsonObject.get(DEFINITION).asString
+            val direction = Direction.valueOf(elementJsonObject.get(DIRECTION).asString)
+            inflationMethod(x, z, y, definition, direction)
         }
     }
 
@@ -408,17 +434,24 @@ class PersistenceHandler : BaseHandler() {
 
     private fun deflateMapElements(): JsonObject {
         val mapElements = JsonObject()
-        val envObjectsJsonArray = JsonArray()
-        handlersData.mapData.placedEnvObjects.forEach {
-            val envObjectJsonObject = JsonObject()
-            envObjectJsonObject.addProperty(DEFINITION, it.definition.name())
-            envObjectJsonObject.addProperty(DIRECTION, it.direction.name)
-            envObjectJsonObject.addProperty(COORD_X, it.coords.x)
-            envObjectJsonObject.addProperty(COORD_Z, it.coords.z)
-            envObjectsJsonArray.add(envObjectJsonObject)
-        }
-        mapElements.add(ENV_OBJECTS, envObjectsJsonArray)
+        deflateMapElementsByType(mapElements, handlersData.mapData.placedEnvObjects, ENV_OBJECTS)
+        deflateMapElementsByType(mapElements, handlersData.mapData.placedCharacters, CHARACTERS)
         return mapElements
+    }
+
+    private fun deflateMapElementsByType(
+        mapElements: JsonObject, placedElements: MutableList<out PlacedElement>, jsonKey: String
+    ) {
+        val elementsJsonArray = JsonArray()
+        placedElements.forEach {
+            val elementJsonObject = JsonObject()
+            elementJsonObject.addProperty(DEFINITION, it.definition.name())
+            elementJsonObject.addProperty(DIRECTION, it.direction.name)
+            elementJsonObject.addProperty(COORD_X, it.coords.x)
+            elementJsonObject.addProperty(COORD_Z, it.coords.z)
+            elementsJsonArray.add(elementJsonObject)
+        }
+        mapElements.add(jsonKey, elementsJsonArray)
     }
 
     private fun insertIntoMatrix(

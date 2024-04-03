@@ -38,7 +38,7 @@ import java.util.stream.IntStream;
 
 import static com.gadarts.te.DebugSettings.STARTING_WEAPON;
 import static com.gadarts.te.EntityBuilder.beginBuildingEntity;
-import static com.gadarts.te.common.assets.atlas.Atlases.PLAYER_GENERIC;
+import static com.gadarts.te.common.assets.atlas.Atlases.PLAYER_GLOCK;
 import static com.gadarts.te.common.assets.declarations.Declarations.PLAYER_WEAPONS;
 import static com.gadarts.te.common.assets.texture.SurfaceTextures.MISSING;
 import static com.gadarts.te.common.definitions.character.SpriteType.IDLE;
@@ -73,24 +73,9 @@ public class MapInflater implements Disposable {
         inflateNodes(mapJsonObj.get(NODES).getAsJsonObject(), mapGraph);
         inflateHeightsAndWalls(mapJsonObj, mapGraph);
         inflateElements(mapJsonObj, mapGraph);
-        inflatePlayer();
         return mapGraph;
     }
 
-    private void inflatePlayer( ) {
-        EntityBuilder builder = beginBuildingEntity(engine).addPlayerComponent(assetsManager.get(PLAYER_GENERIC.name()));
-        PlayerDeclaration declaration = PlayerDeclaration.getInstance();
-        CharacterSpriteData characterSpriteData = createCharacterSpriteData(declaration);
-        PlayerWeaponDeclaration weaponDec = ((PlayerWeaponsDeclarations) assetsManager.getDeclaration(PLAYER_WEAPONS))
-            .parse(STARTING_WEAPON);
-        CharacterAnimations animations = assetsManager.get(weaponDec.relatedAtlas().name());
-        Atlases atlas = weaponDec.relatedAtlas();
-        Direction direction = Direction.EAST;
-        builder.addCharacterComponent(characterSpriteData, direction)
-            .addCharacterDecalComponent(assetsManager.get(atlas.name()), IDLE, direction, new Vector3(0.5F, 0F, 0.5F))
-            .addAnimationComponent(animations.get(IDLE, direction));
-        builder.finishAndAddToEngine();
-    }
 
     private CharacterSpriteData createCharacterSpriteData(CharacterDeclaration declaration) {
         CharacterSpriteData characterSpriteData = Pools.obtain(CharacterSpriteData.class);
@@ -102,6 +87,11 @@ public class MapInflater implements Disposable {
     }
 
     private void inflateElements(JsonObject mapJsonObj, MapGraph mapGraph) {
+        inflateEnvObjects(mapJsonObj, mapGraph);
+        inflateCharacters(mapJsonObj, mapGraph);
+    }
+
+    private void inflateEnvObjects(JsonObject mapJsonObj, MapGraph mapGraph) {
         mapJsonObj.get(ELEMENTS).getAsJsonObject().get(ENV_OBJECTS).getAsJsonArray().forEach(jsonElement -> {
             Entity entity = engine.createEntity();
             ModelInstanceComponent component = engine.createComponent(ModelInstanceComponent.class);
@@ -117,6 +107,29 @@ public class MapInflater implements Disposable {
                 false);
             entity.add(component);
             engine.addEntity(entity);
+        });
+    }
+
+    private void inflateCharacters(JsonObject mapJsonObj, MapGraph mapGraph) {
+        mapJsonObj.get(ELEMENTS).getAsJsonObject().get(CHARACTERS).getAsJsonArray().forEach(jsonElement -> {
+            EntityBuilder builder = beginBuildingEntity(engine).addPlayerComponent(assetsManager.get(PLAYER_GLOCK.name()));
+            CharacterSpriteData characterSpriteData = createCharacterSpriteData(PlayerDeclaration.getInstance());
+            PlayerWeaponDeclaration weaponDec = ((PlayerWeaponsDeclarations) assetsManager.getDeclaration(PLAYER_WEAPONS))
+                .parse(STARTING_WEAPON);
+            CharacterAnimations animations = assetsManager.get(weaponDec.relatedAtlas().name());
+            Atlases atlas = weaponDec.relatedAtlas();
+            JsonObject asJsonObject = jsonElement.getAsJsonObject();
+            Direction direction = Direction.valueOf(asJsonObject.get(DIRECTION).getAsString());
+            float x = asJsonObject.get(COORD_X).getAsInt() + 0.5F;
+            float z = asJsonObject.get(COORD_Z).getAsInt() + 0.5F;
+            Vector3 position = new Vector3(
+                x,
+                mapGraph.getNode((int) x, (int) z).getHeight(),
+                z);
+            builder.addCharacterComponent(characterSpriteData, direction)
+                .addCharacterDecalComponent(assetsManager.get(atlas.name()), IDLE, direction, position)
+                .addAnimationComponent(animations.get(IDLE, direction));
+            builder.finishAndAddToEngine();
         });
     }
 

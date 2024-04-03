@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.assets.model.Models;
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition;
-import com.gadarts.te.common.definitions.env.EnvObjectsTypes;
+import com.gadarts.te.common.definitions.env.EnvObjectType;
 import com.gadarts.te.common.map.Coords;
 import com.gadarts.te.common.map.element.Direction;
 
@@ -33,6 +33,6 @@ public final class EnvObjectUtils {
     }
 
     public static EnvObjectDefinition fromString(String name) {
-        return EnvObjectsTypes.allDefinitions.stream().filter(definition -> definition.name().equals(name)).findFirst().orElse(null);
+        return EnvObjectType.allDefinitions.stream().filter(definition -> definition.name().equals(name)).findFirst().orElse(null);
     }
 }
