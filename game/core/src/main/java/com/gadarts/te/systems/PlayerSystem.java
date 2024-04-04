@@ -1,15 +1,31 @@
 package com.gadarts.te.systems;
 
-import com.gadarts.te.systems.data.SharedData;
+import com.badlogic.gdx.ai.msg.MessageDispatcher;
+import com.badlogic.gdx.ai.msg.Telegram;
+import com.gadarts.te.common.assets.GameAssetsManager;
+import com.gadarts.te.systems.data.SharedDataBuilder;
 
 public class PlayerSystem extends GameSystem {
     @Override
-    public void onSystemReady(SharedData sharedData) {
-        super.onSystemReady(sharedData);
+    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
+        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
+        subscribeToEvents(SystemEvent.USER_CLICKED_NODE);
     }
+
+
 
     @Override
     public void dispose( ) {
 
+    }
+
+    @Override
+    public boolean handleMessage(Telegram msg) {
+        boolean handled = false;
+        if (msg.message == SystemEvent.USER_CLICKED_NODE.ordinal()) {
+            eventDispatcher.dispatchMessage(SystemEvent.PLAYER_REQUESTS_MOVE.ordinal(), msg.extraInfo);
+            handled = true;
+        }
+        return handled;
     }
 }

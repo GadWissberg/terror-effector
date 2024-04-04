@@ -22,7 +22,7 @@ import static com.gadarts.te.TerrorEffector.*;
 public class CameraSystem extends GameSystem implements InputProcessor {
 
     private static final float EXTRA_LEVEL_PADDING = 16;
-    private final Vector2 lastRightPressMousePosition = new Vector2();
+    private final Vector2 lastRightPressMousePosition = new Vector2(-1F, -1F);
 
     @Override
     public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {

@@ -2,8 +2,10 @@ package com.gadarts.te.systems.ui;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -15,6 +17,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -26,6 +29,7 @@ import com.gadarts.te.common.utils.CameraUtils;
 import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.FloorComponent;
+import com.gadarts.te.systems.SystemEvent;
 import com.gadarts.te.systems.map.graph.MapGraph;
 import com.gadarts.te.systems.map.graph.MapGraphNode;
 import squidpony.squidmath.Coord3D;
@@ -40,17 +44,19 @@ public class CursorHandler implements Disposable, InputProcessor {
     private static final String POSITION_LABEL_FORMAT = "X: %s , Z: %s";
 
     private static final float POSITION_LABEL_Y = 10F;
-    private static final Vector3 auxVector = new Vector3();
+    private static final Vector3 auxVector3 = new Vector3();
+    private static final Vector2 auxVector2 = new Vector2();
     @SuppressWarnings("FieldCanBeLocal")
     private final BitmapFont cursorCellPositionLabelFont;
     private final Label cursorCellPositionLabel;
+    private final MessageDispatcher eventDispatcher;
     private ModelInstance cursorModelInstance;
     private MapGraph mapGraph;
     private OrthographicCamera camera;
     private float cursorAnimation = 0F;
     private boolean cursorAnimationPositive = true;
 
-    public CursorHandler(Stage uiStage) {
+    public CursorHandler(Stage uiStage, MessageDispatcher eventDispatcher) {
         if (DebugSettings.DISPLAY_CURSOR_POSITION) {
             cursorCellPositionLabelFont = new BitmapFont();
             Label.LabelStyle style = new Label.LabelStyle(cursorCellPositionLabelFont, POSITION_LABEL_COLOR);
@@ -58,6 +64,7 @@ public class CursorHandler implements Disposable, InputProcessor {
             uiStage.addActor(cursorCellPositionLabel);
             cursorCellPositionLabel.setPosition(0, POSITION_LABEL_Y);
         }
+        this.eventDispatcher = eventDispatcher;
     }
 
     @Override
@@ -98,7 +105,13 @@ public class CursorHandler implements Disposable, InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
+        boolean handled = false;
+        if (button == Input.Buttons.LEFT) {
+            Vector3 position = cursorModelInstance.transform.getTranslation(auxVector3);
+            eventDispatcher.dispatchMessage(SystemEvent.USER_CLICKED_NODE.ordinal(), auxVector2.set((int) position.x, (int) position.z));
+            handled = true;
+        }
+        return handled;
     }
 
     @Override
@@ -142,7 +155,7 @@ public class CursorHandler implements Disposable, InputProcessor {
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
         MapGraphNode newNode = calculateNewNode(screenX, screenY);
-        Vector3 translation = cursorModelInstance.transform.getTranslation(auxVector);
+        Vector3 translation = cursorModelInstance.transform.getTranslation(auxVector3);
         MapGraphNode oldNode = mapGraph.getNode((int) translation.x, (int) translation.z);
         if (newNode != null && !newNode.equals(oldNode)) {
             int x = newNode.getX();

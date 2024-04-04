@@ -21,7 +21,7 @@ public class InterfaceSystem extends GameSystem {
     public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
         super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
         uiStage = new Stage();
-        cursorHandler = new CursorHandler(uiStage);
+        cursorHandler = new CursorHandler(uiStage, eventDispatcher);
     }
 
     @Override
