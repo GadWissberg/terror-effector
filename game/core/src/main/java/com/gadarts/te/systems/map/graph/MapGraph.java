@@ -28,6 +28,25 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
         applyConnections();
     }
 
+    public MapGraphConnection findConnection(MapGraphNode node1, MapGraphNode node2) {
+        if (node1 == null || node2 == null) return null;
+        MapGraphConnection result = findConnectionBetweenTwoNodes(node1, node2);
+        if (result == null) {
+            result = findConnectionBetweenTwoNodes(node2, node1);
+        }
+        return result;
+    }
+
+    private MapGraphConnection findConnectionBetweenTwoNodes(MapGraphNode src, MapGraphNode dst) {
+        Array<MapGraphConnection> connections = src.getConnections();
+        for (MapGraphConnection connection : connections) {
+            if (connection.getToNode() == dst) {
+                return connection;
+            }
+        }
+        return null;
+    }
+
     void applyConnections( ) {
         for (int row = 0; row < depth; row++) {
             int rows = row * width;

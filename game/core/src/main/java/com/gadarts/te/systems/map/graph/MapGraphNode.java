@@ -1,6 +1,8 @@
 package com.gadarts.te.systems.map.graph;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.gadarts.te.common.map.MapNodesTypes;
 import lombok.Getter;
@@ -24,6 +26,14 @@ public class MapGraphNode {
         this.z = z;
         this.type = type;
         this.connections = new Array<>(connections);
+    }
+
+    public Vector2 getCenterPosition(final Vector2 output) {
+        return output.set(x + 0.5f, z + 0.5f);
+    }
+
+    public Vector3 getCenterPosition(final Vector3 output) {
+        return output.set(x + 0.5f, height, z + 0.5f);
     }
 
     @Override

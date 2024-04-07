@@ -10,12 +10,18 @@ import lombok.Setter;
 @Getter
 public class CharacterCommand implements Pool.Poolable {
     private MapGraphNode destination;
+
+    @Setter
+    private MapGraphNode prevNode;
+
     private CharacterCommandDefinition characterCommandDefinition;
     @Setter
     private CharacterCommandState state;
     private Entity initiator;
     @Setter
     private MapGraphPath path;
+    @Setter
+    private int nextNodeIndex = -1;
 
     @Override
     public void reset( ) {

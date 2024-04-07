@@ -148,7 +148,7 @@ public class RenderSystem extends GameSystem {
         Direction characterFacingDirection = ComponentsMapper.characterDecal.get(entity).getDirection();
         if ((!sameSpriteType || (!spriteType.isSingleDirection() && !characterFacingDirection.equals(direction)))) {
             updateCharacterDecalSprite(entity, direction, spriteType, sameSpriteType);
-        } else if (spriteType != RUN) {
+        } else {
             updateCharacterDecalFrame(entity, characterComp, spriteType);
         }
     }
@@ -181,6 +181,9 @@ public class RenderSystem extends GameSystem {
             if (characterDecalComponent.getSpriteType() == spriteType && currentFrame != newFrame) {
                 Decal decal = characterDecalComponent.getDecal();
                 decal.setTextureRegion(newFrame);
+                if (characterDecalComponent.getSpriteType() == RUN) {
+                    eventDispatcher.dispatchMessage(SystemEvent.CHARACTER_ANIMATION_RUN_NEW_FRAME.ordinal(), entity);
+                }
             }
         }
     }
