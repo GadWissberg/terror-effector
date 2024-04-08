@@ -148,9 +148,8 @@ public class RenderSystem extends GameSystem {
         Direction characterFacingDirection = ComponentsMapper.characterDecal.get(entity).getDirection();
         if ((!sameSpriteType || (!spriteType.isSingleDirection() && !characterFacingDirection.equals(direction)))) {
             updateCharacterDecalSprite(entity, direction, spriteType, sameSpriteType);
-        } else {
-            updateCharacterDecalFrame(entity, characterComp, spriteType);
         }
+        updateCharacterDecalFrame(entity, characterComp, spriteType);
     }
 
     private void updateCharacterDecalFrame(Entity entity,

@@ -15,10 +15,12 @@ import com.badlogic.gdx.utils.Queue;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.definitions.character.SpriteType;
+import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.cd.CharacterDecalComponent;
 import com.gadarts.te.components.character.CharacterComponent;
+import com.gadarts.te.components.character.CharacterRotationData;
 import com.gadarts.te.components.character.CharacterSpriteData;
 import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.SystemEvent;
@@ -31,13 +33,16 @@ import com.gadarts.te.systems.map.graph.MapGraphNode;
 
 import static com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y;
 import static com.gadarts.te.common.definitions.character.SpriteType.IDLE;
+import static com.gadarts.te.common.map.element.Direction.findDirection;
 import static com.gadarts.te.systems.SystemEvent.CHARACTER_ANIMATION_RUN_NEW_FRAME;
 
 public class CharacterSystem extends GameSystem {
     public static final long MAX_IDLE_ANIMATION_INTERVAL = 10000L;
+    public static final int CHARACTER_ROTATION_INTERVAL = 125;
     private static final long MIN_IDLE_ANIMATION_INTERVAL = 2000L;
     private final static Vector2 auxVector2_1 = new Vector2();
     private final static Vector2 auxVector2_2 = new Vector2();
+    private final static Vector2 auxVector2_3 = new Vector2();
     private static final float CHAR_STEP_SIZE = 0.22f;
     private static final Vector3 auxVector3_1 = new Vector3();
     private static final Vector3 auxVector3_2 = new Vector3();
@@ -71,31 +76,67 @@ public class CharacterSystem extends GameSystem {
             handleIdle(character, now);
         }
         if (commandInProgress != null) {
-            beginCommand();
+            updateCurrentCommand();
         } else if (commandsToExecute.notEmpty()) {
             commandInProgress = commandsToExecute.removeFirst();
         }
     }
 
-    private void beginCommand( ) {
+    private void updateCurrentCommand( ) {
         if (commandInProgress.getState() == CharacterCommandState.READY) {
-            if (commandInProgress.getCharacterCommandDefinition() == CharacterCommandDefinition.GO_TO) {
-                Entity initiator = commandInProgress.getInitiator();
-                ComponentsMapper.character.get(initiator).getCharacterSpriteData().setSpriteType(SpriteType.RUN);
-                Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
-                Vector3 position = decal.getPosition();
-                MapGraphNode startNode = sharedData.mapGraph().getNode((int) position.x, (int) position.z);
-                auxPath.clear();
-                boolean found = pathFinder.searchNodePath(startNode, commandInProgress.getDestination(), heuristic, auxPath);
-                if (found) {
-                    commandInProgress.setState(CharacterCommandState.IN_PROGRESS);
-                    commandInProgress.setPath(auxPath);
-                    commandInProgress.setNextNodeIndex(0);
-                } else {
-                    commandInProgress = null;
+            updateReadyGoTo();
+        } else {
+            Direction directionToDest = calculateDirectionToDestination();
+            CharacterComponent characterComponent = ComponentsMapper.character.get(commandInProgress.getInitiator());
+            CharacterRotationData rotData = characterComponent.getRotationData();
+            Direction facingDirection = characterComponent.getFacingDirection();
+            long lastRotation = rotData.getLastRotation();
+            if (facingDirection != directionToDest) {
+                rotate(lastRotation, rotData, facingDirection, directionToDest, characterComponent);
+            } else {
+                CharacterSpriteData characterSpriteData = characterComponent.getCharacterSpriteData();
+                if (characterSpriteData.getSpriteType() == IDLE) {
+                    characterSpriteData.setSpriteType(SpriteType.RUN);
                 }
             }
         }
+    }
+
+    private static void rotate(long lastRotation, CharacterRotationData rotData, Direction facingDirection, Direction directionToDest, CharacterComponent characterComponent) {
+        if (TimeUtils.timeSinceMillis(lastRotation) > CHARACTER_ROTATION_INTERVAL) {
+            rotData.setLastRotation(TimeUtils.millis());
+            Vector2 currentDirVec = facingDirection.getDirection(auxVector2_1);
+            float diff = directionToDest.getDirection(auxVector2_2).angleDeg() - currentDirVec.angleDeg();
+            int side = auxVector2_3.set(1, 0).setAngleDeg(diff).angleDeg() > 180 ? -1 : 1;
+            Direction newDir = findDirection(currentDirVec.rotateDeg(45f * side));
+            characterComponent.setFacingDirection(newDir);
+        }
+    }
+
+    private void updateReadyGoTo( ) {
+        if (commandInProgress.getCharacterCommandDefinition() == CharacterCommandDefinition.GO_TO) {
+            Entity initiator = commandInProgress.getInitiator();
+            Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
+            Vector3 position = decal.getPosition();
+            MapGraphNode startNode = sharedData.mapGraph().getNode((int) position.x, (int) position.z);
+            auxPath.clear();
+            boolean found = pathFinder.searchNodePath(startNode, commandInProgress.getDestination(), heuristic, auxPath);
+            if (found) {
+                commandInProgress.setState(CharacterCommandState.IN_PROGRESS);
+                commandInProgress.setPath(auxPath);
+                commandInProgress.setNextNodeIndex(1);
+            } else {
+                commandInProgress = null;
+            }
+        }
+    }
+
+    private Direction calculateDirectionToDestination( ) {
+        Entity character = commandInProgress.getInitiator();
+        Vector3 characterPos = auxVector3_1.set(ComponentsMapper.characterDecal.get(character).getDecal().getPosition());
+        Vector2 destPos = commandInProgress.getPath().get(commandInProgress.getNextNodeIndex()).getCenterPosition(auxVector2_2);
+        Vector2 directionToDest = destPos.sub(characterPos.x, characterPos.z).nor();
+        return findDirection(directionToDest);
     }
 
     @Override
