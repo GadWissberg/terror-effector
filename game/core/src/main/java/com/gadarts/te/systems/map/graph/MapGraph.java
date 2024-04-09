@@ -9,6 +9,7 @@ import lombok.Getter;
 
 @SuppressWarnings("GDXJavaUnsafeIterator")
 public class MapGraph implements IndexedGraph<MapGraphNode> {
+    public static final float PASSABLE_MAX_HEIGHT_DIFF = 0.3f;
     private static final Array<Connection<MapGraphNode>> auxConnectionsList = new Array<>();
     private final Array<MapGraphNode> nodes;
     @Getter
@@ -25,7 +26,6 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
                 nodes.add(new MapGraphNode(x, z, MapNodesTypes.values()[MapNodesTypes.PASSABLE_NODE.ordinal()], 8));
             }
         }
-        applyConnections();
     }
 
     public MapGraphConnection findConnection(MapGraphNode node1, MapGraphNode node2) {
@@ -77,11 +77,43 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
 
     private void addConnection(final MapGraphNode source, final int xOffset, final int yOffset) {
         MapGraphNode target = getNode(source.getX() + xOffset, source.getZ() + yOffset);
-        if (target.getType() == MapNodesTypes.PASSABLE_NODE) {
+        if (target.getType() == MapNodesTypes.PASSABLE_NODE
+            && isDiagonalPossible(source, target)
+            && Math.abs(target.getHeight() - source.getHeight()) < PASSABLE_MAX_HEIGHT_DIFF) {
             MapGraphConnection connection;
             connection = new MapGraphConnection(source, target);
             source.getConnections().add(connection);
         }
+    }
+
+    private boolean isDiagonalBlockedWithEastOrWest(final MapGraphNode source, final int col) {
+        float east = getNode(col, source.getZ()).getHeight();
+        return Math.abs(source.getHeight() - east) > PASSABLE_MAX_HEIGHT_DIFF;
+    }
+
+    private boolean isDiagonalBlockedWithNorthAndSouth(final MapGraphNode target,
+                                                       final int srcX,
+                                                       final int srcY,
+                                                       final float srcHeight) {
+        if (srcY < target.getZ()) {
+            float bottom = getNode(srcX, srcY + 1).getHeight();
+            return Math.abs(srcHeight - bottom) > PASSABLE_MAX_HEIGHT_DIFF;
+        } else {
+            float top = getNode(srcX, srcY - 1).getHeight();
+            return Math.abs(srcHeight - top) > PASSABLE_MAX_HEIGHT_DIFF;
+        }
+    }
+
+    private boolean isDiagonalPossible(final MapGraphNode source, final MapGraphNode target) {
+        if (source.getX() == target.getX() || source.getZ() == target.getZ()) return true;
+        if (source.getX() < target.getX()) {
+            if (isDiagonalBlockedWithEastOrWest(source, source.getX() + 1)) {
+                return false;
+            }
+        } else if (isDiagonalBlockedWithEastOrWest(source, source.getX() - 1)) {
+            return false;
+        }
+        return !isDiagonalBlockedWithNorthAndSouth(target, source.getX(), source.getZ(), source.getHeight());
     }
 
     @Override
@@ -108,4 +140,7 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
         return getNode(coord.getX(), coord.getZ());
     }
 
+    public void init( ) {
+        applyConnections();
+    }
 }

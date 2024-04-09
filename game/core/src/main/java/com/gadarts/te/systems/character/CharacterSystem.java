@@ -158,7 +158,6 @@ public class CharacterSystem extends GameSystem {
 
     private void handleRunning( ) {
         Decal decal = ComponentsMapper.characterDecal.get(commandInProgress.getInitiator()).getDecal();
-        placeCharacterInNextNodeIfCloseEnough(decal);
         Vector2 characterPosition = auxVector2_1.set(decal.getX(), decal.getZ());
         int nextNodeIndex = commandInProgress.getNextNodeIndex();
         MapGraphNode nextNode = commandInProgress.getPath().get(nextNodeIndex);
@@ -177,10 +176,18 @@ public class CharacterSystem extends GameSystem {
 
     private void takeStep( ) {
         CharacterDecalComponent characterDecalComponent = ComponentsMapper.characterDecal.get(commandInProgress.getInitiator());
-        MapGraph map = sharedData.mapGraph();
+        Decal decal = characterDecalComponent.getDecal();
+        Vector3 decalPos = decal.getPosition();
+        MapGraphNode nextNode = commandInProgress.getPath().get(commandInProgress.getNextNodeIndex());
+        float distanceToNextNode = nextNode.getCenterPosition(auxVector2_1).dst2(decalPos.x, decalPos.z);
         Vector2 nodePosition = characterDecalComponent.getNodePosition(auxVector2_1);
+        MapGraph map = sharedData.mapGraph();
         MapGraphNode currentNode = map.getNode((int) nodePosition.x, (int) nodePosition.y);
-        translateCharacter(characterDecalComponent);
+        if (distanceToNextNode < MOVEMENT_EPSILON) {
+            placeCharacterInTheNextNode(decal);
+        } else {
+            translateCharacter(characterDecalComponent);
+        }
         nodePosition = characterDecalComponent.getNodePosition(auxVector2_1);
         MapGraphNode newNode = map.getNode((int) nodePosition.x, (int) nodePosition.y);
         if (currentNode != newNode) {
@@ -197,17 +204,11 @@ public class CharacterSystem extends GameSystem {
     }
 
     private void translateCharacter(CharacterDecalComponent characterDecalComponent) {
-        Vector3 decalPos = characterDecalComponent.getDecal().getPosition();
-        Entity floorEntity = sharedData.mapGraph().getNode((int) decalPos.x, (int) decalPos.z).getEntity();
         Decal decal = characterDecalComponent.getDecal();
-        if (floorEntity != null) {
-            MapGraphNode nextNode = commandInProgress.getPath().get(commandInProgress.getNextNodeIndex());
-            Vector2 nextNodePosition = auxVector2_1.set(nextNode.getX(), nextNode.getZ()).add(0.5F, 0.5F);
-            Vector2 velocity = nextNodePosition.sub(auxVector2_2.set(decal.getX(), decal.getZ())).nor().scl(CHAR_STEP_SIZE);
-            decal.translate(auxVector3_1.set(velocity.x, 0, velocity.y));
-        } else {
-            placeCharacterInTheNextNode(decal);
-        }
+        MapGraphNode nextNode = commandInProgress.getPath().get(commandInProgress.getNextNodeIndex());
+        Vector2 nextNodePosition = auxVector2_1.set(nextNode.getX(), nextNode.getZ()).add(0.5F, 0.5F);
+        Vector2 velocity = nextNodePosition.sub(auxVector2_2.set(decal.getX(), decal.getZ())).nor().scl(CHAR_STEP_SIZE);
+        decal.translate(auxVector3_1.set(velocity.x, 0, velocity.y));
     }
 
     private boolean reachedNodeOfPath( ) {
@@ -218,18 +219,16 @@ public class CharacterSystem extends GameSystem {
         int nextNodeIndex = commandInProgress.getNextNodeIndex();
         MapGraphNode nextNode = nextNodeIndex < path.nodes.size ? path.get(nextNodeIndex) : null;
         MapGraph mapGraph = sharedData.mapGraph();
-        return nextNodeIndex == -1 || mapGraph.findConnection(commandInProgress.getPrevNode(), nextNode) == null;
-    }
-
-
-    private void placeCharacterInNextNodeIfCloseEnough(Decal decal) {
-        Vector3 decalPos = decal.getPosition();
-        MapGraphNode nextNode = commandInProgress.getPath().get(commandInProgress.getNextNodeIndex());
-        float distanceToNextNode = nextNode.getCenterPosition(auxVector2_1).dst2(decalPos.x, decalPos.z);
-        if (distanceToNextNode < CHAR_STEP_SIZE) {
-            placeCharacterInTheNextNode(decal);
+        boolean done = nextNodeIndex == -1 || mapGraph.findConnection(commandInProgress.getPrevNode(), nextNode) == null;
+        if (!done && nextNode != null) {
+            Vector2 nextNodeCenterPosition = nextNode.getCenterPosition(auxVector2_1);
+            MapGraphNode prevNode = commandInProgress.getPrevNode();
+            Direction newDirection = Direction.findDirection(nextNodeCenterPosition.sub(prevNode.getCenterPosition(auxVector2_2)));
+            ComponentsMapper.character.get(commandInProgress.getInitiator()).setFacingDirection(newDirection);
         }
+        return done;
     }
+
 
     private void placeCharacterInTheNextNode(Decal decal) {
         Vector3 centerPos = commandInProgress.getPath().get(commandInProgress.getNextNodeIndex()).getCenterPosition(auxVector3_1);

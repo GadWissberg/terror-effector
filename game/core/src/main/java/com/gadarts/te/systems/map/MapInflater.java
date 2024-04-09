@@ -73,6 +73,7 @@ public class MapInflater implements Disposable {
         inflateNodes(mapJsonObj.get(NODES).getAsJsonObject(), mapGraph);
         inflateHeightsAndWalls(mapJsonObj, mapGraph);
         inflateElements(mapJsonObj, mapGraph);
+        mapGraph.init();
         return mapGraph;
     }
 
