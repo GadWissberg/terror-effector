@@ -33,6 +33,7 @@ import com.gadarts.te.systems.map.graph.MapGraphNode;
 
 import static com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y;
 import static com.gadarts.te.common.definitions.character.SpriteType.IDLE;
+import static com.gadarts.te.common.map.element.Direction.SOUTH;
 import static com.gadarts.te.common.map.element.Direction.findDirection;
 import static com.gadarts.te.systems.SystemEvent.CHARACTER_ANIMATION_RUN_NEW_FRAME;
 
@@ -91,11 +92,12 @@ public class CharacterSystem extends GameSystem {
             CharacterRotationData rotData = characterComponent.getRotationData();
             Direction facingDirection = characterComponent.getFacingDirection();
             long lastRotation = rotData.getLastRotation();
-            if (facingDirection != directionToDest) {
-                rotate(lastRotation, rotData, facingDirection, directionToDest, characterComponent);
-            } else {
-                CharacterSpriteData characterSpriteData = characterComponent.getCharacterSpriteData();
-                if (characterSpriteData.getSpriteType() == IDLE) {
+            CharacterSpriteData characterSpriteData = characterComponent.getCharacterSpriteData();
+            SpriteType spriteType = characterSpriteData.getSpriteType();
+            if (spriteType == IDLE) {
+                if (facingDirection != directionToDest) {
+                    rotate(lastRotation, rotData, facingDirection, directionToDest, characterComponent);
+                } else {
                     characterSpriteData.setSpriteType(SpriteType.RUN);
                 }
             }
@@ -132,9 +134,13 @@ public class CharacterSystem extends GameSystem {
     }
 
     private Direction calculateDirectionToDestination( ) {
+        int nextNodeIndex = commandInProgress.getNextNodeIndex();
+        MapGraphPath path = commandInProgress.getPath();
+        if (nextNodeIndex >= path.nodes.size) return SOUTH;
+
         Entity character = commandInProgress.getInitiator();
         Vector3 characterPos = auxVector3_1.set(ComponentsMapper.characterDecal.get(character).getDecal().getPosition());
-        Vector2 destPos = commandInProgress.getPath().get(commandInProgress.getNextNodeIndex()).getCenterPosition(auxVector2_2);
+        Vector2 destPos = path.get(nextNodeIndex).getCenterPosition(auxVector2_2);
         Vector2 directionToDest = destPos.sub(characterPos.x, characterPos.z).nor();
         return findDirection(directionToDest);
     }

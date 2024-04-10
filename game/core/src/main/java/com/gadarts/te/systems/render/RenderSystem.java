@@ -149,12 +149,10 @@ public class RenderSystem extends GameSystem {
         if ((!sameSpriteType || (!spriteType.isSingleDirection() && !characterFacingDirection.equals(direction)))) {
             updateCharacterDecalSprite(entity, direction, spriteType, sameSpriteType);
         }
-        updateCharacterDecalFrame(entity, characterComp, spriteType);
+        updateCharacterDecalFrame(entity, spriteType, direction);
     }
 
-    private void updateCharacterDecalFrame(Entity entity,
-                                           CharacterComponent characterComponent,
-                                           SpriteType spriteType) {
+    private void updateCharacterDecalFrame(Entity entity, SpriteType spriteType, Direction direction) {
         CharacterDecalComponent characterDecalComponent = ComponentsMapper.characterDecal.get(entity);
         AnimationComponent animationComponent = ComponentsMapper.animation.get(entity);
         Animation<TextureAtlas.AtlasRegion> anim = animationComponent.getAnimation();
@@ -164,9 +162,6 @@ public class RenderSystem extends GameSystem {
                     anim.setPlayMode(Animation.PlayMode.REVERSED);
                 } else {
                     anim.setPlayMode(Animation.PlayMode.NORMAL);
-                    Direction direction = CharacterUtils.calculateDirectionSeenFromCamera(
-                        sharedData.camera(),
-                        characterComponent.getFacingDirection());
                     CharacterAnimation animation = fetchCharacterAnimationByDirectionAndType(
                         entity,
                         direction,
