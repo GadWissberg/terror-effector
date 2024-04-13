@@ -1,14 +1,15 @@
 package com.gadarts.te.systems;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.ai.msg.MessageDispatcher;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.math.collision.Ray;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.utils.CameraUtils;
 import com.gadarts.te.components.ComponentsMapper;
@@ -18,10 +19,15 @@ import com.gadarts.te.systems.map.graph.MapGraph;
 
 import static com.gadarts.te.DebugSettings.FULL_SCREEN;
 import static com.gadarts.te.TerrorEffector.*;
+import static com.gadarts.te.common.utils.CameraUtils.CAMERA_HEIGHT;
 
 public class CameraSystem extends GameSystem implements InputProcessor {
 
     private static final float EXTRA_LEVEL_PADDING = 16;
+    private static final Vector3 auxVector1 = new Vector3();
+    private static final Vector3 auxVector2 = new Vector3();
+    private static final Vector3 auxVector3 = new Vector3();
+    private static final Plane groundPlane = new Plane(new Vector3(0, 1, 0), 0);
     private final Vector2 lastRightPressMousePosition = new Vector2(-1F, -1F);
 
     @Override
@@ -37,7 +43,21 @@ public class CameraSystem extends GameSystem implements InputProcessor {
 
     @Override
     public void update(float deltaTime) {
+        handleCameraFollow();
         sharedData.camera().update();
+    }
+
+    private void handleCameraFollow( ) {
+        Entity player = sharedData.player();
+        Vector3 playerPos = ComponentsMapper.characterDecal.get(player).getDecal().getPosition();
+        Camera camera = sharedData.camera();
+        Ray ray = camera.getPickRay(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f);
+        groundPlane.d = playerPos.y;
+        Intersector.intersectRayPlane(ray, groundPlane, auxVector1);
+        Vector3 diff = auxVector2.set(playerPos).sub(auxVector1);
+        Vector3 cameraPosDest = auxVector3.set(camera.position).add(diff.x, 0F, diff.z);
+        cameraPosDest.y = playerPos.y + CAMERA_HEIGHT;
+        camera.position.interpolate(cameraPosDest, 0.1F, Interpolation.bounce);
     }
 
     @Override

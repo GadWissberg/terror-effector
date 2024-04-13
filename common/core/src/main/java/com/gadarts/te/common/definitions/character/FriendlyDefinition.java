@@ -7,4 +7,9 @@ public enum FriendlyDefinition implements CharacterDefinition {
     public String getDisplayName( ) {
         return "Our Hero";
     }
+
+    @Override
+    public CharacterType getCharacterType( ) {
+        return CharacterType.PLAYER;
+    }
 }

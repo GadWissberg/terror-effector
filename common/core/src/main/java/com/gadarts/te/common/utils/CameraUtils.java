@@ -12,6 +12,7 @@ import squidpony.squidmath.Coord3D;
 import java.util.ArrayDeque;
 
 public final class CameraUtils {
+    public static final int CAMERA_HEIGHT = 16;
     private static final int RESOLUTION_FACTOR = 75;
     private static final Vector3 auxVector3 = new Vector3();
     private static final Plane floorPlane = new Plane(new Vector3(0, 1, 0), 0);
@@ -22,7 +23,7 @@ public final class CameraUtils {
             (float) viewportHeight / RESOLUTION_FACTOR);
         cam.near = 0.01f;
         cam.far = 100f;
-        cam.position.set(9.0F, 16, 9.0F);
+        cam.position.set(9.0F, CAMERA_HEIGHT, 9.0F);
         cam.direction.rotate(Vector3.X, -55.0F);
         cam.direction.rotate(Vector3.Y, 45.0F);
         return cam;

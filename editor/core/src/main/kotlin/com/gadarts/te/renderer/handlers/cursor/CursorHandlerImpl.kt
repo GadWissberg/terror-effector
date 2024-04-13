@@ -20,7 +20,7 @@ import com.badlogic.gdx.math.collision.Ray
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.DebugSettings
 import com.gadarts.te.EditorEvents
-import com.gadarts.te.Modes
+import com.gadarts.te.Modes.*
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.atlas.Atlases
@@ -138,11 +138,11 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     private fun updateCursorPosition(screenX: Int, screenY: Int) {
         val position = fetchGridCellAtMouse(screenX, screenY)
         when (handlersData.selectedMode) {
-            Modes.FLOOR -> {
+            FLOOR -> {
                 objectModelCursor?.updateObjectModelCursorPosition(position)
             }
 
-            Modes.CHARACTERS -> {
+            CHARACTERS -> {
                 CursorUtils.stickPositionToGrid(position, handlersData.mapData.matrix)
                 decalCursor?.setPosition(
                     position.x,
@@ -221,17 +221,17 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     private fun handleRightClick(): Boolean {
-        if (!selecting && handlersData.selectedMode == Modes.FLOOR) {
+        if (!selecting && handlersData.selectedMode == FLOOR) {
             turnOnSelectingCursor()
             return true
-        } else if (handlersData.selectedMode == Modes.ENV_OBJECTS && objectModelCursor != null) {
+        } else if (handlersData.selectedMode == ENV_OBJECTS && objectModelCursor != null) {
             val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
             dispatcher.dispatchMessage(
                 EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
                 Coords(position.x.toInt(), position.z.toInt())
             )
             return true
-        } else if (handlersData.selectedMode == Modes.CHARACTERS && decalCursor != null) {
+        } else if (handlersData.selectedMode == CHARACTERS && decalCursor != null) {
             dispatcher.dispatchMessage(
                 EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
                 Coords(decalCursor!!.position.x.toInt(), decalCursor!!.position.z.toInt())
@@ -277,10 +277,16 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        if (handlersData.selectedMode == CHARACTERS
+            || handlersData.selectedMode == WALLS
+            || handlersData.selectedMode == ENV_OBJECTS
+        ) return false
+
         if (!selecting) {
             updatePrevCursorPosition()
             updateCursorPosition(screenX, screenY)
-            val current = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
+            val current =
+                objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2).sub(0.5F, 0F, 0.5F)
             if (!prevFloorCursorPosition.epsilonEquals(current.x, 0F, current.z, 0.01F)) {
                 dispatcher.dispatchMessage(
                     EditorEvents.DRAGGED_GRID_CELL.ordinal,
@@ -296,9 +302,9 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
 
-        if (handlersData.selectedMode == Modes.FLOOR
-            || handlersData.selectedMode == Modes.ENV_OBJECTS
-            || handlersData.selectedMode == Modes.CHARACTERS
+        if (handlersData.selectedMode == FLOOR
+            || handlersData.selectedMode == ENV_OBJECTS
+            || handlersData.selectedMode == CHARACTERS
         ) {
             if (!selecting) {
                 updatePrevCursorPosition()
@@ -458,10 +464,10 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     private fun renderModels(batch: ModelBatch) {
         if (objectModelCursor != null
-            && (handlersData.selectedMode == Modes.FLOOR || handlersData.selectedMode == Modes.ENV_OBJECTS)
+            && (handlersData.selectedMode == FLOOR || handlersData.selectedMode == ENV_OBJECTS)
         ) {
             batch.render(objectModelCursor!!.modelInstance)
-        } else if (handlersData.selectedMode == Modes.WALLS) {
+        } else if (handlersData.selectedMode == WALLS) {
             if (highlightWall != null) {
                 (highlightWall!!.modelInstance.materials.get(0)
                     .get(ColorAttribute.Diffuse) as ColorAttribute).color.set(

@@ -1,5 +1,6 @@
 package com.gadarts.te.renderer.handlers.actions.types.place
 
+import com.gadarts.te.common.definitions.character.FriendlyDefinition
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.renderer.handlers.actions.types.SingleStepAction
@@ -11,6 +12,11 @@ open class PlaceCharacterAction(
 ) : SingleStepAction {
 
     override fun begin(mapData: MapData) {
+        val placedCharacter =
+            mapData.placedCharacters.find { placedCharacter -> placedCharacter.definition == FriendlyDefinition.PLAYER }
+        if (placedCharacter != null) {
+            mapData.placedCharacters.clear()
+        }
         mapData.insertCharacter(coords, mapData.matrix[coords.z][coords.x]?.height ?: 0F, direction)
     }
 
