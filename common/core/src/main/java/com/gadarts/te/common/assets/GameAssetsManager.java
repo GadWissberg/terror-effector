@@ -5,22 +5,25 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.gadarts.te.common.assets.atlas.AtlasDefinition;
-import com.gadarts.te.common.assets.atlas.Atlases;
 import com.gadarts.te.common.assets.declarations.Declaration;
 import com.gadarts.te.common.assets.declarations.Declarations;
 import com.gadarts.te.common.assets.declarations.items.WeaponDeclaration;
 import com.gadarts.te.common.assets.declarations.items.WeaponsDeclarations;
 import com.gadarts.te.common.assets.loaders.DeclarationsLoader;
 import com.gadarts.te.common.assets.loaders.ShaderLoader;
+import com.gadarts.te.common.assets.melodies.Melodies;
 import com.gadarts.te.common.assets.model.ModelDefinition;
 import com.gadarts.te.common.assets.model.Models;
 import com.gadarts.te.common.assets.shaders.Shaders;
+import com.gadarts.te.common.assets.sounds.Sounds;
 import com.gadarts.te.common.assets.texture.TextureDefinition;
 import com.google.gson.Gson;
 
@@ -63,6 +66,14 @@ public class GameAssetsManager extends AssetManager {
         return get(assetsLocation + Models.FOLDER + "/" + model.getTextureFileName() + ".png", Texture.class);
     }
 
+    public Sound getSound(Sounds sound) {
+        return getSound(sound.getFilePath());
+    }
+
+    public Sound getSound(String filePath) {
+        return get(assetsLocation + filePath, Sound.class);
+    }
+
     public Declaration getDeclaration(Declarations declaration) {
         return get(assetsLocation + declaration.getFilePath(), Declaration.class);
     }
@@ -96,6 +107,11 @@ public class GameAssetsManager extends AssetManager {
     public Texture getTexture(final TextureDefinition definition) {
         return get(assetsLocation + definition.getFilePath(), Texture.class);
     }
+
+    public Music getMelody(Melodies definition) {
+        return get(assetsLocation + definition.getFilePath(), Music.class);
+    }
+
 
     public com.badlogic.gdx.graphics.g3d.Model getModel(final ModelDefinition model) {
         return get(assetsLocation + model.getFilePath(), com.badlogic.gdx.graphics.g3d.Model.class);

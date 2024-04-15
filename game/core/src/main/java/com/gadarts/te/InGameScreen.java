@@ -39,6 +39,7 @@ public class InGameScreen implements Screen {
     private PooledEngine engine;
     private GameAssetsManager assetsManager;
     private SharedData sharedData;
+    private SoundPlayer soundPlayer;
 
     @Override
     public void show( ) {
@@ -46,11 +47,12 @@ public class InGameScreen implements Screen {
         SharedDataBuilder sharedDataBuilder = new SharedDataBuilder();
         assetsManager = new GameAssetsManager();
         assetsManager.loadGameFiles();
+        soundPlayer = new SoundPlayer(assetsManager);
         generateCharactersAnimations();
         MessageDispatcher eventDispatcher = new MessageDispatcher();
         systems.forEach(system -> {
             engine.addSystem(system);
-            system.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
+            system.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
         });
         sharedData = sharedDataBuilder.build();
         systems.forEach(system -> system.onSystemReady(sharedData));

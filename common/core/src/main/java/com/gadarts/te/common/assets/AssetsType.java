@@ -3,8 +3,10 @@ package com.gadarts.te.common.assets;
 import com.badlogic.gdx.graphics.Color;
 import com.gadarts.te.common.assets.atlas.Atlases;
 import com.gadarts.te.common.assets.declarations.Declarations;
+import com.gadarts.te.common.assets.melodies.Melodies;
 import com.gadarts.te.common.assets.model.Models;
 import com.gadarts.te.common.assets.shaders.Shaders;
+import com.gadarts.te.common.assets.sounds.Sounds;
 import com.gadarts.te.common.assets.texture.TexturesTypes;
 import com.gadarts.te.common.assets.texture.UiTextures;
 import com.google.gson.FieldNamingPolicy;
@@ -19,8 +21,10 @@ public enum AssetsType {
     TEXTURE(TexturesTypes.getAllDefinitionsInSingleArray()),
     MODEL(Models.values()),
     ATLAS(Atlases.values()),
-    DECLARATIONS(Declarations.values(), false, true),
-    SHADER(Shaders.values());
+    DECLARATION(Declarations.values(), false, true),
+    SHADER(Shaders.values()),
+    MELODY(Melodies.values()),
+    SOUND(Sounds.values());
 
     private final AssetDefinition[] assetDefinitions;
     private final boolean manualLoad;

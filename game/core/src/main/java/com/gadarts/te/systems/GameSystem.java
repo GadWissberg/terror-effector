@@ -5,6 +5,7 @@ import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.badlogic.gdx.ai.msg.Telegram;
 import com.badlogic.gdx.ai.msg.Telegraph;
 import com.badlogic.gdx.utils.Disposable;
+import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.systems.data.SharedData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
@@ -15,10 +16,15 @@ public abstract class GameSystem extends EntitySystem implements Disposable, Tel
     protected SharedData sharedData;
     protected GameAssetsManager assetsManager;
     protected MessageDispatcher eventDispatcher;
+    protected SoundPlayer soundPlayer;
 
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
+    public void initialize(SharedDataBuilder sharedDataBuilder,
+                           GameAssetsManager assetsManager,
+                           MessageDispatcher eventDispatcher,
+                           SoundPlayer soundPlayer) {
         this.assetsManager = assetsManager;
         this.eventDispatcher = eventDispatcher;
+        this.soundPlayer = soundPlayer;
     }
 
     protected void subscribeToEvents(SystemEvent... systemEvents) {

@@ -1,30 +1,30 @@
-package com.gadarts.te.common.assets.shaders;
+package com.gadarts.te.common.assets.melodies;
 
 import com.badlogic.gdx.assets.AssetLoaderParameters;
+import com.badlogic.gdx.audio.Music;
 import lombok.Getter;
 
 import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
-public enum Shaders implements ShaderDefinition {
-    DECAL_VERTEX,
-    DECAL_FRAGMENT;
+public enum Melodies implements MelodyDefinition {
+    TEST;
 
     private final String filePath;
 
-    Shaders( ) {
+    Melodies( ) {
         this.filePath = FOLDER + PATH_SEPARATOR + name().toLowerCase() + "." + FORMAT;
     }
 
 
     @Override
-    public AssetLoaderParameters<String> getParameters( ) {
+    public AssetLoaderParameters<Music> getParameters( ) {
         return null;
     }
 
     @Override
-    public Class<String> getTypeClass( ) {
-        return String.class;
+    public Class<Music> getTypeClass( ) {
+        return Music.class;
     }
 
 }

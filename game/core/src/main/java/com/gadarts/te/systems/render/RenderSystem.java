@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.definitions.character.SpriteType;
 import com.gadarts.te.common.map.element.Direction;
@@ -78,8 +79,8 @@ public class RenderSystem extends GameSystem {
     }
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
-        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
+    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher, SoundPlayer soundPlayer) {
+        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
         characterDecalsEntities = getEngine().getEntitiesFor(Family.all(CharacterDecalComponent.class).get());
         axisModelHandler = new AxisModelHandler();
         Engine engine = getEngine();

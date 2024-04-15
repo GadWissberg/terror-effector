@@ -6,5 +6,7 @@ public final class DebugSettings {
     public static final boolean DISPLAY_CURSOR_POSITION = true;
     public static final boolean HIDE_CHARACTERS = false;
     public static final String STARTING_WEAPON = "glock";
+    public static final boolean MELODY_ENABLED = true;
+    public static final boolean SFX_ENABLED = true;
 
 }

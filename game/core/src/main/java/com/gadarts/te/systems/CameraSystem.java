@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.math.collision.Ray;
+import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.utils.CameraUtils;
 import com.gadarts.te.components.ComponentsMapper;
@@ -31,8 +32,8 @@ public class CameraSystem extends GameSystem implements InputProcessor {
     private final Vector2 lastRightPressMousePosition = new Vector2(-1F, -1F);
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
-        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
+    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher, SoundPlayer soundPlayer) {
+        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
         int viewportWidth = (FULL_SCREEN ? FULL_SCREEN_RES_WIDTH : WINDOWED_RES_WIDTH);
         int viewportHeight = (FULL_SCREEN ? FULL_SCREEN_RES_HEIGHT : WINDOWED_RES_HEIGHT);
         OrthographicCamera cam = CameraUtils.createCamera(viewportWidth, viewportHeight);

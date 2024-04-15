@@ -6,6 +6,8 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.badlogic.gdx.ai.msg.Telegram;
 import com.badlogic.gdx.ai.pfa.indexed.IndexedAStarPathFinder;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -13,10 +15,13 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Pools;
 import com.badlogic.gdx.utils.Queue;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
+import com.gadarts.te.common.assets.sounds.Sounds;
 import com.gadarts.te.common.definitions.character.SpriteType;
 import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.utils.GeneralUtils;
+import com.gadarts.te.components.AnimationComponent;
 import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.cd.CharacterDecalComponent;
 import com.gadarts.te.components.character.CharacterComponent;
@@ -56,8 +61,8 @@ public class CharacterSystem extends GameSystem {
     private IndexedAStarPathFinder<MapGraphNode> pathFinder;
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher) {
-        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher);
+    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher, SoundPlayer soundPlayer) {
+        super.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
         characters = getEngine().getEntitiesFor(Family.all(CharacterComponent.class).get());
         subscribeToEvents(SystemEvent.PLAYER_REQUESTS_MOVE, CHARACTER_ANIMATION_RUN_NEW_FRAME);
     }
@@ -163,7 +168,9 @@ public class CharacterSystem extends GameSystem {
     }
 
     private void handleRunning( ) {
-        Decal decal = ComponentsMapper.characterDecal.get(commandInProgress.getInitiator()).getDecal();
+        Entity initiator = commandInProgress.getInitiator();
+        playStepSound(initiator);
+        Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
         Vector2 characterPosition = auxVector2_1.set(decal.getX(), decal.getZ());
         int nextNodeIndex = commandInProgress.getNextNodeIndex();
         MapGraphNode nextNode = commandInProgress.getPath().get(nextNodeIndex);
@@ -174,8 +181,17 @@ public class CharacterSystem extends GameSystem {
         if (!done) {
             takeStep();
         } else {
-            ComponentsMapper.character.get(commandInProgress.getInitiator()).getCharacterSpriteData().setSpriteType(IDLE);
+            ComponentsMapper.character.get(initiator).getCharacterSpriteData().setSpriteType(IDLE);
             commandInProgress = null;
+        }
+    }
+
+    private void playStepSound(Entity initiator) {
+        AnimationComponent animationComponent = ComponentsMapper.animation.get(initiator);
+        Animation<TextureAtlas.AtlasRegion> animation = animationComponent.getAnimation();
+        int keyFrameIndex = animation.getKeyFrameIndex(animationComponent.getStateTime());
+        if (keyFrameIndex == 0 || keyFrameIndex == 4) {
+            soundPlayer.playSound(Sounds.STEP);
         }
     }
 
