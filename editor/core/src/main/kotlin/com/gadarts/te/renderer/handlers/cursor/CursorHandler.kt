@@ -11,6 +11,7 @@ interface CursorHandler {
     fun fetchGridCellAtMouse(): Vector3
     fun clearSelection()
     fun displayPlayerCursor()
+    fun turnOnSelectingCursor()
 
     val selectedNodes: List<SelectedNode>
     val selectedWalls: List<Wall>

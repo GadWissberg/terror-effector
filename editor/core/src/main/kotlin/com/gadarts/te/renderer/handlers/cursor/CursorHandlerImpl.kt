@@ -39,6 +39,9 @@ import com.gadarts.te.common.utils.ModelInstanceFactory
 import com.gadarts.te.renderer.handlers.BaseHandler
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
 import com.gadarts.te.renderer.handlers.HandlersData
+import com.gadarts.te.renderer.handlers.cursor.mouseclick.OnMouseClickLogic
+import com.gadarts.te.renderer.handlers.cursor.mouseclick.onLeftClickMapping
+import com.gadarts.te.renderer.handlers.cursor.mouseclick.onRightClickMapping
 import com.gadarts.te.renderer.handlers.cursor.react.*
 import com.gadarts.te.renderer.handlers.utils.DecalUtils
 import java.util.*
@@ -103,6 +106,11 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     override fun clearSelection() {
         selectedNodes.clear()
+        selectedWalls.forEach {
+            (it.modelInstance.materials.get(0).get(ColorAttribute.Diffuse) as ColorAttribute).color.set(
+                Color.WHITE
+            )
+        }
         selectedWalls.clear()
     }
 
@@ -118,12 +126,14 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         GeneralUtils.disposeObject(this, CursorHandlerImpl::class.java)
     }
 
-    private fun turnOnSelectingCursor() {
-        selecting = true
-        objectModelCursor!!.modelInstance.nodes.get(0).localTransform.trn(0.5F, 0.01F, 0.5F)
-        objectModelCursor!!.modelInstance.calculateTransforms()
-        objectModelCursor!!.modelInstance.transform.trn(-0.5F, 0F, -0.5F)
-        objectModelCursor!!.modelInstance.transform.getTranslation(originalFloorModelInstanceCursorPosition)
+    override fun turnOnSelectingCursor() {
+        if (!selecting) {
+            selecting = true
+            objectModelCursor!!.modelInstance.nodes.get(0).localTransform.trn(0.5F, 0.01F, 0.5F)
+            objectModelCursor!!.modelInstance.calculateTransforms()
+            objectModelCursor!!.modelInstance.transform.trn(-0.5F, 0F, -0.5F)
+            objectModelCursor!!.modelInstance.transform.getTranslation(originalFloorModelInstanceCursorPosition)
+        }
     }
 
     private fun turnOffSelectingCursor(screenX: Int, screenY: Int) {
@@ -207,40 +217,20 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
     override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
+
+        var onMouseClickLogic: OnMouseClickLogic? = null
         if (button == Input.Buttons.LEFT) {
-            return onLeftClickMapping[handlersData.selectedMode]?.execute(
-                selectedNodes,
-                dispatcher,
-                this,
-                selectedWalls
-            ) ?: false
+            onMouseClickLogic = onLeftClickMapping[handlersData.selectedMode]
         } else if (button == Input.Buttons.RIGHT) {
-            return handleRightClick()
+            onMouseClickLogic = onRightClickMapping[handlersData.selectedMode]
         }
-        return false
+        return onMouseClickLogic?.execute(
+            selectedNodes,
+            dispatcher,
+            this,
+            selectedWalls
+        ) ?: false
     }
-
-    private fun handleRightClick(): Boolean {
-        if (!selecting && handlersData.selectedMode == FLOOR) {
-            turnOnSelectingCursor()
-            return true
-        } else if (handlersData.selectedMode == ENV_OBJECTS && objectModelCursor != null) {
-            val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-            dispatcher.dispatchMessage(
-                EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
-                Coords(position.x.toInt(), position.z.toInt())
-            )
-            return true
-        } else if (handlersData.selectedMode == CHARACTERS && decalCursor != null) {
-            dispatcher.dispatchMessage(
-                EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
-                Coords(decalCursor!!.position.x.toInt(), decalCursor!!.position.z.toInt())
-            )
-            return true
-        }
-        return false
-    }
-
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         if (button == Input.Buttons.RIGHT && selecting) {
@@ -427,6 +417,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        if (objectModelCursor == null) return false
         val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
         auxList.clear()
         if (selectedNodes.isEmpty()) {

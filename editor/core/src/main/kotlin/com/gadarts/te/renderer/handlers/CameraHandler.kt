@@ -62,6 +62,7 @@ class CameraHandler : InputProcessor,
             result = true
         } else if (altDown) {
             lastMouseClickPosition.set(screenX.toFloat(), screenY.toFloat())
+            result = true
         }
         return result
     }
