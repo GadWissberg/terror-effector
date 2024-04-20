@@ -9,3 +9,5 @@ game\core\build\
 *.jar
 *.probe
 cache.properties
+/game/lwjgl3/build/
+/game/core/build/

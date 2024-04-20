@@ -9,29 +9,22 @@ import lombok.Setter;
 
 @Getter
 public class CharacterCommand implements Pool.Poolable {
-    private MapGraphNode destination;
-
-    @Setter
-    private MapGraphNode prevNode;
-
+    private final CharacterCommandState state = new CharacterCommandState();
     private CharacterCommandDefinition characterCommandDefinition;
-    @Setter
-    private CharacterCommandState state;
-    private Entity initiator;
+    private MapGraphNode destination;
     @Setter
     private MapGraphPath path;
-    @Setter
-    private int nextNodeIndex = -1;
+    private Entity initiator;
 
     @Override
-    public void reset( ) {
+    public void reset() {
 
     }
 
     public void init(CharacterCommandDefinition characterCommandDefinition, MapGraphNode destination, Entity initiator) {
         this.characterCommandDefinition = characterCommandDefinition;
         this.destination = destination;
-        this.state = CharacterCommandState.READY;
+        this.state.setStatus(CharacterCommandStatus.READY);
         this.initiator = initiator;
     }
 }

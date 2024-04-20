@@ -12,9 +12,5 @@ public interface AssetDefinition {
     @SuppressWarnings("rawtypes")
     AssetLoaderParameters getParameters( );
 
-    default String getAssetManagerKey( ) {
-        return null;
-    }
-
     Class<?> getTypeClass( );
 }

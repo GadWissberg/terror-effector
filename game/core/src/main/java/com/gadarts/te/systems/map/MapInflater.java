@@ -22,7 +22,6 @@ import com.gadarts.te.common.assets.texture.SurfaceTextures;
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition;
 import com.gadarts.te.common.map.*;
 import com.gadarts.te.common.map.element.Direction;
-import com.gadarts.te.common.model.GameModelInstance;
 import com.gadarts.te.common.utils.EnvObjectUtils;
 import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.components.ModelInstanceComponent;
@@ -150,7 +149,7 @@ public class MapInflater implements Disposable {
         SurfaceTextures definition = SurfaceTextures.values()[chr - 1];
         EntityBuilder entityBuilder = beginBuildingEntity(engine);
         if (definition != MISSING) {
-            GameModelInstance mi = new GameModelInstance(floorModel);
+            ModelInstance mi = new ModelInstance(floorModel);
             defineNodeModelInstance(row, col, definition, mi);
             entityBuilder.addModelInstanceComponent(mi);
         }
@@ -161,7 +160,7 @@ public class MapInflater implements Disposable {
     private void defineNodeModelInstance(int row,
                                          int col,
                                          SurfaceTextures definition,
-                                         GameModelInstance mi) {
+                                         ModelInstance mi) {
         mi.materials.get(0).set(TextureAttribute.createDiffuse(assetsManager.getTexture(definition)));
         mi.transform.setTranslation(auxVector3_1.set(col + 0.5f, 0, row + 0.5f));
     }
@@ -234,7 +233,7 @@ public class MapInflater implements Disposable {
         BoundingBox bBox = wall.getModelInstance().calculateBoundingBox(new BoundingBox());
         avoidZeroDimensions(bBox);
         bBox.mul(auxMatrix.set(wall.getModelInstance().transform).setTranslation(Vector3.Zero));
-        GameModelInstance modelInstance = new GameModelInstance(wall.getModelInstance());
+        ModelInstance modelInstance = new ModelInstance(wall.getModelInstance());
         beginBuildingEntity(engine).addModelInstanceComponent(modelInstance)
             .addWallComponent(mapGraph.getNode(parentNodeData.getCoords()))
             .finishAndAddToEngine();
@@ -453,7 +452,7 @@ public class MapInflater implements Disposable {
     }
 
     @Override
-    public void dispose( ) {
+    public void dispose() {
         GeneralUtils.disposeObject(this, MapInflater.class);
     }
 }

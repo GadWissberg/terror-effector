@@ -13,6 +13,7 @@ import com.gadarts.te.common.map.element.Direction;
 
 import static com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_SCALE;
 
+@SuppressWarnings("ExtractMethodRecommender")
 public class CharacterUtils {
     private final static Vector2 auxVector2_1 = new Vector2();
     private final static Vector2 auxVector2_2 = new Vector2();

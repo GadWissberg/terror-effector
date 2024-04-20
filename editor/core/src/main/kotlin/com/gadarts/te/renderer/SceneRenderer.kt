@@ -7,9 +7,6 @@ import com.badlogic.gdx.ai.msg.Telegraph
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g3d.Environment
-import com.badlogic.gdx.graphics.g3d.ModelBatch
-import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy
-import com.badlogic.gdx.graphics.g3d.decals.DecalBatch
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
@@ -36,9 +33,7 @@ class SceneRenderer(
     private lateinit var handlersData: HandlersData
     private val auxiliaryModelInstances = AuxiliaryModelInstances()
     private val camera: OrthographicCamera = CameraUtils.createCamera(1280, 960)
-    private val modelsShaderProvider: ModelsShaderProvider = ModelsShaderProvider(editorAssetManager)
-    private val modelsBatch = ModelBatch(modelsShaderProvider)
-    private val decalsBatch = DecalBatch(200, CameraGroupStrategy(camera))
+    private val batches = Batches(editorAssetManager, camera)
     private val mapData = MapData(MAP_SIZE, gameAssetsManager)
 
     init {
@@ -62,15 +57,15 @@ class SceneRenderer(
     }
 
     private fun renderModels() {
-        modelsBatch.begin(camera)
-        auxiliaryModelInstances.render(modelsBatch)
-        mapData.onModelsRender(modelsBatch, environment)
-        Handlers.entries.forEach { it.handlerInstance.onModelsRender(modelsBatch) }
-        modelsBatch.end()
+        batches.modelsBatch.begin(camera)
+        auxiliaryModelInstances.render(batches.modelsBatch)
+        mapData.onModelsRender(batches.modelsBatch, environment)
+        Handlers.entries.forEach { it.handlerInstance.onModelsRender(batches.modelsBatch) }
+        batches.modelsBatch.end()
         Gdx.gl.glDepthMask(false)
-        mapData.onDecalsRender(decalsBatch, handlersData.camera)
-        Handlers.entries.forEach { it.handlerInstance.onDecalsRender(decalsBatch) }
-        decalsBatch.flush()
+        mapData.onDecalsRender(batches.decalsBatch, handlersData.camera)
+        Handlers.entries.forEach { it.handlerInstance.onDecalsRender(batches.decalsBatch) }
+        batches.decalsBatch.flush()
         Gdx.gl.glDepthMask(true)
     }
 

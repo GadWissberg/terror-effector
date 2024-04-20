@@ -42,6 +42,11 @@ public class CharacterDecalComponent implements GameComponent {
         createCharacterDecal(animations, type, direction, position);
     }
 
+    @Override
+    public void reset( ) {
+
+    }
+
     private void createCharacterDecal(final CharacterAnimations animations,
                                       final SpriteType type,
                                       final Direction direction,
@@ -50,10 +55,5 @@ public class CharacterDecalComponent implements GameComponent {
         decal.setScale(BILLBOARD_SCALE);
         position.y += BILLBOARD_Y;
         decal.setPosition(position);
-    }
-
-    @Override
-    public void reset( ) {
-
     }
 }

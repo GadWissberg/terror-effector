@@ -32,12 +32,13 @@ import java.util.Optional;
 
 import static com.gadarts.te.common.assets.AssetsType.generateDefinedGsonBuilder;
 
+@SuppressWarnings("unchecked")
 public class GameAssetsManager extends AssetManager {
     public static final String PATH_SEPARATOR = "/";
     private final String assetsLocation;
     private final Gson gson = generateDefinedGsonBuilder().create();
 
-    public GameAssetsManager( ) {
+    public GameAssetsManager() {
         this("");
     }
 
@@ -124,7 +125,7 @@ public class GameAssetsManager extends AssetManager {
     private void loadFile(AssetDefinition def, String fileName, boolean block) {
         String path = Gdx.files.getFileHandle(assetsLocation + fileName, Files.FileType.Internal).path();
         if (def.getParameters() != null) {
-            load(def.getAssetManagerKey() != null ? def.getAssetManagerKey() : path, def.getTypeClass(), def.getParameters());
+            load(path, def.getTypeClass(), def.getParameters());
         } else {
             load(path, def.getTypeClass());
         }

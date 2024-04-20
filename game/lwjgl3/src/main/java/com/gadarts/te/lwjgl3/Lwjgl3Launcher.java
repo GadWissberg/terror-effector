@@ -16,6 +16,7 @@ public class Lwjgl3Launcher {
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
+        configuration.setResizable(false);
         configuration.setTitle("terror-effector");
         configuration.useVsync(true);
         //// Limits FPS to the refresh rate of the currently active monitor.

@@ -70,12 +70,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         cursorMaterialBlendingAttribute.opacity = 1f
     }
 
-    private fun addAttributesToCursorModel() {
-        val cursorMaterial = objectModelCursor!!.modelInstance.materials.get(0)
-        cursorMaterial.set(cursorMaterialBlendingAttribute)
-        cursorMaterial.set(ColorAttribute.createDiffuse(Color.GREEN))
-    }
-
     override fun setCursorToFloorModel() {
         objectModelCursor = ObjectModelCursor(
             ModelInstance(floorModel),
@@ -133,37 +127,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             objectModelCursor!!.modelInstance.calculateTransforms()
             objectModelCursor!!.modelInstance.transform.trn(-0.5F, 0F, -0.5F)
             objectModelCursor!!.modelInstance.transform.getTranslation(originalFloorModelInstanceCursorPosition)
-        }
-    }
-
-    private fun turnOffSelectingCursor(screenX: Int, screenY: Int) {
-        selecting = false
-        objectModelCursor!!.modelInstance.transform.values[Matrix4.M00] = 1F
-        objectModelCursor!!.modelInstance.transform.values[Matrix4.M22] = 1F
-        objectModelCursor!!.modelInstance.nodes.get(0).localTransform.trn(-0.5F, -0.01F, -0.5F)
-        updateCursorPosition(screenX, screenY)
-        objectModelCursor!!.modelInstance.calculateTransforms()
-    }
-
-    private fun updateCursorPosition(screenX: Int, screenY: Int) {
-        val position = fetchGridCellAtMouse(screenX, screenY)
-        when (handlersData.selectedMode) {
-            FLOOR -> {
-                objectModelCursor?.updateObjectModelCursorPosition(position)
-            }
-
-            CHARACTERS -> {
-                CursorUtils.stickPositionToGrid(position, handlersData.mapData.matrix)
-                decalCursor?.setPosition(
-                    position.x,
-                    (handlersData.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: 0F) + BILLBOARD_Y,
-                    position.z
-                )
-            }
-
-            else -> {
-                objectModelCursor?.updateObjectModelCursorPositionWithOffsets(position)
-            }
         }
     }
 
@@ -240,28 +203,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         return false
     }
 
-    private fun selectNodes(screenX: Int, screenY: Int) {
-        val northWestPosition = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-        val selectionBoxSize = objectModelCursor!!.modelInstance.transform.getScale(auxVector3_1)
-        selectedNodes.clear()
-        val northWestX = northWestPosition.x.toInt()
-        val northWestZ = northWestPosition.z.toInt()
-        for (x in northWestX until northWestX + selectionBoxSize.x.toInt()) {
-            for (z in northWestZ until northWestZ + selectionBoxSize.z.toInt()) {
-                if (x >= 0 && x < handlersData.mapData.mapSize && z >= 0 && z < handlersData.mapData.mapSize) {
-                    selectedNodes.add(
-                        SelectedNode(
-                            Coords(x, z),
-                            ModelInstance(floorModel),
-                            handlersData.mapData.getNode(x, z)?.height ?: 0F
-                        )
-                    )
-                }
-            }
-        }
-        turnOffSelectingCursor(screenX, screenY)
-    }
-
     override fun touchCancelled(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
         return false
     }
@@ -288,6 +229,43 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         }
         return true
     }
+
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        if (objectModelCursor == null) return false
+        val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
+        auxList.clear()
+        if (selectedNodes.isEmpty()) {
+            auxList.add(Coords(position.x.toInt(), position.z.toInt()))
+        } else {
+            selectedNodes.forEach { auxList.add(it.coords) }
+        }
+        dispatcher.dispatchMessage(
+            (if (amountY > 0) EditorEvents.SCROLLED_DOWN else EditorEvents.SCROLLED_UP).ordinal,
+            auxList
+        )
+        objectModelCursor!!.modelInstance.transform.values[M13] =
+            MathUtils.clamp(
+                ((handlersData.mapData.getNode(position.x.toInt(), position.z.toInt())?.height)
+                    ?: 0F) + (objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F),
+                objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F,
+                MapNodeData.MAX_FLOOR_HEIGHT
+            )
+        return true
+    }
+
+    override fun onUpdate() {
+        val alpha = max(MathUtils.sin(cursorFading / 10F), 0.1F)
+        cursorMaterialBlendingAttribute.opacity = alpha
+        if (decalCursor != null) {
+            decalCursor!!.setColor(decalCursor!!.color.r, decalCursor!!.color.r, decalCursor!!.color.r, alpha)
+        }
+        cursorFading += 1
+    }
+
+    override fun onModelsRender(batch: ModelBatch) {
+        renderModels(batch)
+    }
+
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
         if (DebugSettings.FREELOOK) return false
@@ -334,6 +312,65 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
                 if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x + 1, coord.z))) break
                 if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x, coord.z - 1))) break
                 if (tryHighlightWallsOfNode(unproject, handlersData.mapData.getNode(coord.x, coord.z + 1))) break
+            }
+        }
+    }
+
+    private fun addAttributesToCursorModel() {
+        val cursorMaterial = objectModelCursor!!.modelInstance.materials.get(0)
+        cursorMaterial.set(cursorMaterialBlendingAttribute)
+        cursorMaterial.set(ColorAttribute.createDiffuse(Color.GREEN))
+    }
+
+    private fun turnOffSelectingCursor(screenX: Int, screenY: Int) {
+        selecting = false
+        objectModelCursor!!.modelInstance.transform.values[Matrix4.M00] = 1F
+        objectModelCursor!!.modelInstance.transform.values[Matrix4.M22] = 1F
+        objectModelCursor!!.modelInstance.nodes.get(0).localTransform.trn(-0.5F, -0.01F, -0.5F)
+        updateCursorPosition(screenX, screenY)
+        objectModelCursor!!.modelInstance.calculateTransforms()
+    }
+
+    private fun selectNodes(screenX: Int, screenY: Int) {
+        val northWestPosition = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
+        val selectionBoxSize = objectModelCursor!!.modelInstance.transform.getScale(auxVector3_1)
+        selectedNodes.clear()
+        val northWestX = northWestPosition.x.toInt()
+        val northWestZ = northWestPosition.z.toInt()
+        for (x in northWestX until northWestX + selectionBoxSize.x.toInt()) {
+            for (z in northWestZ until northWestZ + selectionBoxSize.z.toInt()) {
+                if (x >= 0 && x < handlersData.mapData.mapSize && z >= 0 && z < handlersData.mapData.mapSize) {
+                    selectedNodes.add(
+                        SelectedNode(
+                            Coords(x, z),
+                            ModelInstance(floorModel),
+                            handlersData.mapData.getNode(x, z)?.height ?: 0F
+                        )
+                    )
+                }
+            }
+        }
+        turnOffSelectingCursor(screenX, screenY)
+    }
+
+    private fun updateCursorPosition(screenX: Int, screenY: Int) {
+        val position = fetchGridCellAtMouse(screenX, screenY)
+        when (handlersData.selectedMode) {
+            FLOOR -> {
+                objectModelCursor?.updateObjectModelCursorPosition(position)
+            }
+
+            CHARACTERS -> {
+                CursorUtils.stickPositionToGrid(position, handlersData.mapData.matrix)
+                decalCursor?.setPosition(
+                    position.x,
+                    (handlersData.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: 0F) + BILLBOARD_Y,
+                    position.z
+                )
+            }
+
+            else -> {
+                objectModelCursor?.updateObjectModelCursorPositionWithOffsets(position)
             }
         }
     }
@@ -415,43 +452,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
             MathUtils.clamp(auxVector3_2.z, 0F, handlersData.mapData.mapSize.toFloat())
         )
     }
-
-    override fun scrolled(amountX: Float, amountY: Float): Boolean {
-        if (objectModelCursor == null) return false
-        val position = objectModelCursor!!.modelInstance.transform.getTranslation(auxVector3_2)
-        auxList.clear()
-        if (selectedNodes.isEmpty()) {
-            auxList.add(Coords(position.x.toInt(), position.z.toInt()))
-        } else {
-            selectedNodes.forEach { auxList.add(it.coords) }
-        }
-        dispatcher.dispatchMessage(
-            (if (amountY > 0) EditorEvents.SCROLLED_DOWN else EditorEvents.SCROLLED_UP).ordinal,
-            auxList
-        )
-        objectModelCursor!!.modelInstance.transform.values[M13] =
-            MathUtils.clamp(
-                ((handlersData.mapData.getNode(position.x.toInt(), position.z.toInt())?.height)
-                    ?: 0F) + (objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F),
-                objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F,
-                MapNodeData.MAX_FLOOR_HEIGHT
-            )
-        return true
-    }
-
-    override fun onUpdate() {
-        val alpha = max(MathUtils.sin(cursorFading / 10F), 0.1F)
-        cursorMaterialBlendingAttribute.opacity = alpha
-        if (decalCursor != null) {
-            decalCursor!!.setColor(decalCursor!!.color.r, decalCursor!!.color.r, decalCursor!!.color.r, alpha)
-        }
-        cursorFading += 1
-    }
-
-    override fun onModelsRender(batch: ModelBatch) {
-        renderModels(batch)
-    }
-
 
     private fun renderModels(batch: ModelBatch) {
         if (objectModelCursor != null
