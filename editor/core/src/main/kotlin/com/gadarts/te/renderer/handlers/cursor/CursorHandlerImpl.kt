@@ -23,7 +23,7 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.Modes.*
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.assets.atlas.Atlases
+import com.gadarts.te.common.definitions.character.CharacterDefinition
 import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
 import com.gadarts.te.common.definitions.character.SpriteType
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
@@ -108,10 +108,10 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         selectedWalls.clear()
     }
 
-    override fun displayPlayerCursor() {
+    override fun displayCharacterCursor(characterDefinition: CharacterDefinition) {
         objectModelCursor = null
         val idle: String = SpriteType.IDLE.name + "_0_" + Direction.SOUTH.name.lowercase(Locale.getDefault())
-        val atlas: TextureAtlas = gameAssetsManager.getAtlas(Atlases.PLAYER_MELEE)
+        val atlas: TextureAtlas = gameAssetsManager.getAtlas(characterDefinition.atlasDefinition)
         val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
         decalCursor = CharacterUtils.createCharacterDecal(region)
     }

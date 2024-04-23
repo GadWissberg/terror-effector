@@ -27,6 +27,9 @@ import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.declarations.CharacterDeclaration
 import com.gadarts.te.common.assets.declarations.player.PlayerDeclaration
 import com.gadarts.te.common.assets.texture.SurfaceTextures
+import com.gadarts.te.common.definitions.character.CharacterDefinition
+import com.gadarts.te.common.definitions.character.EnemyDefinition
+import com.gadarts.te.common.definitions.character.FriendlyDefinition
 import com.gadarts.te.common.definitions.character.SpriteType
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.definitions.env.Obstacles
@@ -52,6 +55,9 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val gameAssetsManager = GameAssetsManager("../game/assets/")
         gameAssetsManager.loadGameFiles()
         generateFramesMapForCharacter(PlayerDeclaration.getInstance(), gameAssetsManager)
+        EnemyDefinition.entries.forEach {
+            generateFramesMapForCharacter(PlayerDeclaration.getInstance(), gameAssetsManager)
+        }
         editorAssetManager = AssetManager()
         editorAssetManager.setLoader(
             String::class.java,
@@ -150,20 +156,25 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val tree = VisTree<TreeNode, String>()
         val treeRoot = createTreeRoot(tree)
         val iconTexture = editorAssetManager.get(TREE_ICON_CHARACTER.getFileName(), Texture::class.java)
+        addCharacterNode(iconTexture, treeRoot, FriendlyDefinition.PLAYER)
+        EnemyDefinition.entries.forEach { addCharacterNode(iconTexture, treeRoot, it) }
+        tree.add(treeRoot)
+        tree.isVisible = false
+        return tree
+    }
+
+    private fun addCharacterNode(iconTexture: Texture, treeRoot: TreeNode, definition: CharacterDefinition) {
         val definitionNode = TreeNode(
-            "Player",
+            definition.displayName,
             iconTexture
         )
         definitionNode.actor.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
                 super.clicked(event, x, y)
-                dispatcher.dispatchMessage(EditorEvents.CLICKED_TREE_NODE.ordinal)
+                dispatcher.dispatchMessage(EditorEvents.CLICKED_TREE_NODE.ordinal, definition)
             }
         })
         treeRoot.add(definitionNode)
-        tree.add(treeRoot)
-        tree.isVisible = false
-        return tree
     }
 
     private fun addNodeToEnvObjectsTree(

@@ -3,6 +3,7 @@ package com.gadarts.te.renderer.handlers.cursor.react
 import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.definitions.character.CharacterDefinition
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
@@ -17,8 +18,8 @@ class CursorHandlerOnClickedTreeNode(private val cursorHandler: CursorHandler) :
         dispatcher: MessageDispatcher,
         wallCreator: WallCreator
     ) {
-        if (msg.extraInfo == null) {
-            cursorHandler.displayPlayerCursor()
+        if (msg.extraInfo is CharacterDefinition) {
+            cursorHandler.displayCharacterCursor(msg.extraInfo as CharacterDefinition)
         } else {
             val envObjectDefinition = msg.extraInfo as EnvObjectDefinition
             cursorHandler.displayObjectOfTreeNode(envObjectDefinition)

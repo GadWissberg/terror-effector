@@ -11,7 +11,8 @@ import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 public enum Atlases implements AtlasDefinition {
     PLAYER_GENERIC,
     PLAYER_GLOCK,
-    PLAYER_MELEE;
+    PLAYER_MELEE,
+    MAINT_BOT;
 
     private final String filePath;
 

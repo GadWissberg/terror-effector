@@ -15,13 +15,16 @@ import com.gadarts.te.systems.data.SharedDataBuilder;
 public class InterfaceSystem extends GameSystem {
     private CursorHandler cursorHandler;
     @SuppressWarnings("FieldCanBeLocal")
-    private Stage uiStage;
     private final Model floorModel = MapUtils.createFloorModel();
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher, SoundPlayer soundPlayer) {
+    public void initialize(SharedDataBuilder sharedDataBuilder,
+                           GameAssetsManager assetsManager,
+                           MessageDispatcher eventDispatcher,
+                           SoundPlayer soundPlayer) {
         super.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
-        uiStage = new Stage();
+        Stage uiStage = new Stage();
+        sharedDataBuilder.setUiStage(uiStage);
         cursorHandler = new CursorHandler(uiStage, eventDispatcher);
     }
 
@@ -29,6 +32,7 @@ public class InterfaceSystem extends GameSystem {
     public void update(float deltaTime) {
         super.update(deltaTime);
         cursorHandler.update();
+        sharedData.uiStage().act(deltaTime);
     }
 
     @Override

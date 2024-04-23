@@ -1,5 +1,7 @@
 package com.gadarts.te.common.definitions.character;
 
+import com.gadarts.te.common.assets.atlas.AtlasDefinition;
+
 public enum FriendlyDefinition implements CharacterDefinition {
     PLAYER;
 
@@ -11,5 +13,10 @@ public enum FriendlyDefinition implements CharacterDefinition {
     @Override
     public CharacterType getCharacterType( ) {
         return CharacterType.PLAYER;
+    }
+
+    @Override
+    public AtlasDefinition getAtlasDefinition( ) {
+        return null;
     }
 }

@@ -113,6 +113,7 @@ public class RenderSystem extends GameSystem {
         }
         modelBatch.end();
         renderDecals();
+        sharedData.uiStage().draw();
     }
 
     private void renderDecals( ) {
