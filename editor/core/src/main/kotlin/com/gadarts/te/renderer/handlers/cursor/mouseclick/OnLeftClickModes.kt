@@ -102,9 +102,9 @@ private object OnLeftClickCharacters : OnMouseClickLogic {
         cursorHandler: CursorHandler,
         selectedWalls: MutableList<Wall>
     ): Boolean {
-        if (cursorHandler.decalCursor == null) return false
+        if (cursorHandler.decalCursor.decal == null) return false
 
-        val position = cursorHandler.decalCursor!!.position
+        val position = cursorHandler.decalCursor.decal!!.position
         dispatcher.dispatchMessage(
             EditorEvents.CLICKED_LEFT_ON_GRID_CELL.ordinal,
             ClickedGridCellEventForCharacterExtraInfo(

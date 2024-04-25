@@ -1,0 +1,83 @@
+{
+  "enemies_declarations": [
+    {
+      "id": "mnt_bot",
+      "display_name": "Maintenance-Bot",
+      "atlas_definition": "maint_bot",
+      "agility": {
+        "min": 3,
+        "max": 4
+      },
+      "health": 2,
+      "accuracy": "none",
+      "sight": "high",
+      "engine": 2,
+      "attack_primary": "cutter",
+      "attack_primary_hit_frame_index": 4,
+      "height": 1,
+      "sound_awake": "guard_bot_awake",
+      "sound_melee": "weapon_fist",
+      "sound_pain": "guard_bot_pain",
+      "sound_death": "guard_bot_death",
+      "explosion_effect_on_destroy": "small_exp",
+      "shadow_radius": 0.45,
+      "hud_icon": "hud_icon_maint_bot"
+    },
+    {
+      "id": "grd_bot",
+      "display_name": "Guard-Bot",
+      "atlas_definition": "guard_bot",
+      "agility": {
+        "min": 2,
+        "max": 3
+      },
+      "health": 4,
+      "accuracy": "med",
+      "sight": "high",
+      "engine": 4,
+      "attack_primary": "rapid_laser_cannon",
+      "attack_primary_hit_frame_index": 3,
+      "height": 1.5,
+      "sound_awake": "guard_bot_awake",
+      "sound_melee": "weapon_fist",
+      "sound_pain": "guard_bot_pain",
+      "sound_death": "guard_bot_death",
+      "sound_step": "guard_bot_step",
+      "explosion_effect_on_destroy": "small_exp",
+      "shadow_radius": 0.2,
+      "bullet_creation_offset": {
+        "x": 0.3,
+        "y": 1.3,
+        "z": -0.2
+      },
+      "hud_icon": "hud_icon_guard_bot"
+    },
+    {
+      "id": "trr_glc",
+      "display_name": "Terrorist - Glock",
+      "atlas_definition": "terrorist_glock",
+      "agility": {
+        "min": 3,
+        "max": 5
+      },
+      "health": 3,
+      "accuracy": "med",
+      "sight": "high",
+      "attack_primary": "glock",
+      "attack_primary_hit_frame_index": 3,
+      "height": 1.5,
+      "sound_melee": "weapon_fist",
+      "sound_pain": "player_pain",
+      "sound_death": "player_death",
+      "sound_step": "step_concrete",
+      "shadow_radius": 0.2,
+      "human": true,
+      "bullet_creation_offset": {
+        "x": 0.0,
+        "y": 0.95,
+        "z": 0.0
+      },
+      "hud_icon": "hud_icon_player"
+    }
+  ]
+}

@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
-import com.badlogic.gdx.graphics.g3d.decals.Decal
 import com.badlogic.gdx.graphics.g3d.decals.DecalBatch
 import com.badlogic.gdx.math.*
 import com.badlogic.gdx.math.Matrix4.M13
@@ -23,7 +22,7 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.Modes.*
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.definitions.character.CharacterDefinition
+import com.gadarts.te.common.assets.declarations.CharacterDeclaration
 import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
 import com.gadarts.te.common.definitions.character.SpriteType
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
@@ -33,7 +32,6 @@ import com.gadarts.te.common.map.MapUtils
 import com.gadarts.te.common.map.Wall
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.common.utils.CameraUtils
-import com.gadarts.te.common.utils.CharacterUtils
 import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.common.utils.ModelInstanceFactory
 import com.gadarts.te.renderer.handlers.BaseHandler
@@ -43,6 +41,8 @@ import com.gadarts.te.renderer.handlers.cursor.mouseclick.OnMouseClickLogic
 import com.gadarts.te.renderer.handlers.cursor.mouseclick.onLeftClickMapping
 import com.gadarts.te.renderer.handlers.cursor.mouseclick.onRightClickMapping
 import com.gadarts.te.renderer.handlers.cursor.react.*
+import com.gadarts.te.renderer.handlers.cursor.types.DecalCursor
+import com.gadarts.te.renderer.handlers.cursor.types.ObjectModelCursor
 import com.gadarts.te.renderer.handlers.utils.DecalUtils
 import java.util.*
 import kotlin.math.abs
@@ -50,7 +50,7 @@ import kotlin.math.max
 
 
 class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandler {
-    override var decalCursor: Decal? = null
+    override var decalCursor: DecalCursor = DecalCursor()
     override val selectedWalls = mutableListOf<Wall>()
     override val selectedNodes = mutableListOf<SelectedNode>()
     override var objectModelCursor: ObjectModelCursor? = null
@@ -108,12 +108,12 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         selectedWalls.clear()
     }
 
-    override fun displayCharacterCursor(characterDefinition: CharacterDefinition) {
+    override fun displayCharacterCursor(characterDeclaration: CharacterDeclaration) {
         objectModelCursor = null
         val idle: String = SpriteType.IDLE.name + "_0_" + Direction.SOUTH.name.lowercase(Locale.getDefault())
-        val atlas: TextureAtlas = gameAssetsManager.getAtlas(characterDefinition.atlasDefinition)
+        val atlas: TextureAtlas = gameAssetsManager.getAtlas(characterDeclaration.atlasDefinition)
         val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
-        decalCursor = CharacterUtils.createCharacterDecal(region)
+        decalCursor.newDecal(region, characterDeclaration)
     }
 
     override fun dispose() {
@@ -172,9 +172,14 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun onDecalsRender(decalsBatch: DecalBatch) {
-        if (decalCursor != null) {
-            DecalUtils.applyFrameSeenFromCameraForCharacterDecal(decalCursor!!, handlersData.camera, gameAssetsManager)
-            decalsBatch.add(decalCursor)
+        if (decalCursor.decal != null) {
+            DecalUtils.applyFrameSeenFromCameraForCharacterDecal(
+                decalCursor.decal!!,
+                handlersData.camera,
+                gameAssetsManager,
+                decalCursor.characterDeclaration
+            )
+            decalsBatch.add(decalCursor.decal)
         }
     }
 
@@ -256,9 +261,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun onUpdate() {
         val alpha = max(MathUtils.sin(cursorFading / 10F), 0.1F)
         cursorMaterialBlendingAttribute.opacity = alpha
-        if (decalCursor != null) {
-            decalCursor!!.setColor(decalCursor!!.color.r, decalCursor!!.color.r, decalCursor!!.color.r, alpha)
-        }
+        decalCursor.updateAlpha(alpha)
         cursorFading += 1
     }
 
@@ -362,7 +365,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
 
             CHARACTERS -> {
                 CursorUtils.stickPositionToGrid(position, handlersData.mapData.matrix)
-                decalCursor?.setPosition(
+                decalCursor.decal?.setPosition(
                     position.x,
                     (handlersData.mapData.matrix[position.z.toInt()][position.x.toInt()]?.height ?: 0F) + BILLBOARD_Y,
                     position.z

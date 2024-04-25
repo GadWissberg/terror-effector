@@ -55,7 +55,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val gameAssetsManager = GameAssetsManager("../game/assets/")
         gameAssetsManager.loadGameFiles()
         generateFramesMapForCharacter(PlayerDeclaration.getInstance(), gameAssetsManager)
-        EnemyDefinition.entries.forEach {
+        EnemyDefinition.entries.forEach { _ ->
             generateFramesMapForCharacter(PlayerDeclaration.getInstance(), gameAssetsManager)
         }
         editorAssetManager = AssetManager()
@@ -165,7 +165,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
 
     private fun addCharacterNode(iconTexture: Texture, treeRoot: TreeNode, definition: CharacterDefinition) {
         val definitionNode = TreeNode(
-            definition.displayName,
+            definition.name(),
             iconTexture
         )
         definitionNode.actor.addListener(object : ClickListener() {
@@ -184,7 +184,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         val treeNode = TreeNode(label, iconTexture)
         entries.forEach {
             val definitionNode = TreeNode(
-                it.displayName,
+                it.name(),
                 iconTexture
             )
             definitionNode.actor.addListener(object : ClickListener() {

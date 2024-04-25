@@ -1,10 +1,12 @@
-package com.gadarts.te.renderer.handlers.cursor
+package com.gadarts.te.renderer.handlers.cursor.types
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Vector3
 import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.element.Direction
+import com.gadarts.te.renderer.handlers.cursor.CursorHandler
+import com.gadarts.te.renderer.handlers.cursor.CursorUtils
 import com.gadarts.te.renderer.model.MapData
 
 class ObjectModelCursor(

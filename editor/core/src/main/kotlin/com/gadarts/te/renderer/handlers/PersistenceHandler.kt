@@ -445,7 +445,7 @@ class PersistenceHandler : BaseHandler() {
         val elementsJsonArray = JsonArray()
         placedElements.forEach {
             val elementJsonObject = JsonObject()
-            elementJsonObject.addProperty(DEFINITION, it.definition.name())
+            elementJsonObject.addProperty(DEFINITION, it.declaration.name())
             elementJsonObject.addProperty(DIRECTION, it.direction.name)
             elementJsonObject.addProperty(COORD_X, it.coords.x)
             elementJsonObject.addProperty(COORD_Z, it.coords.z)

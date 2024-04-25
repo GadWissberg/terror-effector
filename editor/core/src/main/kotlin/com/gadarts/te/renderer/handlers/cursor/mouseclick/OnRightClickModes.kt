@@ -79,10 +79,13 @@ private object OnRightClickCharacters : OnMouseClickLogic {
         selectedWalls: MutableList<Wall>
     ): Boolean {
         var handled = false
-        if (cursorHandler.decalCursor != null) {
+        if (cursorHandler.decalCursor.decal != null) {
             dispatcher.dispatchMessage(
                 EditorEvents.CLICKED_RIGHT_ON_GRID_CELL.ordinal,
-                Coords(cursorHandler.decalCursor!!.position.x.toInt(), cursorHandler.decalCursor!!.position.z.toInt())
+                Coords(
+                    cursorHandler.decalCursor.decal!!.position.x.toInt(),
+                    cursorHandler.decalCursor.decal!!.position.z.toInt()
+                )
             )
             handled = true
         }

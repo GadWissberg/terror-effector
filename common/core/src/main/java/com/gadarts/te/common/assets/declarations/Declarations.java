@@ -1,9 +1,11 @@
 package com.gadarts.te.common.assets.declarations;
 
 import com.badlogic.gdx.assets.AssetLoaderParameters;
-import com.gadarts.te.common.assets.loaders.DeclarationsLoader;
+import com.gadarts.te.common.assets.declarations.enemy.EnemiesDeclarations;
+import com.gadarts.te.common.assets.declarations.env.EnvObjectsDeclarations;
 import com.gadarts.te.common.assets.declarations.items.WeaponsDeclarations;
 import com.gadarts.te.common.assets.declarations.player.PlayerWeaponsDeclarations;
+import com.gadarts.te.common.assets.loaders.DeclarationsLoader;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -11,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Declarations implements DeclarationDefinition {
     WEAPONS(WeaponsDeclarations.class, "items"),
-    PLAYER_WEAPONS(PlayerWeaponsDeclarations.class, "player");
+    PLAYER_WEAPONS(PlayerWeaponsDeclarations.class, "player"),
+    ENEMIES(EnemiesDeclarations.class, "enemy"),
+    ENV_OBJECTS(EnvObjectsDeclarations.class, "env");
 
     private final Class<? extends Declaration> clazz;
     private final String packageName;
@@ -29,12 +33,6 @@ public enum Declarations implements DeclarationDefinition {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-    }
-
-
-    @Override
-    public Class<Declaration> getTypeClass( ) {
-        return Declaration.class;
     }
 
     @Override

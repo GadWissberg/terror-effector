@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g3d.decals.Decal
 import com.badlogic.gdx.math.Vector3
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.assets.declarations.CharacterDeclaration
 import com.gadarts.te.common.assets.declarations.player.PlayerDeclaration
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.common.utils.CharacterUtils
@@ -13,7 +14,12 @@ import java.util.*
 
 object DecalUtils {
     private val auxVector = Vector3()
-    fun applyFrameSeenFromCameraForCharacterDecal(decal: Decal, camera: Camera, gameAssetsManager: GameAssetsManager) {
+    fun applyFrameSeenFromCameraForCharacterDecal(
+        decal: Decal,
+        camera: Camera,
+        gameAssetsManager: GameAssetsManager,
+        characterDeclaration: CharacterDeclaration?
+    ) {
         val dirSeenFromCamera: Direction =
             CharacterUtils.calculateDirectionSeenFromCamera(camera, Direction.SOUTH)
         val name: String =
