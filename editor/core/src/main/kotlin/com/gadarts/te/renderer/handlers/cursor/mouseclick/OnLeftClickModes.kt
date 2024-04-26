@@ -76,9 +76,9 @@ private object OnLeftClickEnvObject : OnMouseClickLogic {
         val objectModelCursor = cursorHandler.objectModelCursor
         auxMatrix.set(objectModelCursor!!.modelInstance.transform)
             .translate(
-                -objectModelCursor.definition!!.modelDefinition.modelOffset.x,
-                -objectModelCursor.definition.modelDefinition.modelOffset.y,
-                -objectModelCursor.definition.modelDefinition.modelOffset.z
+                -objectModelCursor.definition!!.model.modelOffset.x,
+                -objectModelCursor.definition.model.modelOffset.y,
+                -objectModelCursor.definition.model.modelOffset.z
             )
         val position = auxMatrix.getTranslation(auxVector)
         dispatcher.dispatchMessage(

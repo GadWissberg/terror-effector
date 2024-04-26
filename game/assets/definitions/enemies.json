@@ -1,0 +1,26 @@
+{
+  "definitions": [
+    {
+      "id": "mnt_bot",
+      "display_name": "Maintenance-Bot",
+      "atlas_definition": "maint_bot",
+      "agility": {
+        "min": 3,
+        "max": 4
+      },
+      "health": 2,
+      "accuracy": "none",
+      "sight": "high",
+      "engine": 2,
+      "attack_primary": "cutter",
+      "attack_primary_hit_frame_index": 4,
+      "height": 1,
+      "sound_awake": "guard_bot_awake",
+      "sound_melee": "weapon_fist",
+      "sound_pain": "guard_bot_pain",
+      "sound_death": "guard_bot_death",
+      "explosion_effect_on_destroy": "small_exp",
+      "shadow_radius": 0.45
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "definitions": [
+    {
+      "id": "punch",
+      "display_name": "Punch",
+      "action_points_consumption": 1,
+      "frame_duration": 0.1,
+      "damage": 1,
+      "melee": true,
+      "duration": 1.0
+    },
+    {
+      "id": "cutter",
+      "display_name": "Cutter",
+      "frame_duration": 0.1,
+      "damage": 2,
+      "engine_consumption": 1,
+      "action_points_consumption": 2,
+      "melee": true,
+      "duration": 0.4,
+      "sound_engage": "weapon_cutter"
+    },
+    {
+      "id": "rapid_laser_cannon",
+      "display_name": "Rapid Laser Cannon",
+      "frame_duration": 0.1,
+      "damage": 2,
+      "sound_engage": "weapon_rapid_laser_cannon",
+      "sound_impact": "small_exp",
+      "number_of_bullets_min": 5,
+      "action_points_consumption": 2,
+      "number_of_bullets_max": 7,
+      "engine_consumption": 4,
+      "bullet_model": "laser_bullet",
+      "bullet_speed": 0.2,
+      "bullet_light_color": "ff0000ff",
+      "bullet_explosion": "laser_exp"
+    },
+    {
+      "id": "glock",
+      "display_name": "Glock",
+      "frame_duration": 0.1,
+      "damage": 1,
+      "sound_engage": "weapon_glock",
+      "sound_impact": "small_exp",
+      "number_of_bullets_min": 1,
+      "number_of_bullets_max": 1,
+      "bullet_model": "gun_bullet",
+      "bullet_speed": 0.6,
+      "action_points_consumption": 1,
+      "light_on_creation": true,
+      "bullet_explosion": "bullet_ricochet"
+    }
+  ]
+}

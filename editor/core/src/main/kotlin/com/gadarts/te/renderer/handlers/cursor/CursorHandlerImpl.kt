@@ -22,10 +22,10 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.Modes.*
 import com.gadarts.te.TerrorEffectorEditor
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.assets.declarations.CharacterDeclaration
+import com.gadarts.te.common.assets.definitions.character.CharacterDefinition
+import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
 import com.gadarts.te.common.definitions.character.SpriteType
-import com.gadarts.te.common.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.Coords
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.MapUtils
@@ -85,7 +85,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     override fun displayObjectOfTreeNode(envObjectDefinition: EnvObjectDefinition) {
         objectModelCursor =
             ObjectModelCursor(
-                ModelInstanceFactory.create(gameAssetsManager, envObjectDefinition.modelDefinition),
+                ModelInstanceFactory.create(gameAssetsManager, envObjectDefinition.model),
                 envObjectDefinition,
                 Direction.EAST,
                 this,
@@ -108,7 +108,7 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         selectedWalls.clear()
     }
 
-    override fun displayCharacterCursor(characterDeclaration: CharacterDeclaration) {
+    override fun displayCharacterCursor(characterDeclaration: CharacterDefinition) {
         objectModelCursor = null
         val idle: String = SpriteType.IDLE.name + "_0_" + Direction.SOUTH.name.lowercase(Locale.getDefault())
         val atlas: TextureAtlas = gameAssetsManager.getAtlas(characterDeclaration.atlasDefinition)
@@ -177,7 +177,6 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
                 decalCursor.decal!!,
                 handlersData.camera,
                 gameAssetsManager,
-                decalCursor.characterDeclaration
             )
             decalsBatch.add(decalCursor.decal)
         }
@@ -251,8 +250,8 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         objectModelCursor!!.modelInstance.transform.values[M13] =
             MathUtils.clamp(
                 ((handlersData.mapData.getNode(position.x.toInt(), position.z.toInt())?.height)
-                    ?: 0F) + (objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F),
-                objectModelCursor!!.definition?.modelDefinition?.modelOffset?.y ?: 0F,
+                    ?: 0F) + (objectModelCursor!!.definition?.model?.modelOffset?.y ?: 0F),
+                objectModelCursor!!.definition?.model?.modelOffset?.y ?: 0F,
                 MapNodeData.MAX_FLOOR_HEIGHT
             )
         return true

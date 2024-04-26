@@ -6,7 +6,7 @@ import lombok.Getter;
 import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
-public enum Shaders implements ShaderDefinition {
+public enum Shaders implements ShaderDeclaration {
     DECAL_VERTEX,
     DECAL_FRAGMENT;
 

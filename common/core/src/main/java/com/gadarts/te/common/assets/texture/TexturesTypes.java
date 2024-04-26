@@ -10,17 +10,17 @@ public enum TexturesTypes {
     Floors(SurfaceTextures.values()),
     UI(UiTextures.values());
 
-    private final TextureDefinition[] definitions;
+    private final TextureDeclaration[] definitions;
 
-    TexturesTypes(final TextureDefinition[] definitions) {
+    TexturesTypes(final TextureDeclaration[] definitions) {
         this.definitions = definitions;
     }
 
-    public static TextureDefinition[] getAllDefinitionsInSingleArray( ) {
-        ArrayList<TextureDefinition> list = new ArrayList<>();
+    public static TextureDeclaration[] getAllDefinitionsInSingleArray( ) {
+        ArrayList<TextureDeclaration> list = new ArrayList<>();
         Arrays.stream(values()).forEach(defs -> list.addAll(Arrays
             .stream(defs.getDefinitions()).toList())
         );
-        return list.toArray(new TextureDefinition[0]);
+        return list.toArray(new TextureDeclaration[0]);
     }
 }

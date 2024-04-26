@@ -7,7 +7,7 @@ import lombok.Getter;
 import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
-public enum Models implements ModelDefinition {
+public enum Models implements ModelDeclaration {
     WALL_WITH_RAILING(),
     WALL_WITH_RAILING_HALF(new ModelOffset(0.5F, 0F, 0F)),
     CRATE_0_CLEAN(new ModelOffset(0F, 0.5F, 0F), "crate_0", "crate_0_texture_0"),

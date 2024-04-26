@@ -4,7 +4,7 @@ import com.badlogic.gdx.ai.msg.MessageDispatcher
 import com.badlogic.gdx.ai.msg.Telegram
 import com.badlogic.gdx.math.Matrix4.M13
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.definitions.env.EnvObjectDefinition
+import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.map.MapNodeData
 import com.gadarts.te.common.map.WallCreator
 import com.gadarts.te.renderer.handlers.HandlerOnEvent
@@ -24,7 +24,7 @@ class DrawingHandlerOnNodesHeightSet : HandlerOnEvent {
             nodes.find { node -> it.coords.equals(node.coords) } != null
         }.forEach {
             it.modelInstance.transform.values[M13] =
-                nodes[0].height + (it.declaration as EnvObjectDefinition).modelDefinition.modelOffset.y
+                nodes[0].height + (it.declaration as EnvObjectDefinition).model.modelOffset.y
         }
     }
 

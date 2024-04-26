@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum UiTextures implements TextureDefinition {
+public enum UiTextures implements TextureDeclaration {
     NODE_CURSOR;
 
     private final Texture.TextureWrap textureWrap;

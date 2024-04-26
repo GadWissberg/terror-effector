@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum EnvObjectType {
-    OBSTACLES(),
-    WALL_OBJECTS()
+    OBSTACLE(),
+    WALL()
 
 
 }

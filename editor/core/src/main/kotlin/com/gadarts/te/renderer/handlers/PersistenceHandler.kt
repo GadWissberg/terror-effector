@@ -7,8 +7,10 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.gadarts.te.EditorEvents
 import com.gadarts.te.common.assets.GameAssetsManager
+import com.gadarts.te.common.assets.definitions.Definitions
+import com.gadarts.te.common.assets.definitions.DefinitionsUtils
+import com.gadarts.te.common.assets.definitions.env.EnvObjectsDefinitions
 import com.gadarts.te.common.assets.texture.SurfaceTextures
-import com.gadarts.te.common.definitions.env.EnvObjectType
 import com.gadarts.te.common.map.*
 import com.gadarts.te.common.map.MapJsonKeys.*
 import com.gadarts.te.common.map.element.Direction
@@ -348,25 +350,23 @@ class PersistenceHandler : BaseHandler() {
     }
 
     private fun load() {
+        val envObjectDefs =
+            (gameAssetsManager.getDefinition(Definitions.ENV_OBJECTS) as EnvObjectsDefinitions).definitions
         try {
             FileReader(TEMP_PATH).use { reader ->
                 val input: JsonObject = gson.fromJson(reader, JsonObject::class.java)
                 inflateMapStructure(input)
-                inflateMapElements(
-                    input,
-                    ENV_OBJECTS
-                ) { x: Int, z: Int, height: Float, definition: String, direction: Direction ->
+                inflateMapElements(input, ENV_OBJECTS)
+                { x: Int, z: Int, height: Float, definition: String, direction: Direction ->
                     handlersData.mapData.insertEnvObject(
                         Coords(x, z),
                         height,
-                        EnvObjectType.findDefinition(definition),
+                        DefinitionsUtils.parse(definition, envObjectDefs),
                         direction
                     )
                 }
-                inflateMapElements(
-                    input,
-                    CHARACTERS
-                ) { x: Int, z: Int, height: Float, _: String, direction: Direction ->
+                inflateMapElements(input, CHARACTERS)
+                { x: Int, z: Int, height: Float, _: String, direction: Direction ->
                     handlersData.mapData.insertCharacter(
                         Coords(x, z),
                         height,

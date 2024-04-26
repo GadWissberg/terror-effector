@@ -9,7 +9,7 @@ import java.util.stream.IntStream;
 import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
-public enum Sounds implements SoundDefinition {
+public enum Sounds implements SoundDeclaration {
     STEP(true, false, "step_concrete_0", "step_concrete_1", "step_concrete_2", "step_concrete_3");
 
     private final String filePath;

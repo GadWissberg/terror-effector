@@ -1,0 +1,30 @@
+{
+  "definitions": [
+    {
+      "id": "punch",
+      "hit_frame_index": 3,
+      "melee": true,
+      "hidden_from_map": true,
+      "definition": "punch",
+      "related_atlas": "player_melee"
+    },
+    {
+      "id": "glock",
+      "hit_frame_index": 3,
+      "symbol_width": 2,
+      "symbol_height": 2,
+      "symbol": "weapon_colt",
+      "definition": "glock",
+      "related_atlas": "player_glock",
+      "mask": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "model": "glock",
+      "ammo_type": "bullet",
+      "magazine_size": 17
+    }
+  ]
+}

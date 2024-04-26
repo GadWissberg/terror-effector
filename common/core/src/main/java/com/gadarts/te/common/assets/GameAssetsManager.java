@@ -12,19 +12,21 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.gadarts.te.common.assets.atlas.AtlasDefinition;
-import com.gadarts.te.common.assets.declarations.Declaration;
-import com.gadarts.te.common.assets.declarations.Declarations;
-import com.gadarts.te.common.assets.declarations.items.WeaponDeclaration;
-import com.gadarts.te.common.assets.declarations.items.WeaponsDeclarations;
-import com.gadarts.te.common.assets.loaders.DeclarationsLoader;
+import com.gadarts.te.common.assets.atlas.AtlasDeclaration;
+import com.gadarts.te.common.assets.definitions.Definition;
+import com.gadarts.te.common.assets.definitions.DefinitionDeclaration;
+import com.gadarts.te.common.assets.definitions.Definitions;
+import com.gadarts.te.common.assets.definitions.DefinitionsUtils;
+import com.gadarts.te.common.assets.definitions.items.WeaponDefinition;
+import com.gadarts.te.common.assets.definitions.items.WeaponsDefinitions;
+import com.gadarts.te.common.assets.loaders.DefinitionsLoader;
 import com.gadarts.te.common.assets.loaders.ShaderLoader;
 import com.gadarts.te.common.assets.melodies.Melodies;
-import com.gadarts.te.common.assets.model.ModelDefinition;
+import com.gadarts.te.common.assets.model.ModelDeclaration;
 import com.gadarts.te.common.assets.model.Models;
 import com.gadarts.te.common.assets.shaders.Shaders;
 import com.gadarts.te.common.assets.sounds.Sounds;
-import com.gadarts.te.common.assets.texture.TextureDefinition;
+import com.gadarts.te.common.assets.texture.TextureDeclaration;
 import com.google.gson.Gson;
 
 import java.util.Arrays;
@@ -38,7 +40,7 @@ public class GameAssetsManager extends AssetManager {
     private final String assetsLocation;
     private final Gson gson = generateDefinedGsonBuilder().create();
 
-    public GameAssetsManager() {
+    public GameAssetsManager( ) {
         this("");
     }
 
@@ -47,11 +49,11 @@ public class GameAssetsManager extends AssetManager {
         FileHandleResolver resolver = new InternalFileHandleResolver();
         setLoader(FreeTypeFontGenerator.class, new FreeTypeFontGeneratorLoader(resolver));
         setLoader(String.class, new ShaderLoader(getFileHandleResolver()));
-        setLoader(Declaration.class, DeclarationDefinition.FORMAT, new DeclarationsLoader(resolver, (json, t, c) -> {
-            WeaponDeclaration result;
+        setLoader(Definition.class, DefinitionDeclaration.FORMAT, new DefinitionsLoader(resolver, (json, t, c) -> {
+            WeaponDefinition result;
             if (json.isJsonPrimitive()) {
-                WeaponsDeclarations declaration = (WeaponsDeclarations) getDeclaration(Declarations.WEAPONS);
-                result = declaration.parse(json.getAsString());
+                WeaponsDefinitions weapons = (WeaponsDefinitions) getDefinition(Definitions.WEAPONS);
+                result = DefinitionsUtils.parse(json.getAsString(), weapons.definitions());
             } else {
                 result = gson.fromJson(json, t);
             }
@@ -59,11 +61,11 @@ public class GameAssetsManager extends AssetManager {
         }));
     }
 
-    public TextureAtlas getAtlas(final AtlasDefinition atlas) {
+    public TextureAtlas getAtlas(final AtlasDeclaration atlas) {
         return get(assetsLocation + atlas.getFilePath(), TextureAtlas.class);
     }
 
-    public Texture getModelExplicitTexture(final ModelDefinition model) {
+    public Texture getModelExplicitTexture(final ModelDeclaration model) {
         return get(assetsLocation + Models.FOLDER + "/" + model.getTextureFileName() + ".png", Texture.class);
     }
 
@@ -75,15 +77,15 @@ public class GameAssetsManager extends AssetManager {
         return get(assetsLocation + filePath, Sound.class);
     }
 
-    public Declaration getDeclaration(Declarations declaration) {
-        return get(assetsLocation + declaration.getFilePath(), Declaration.class);
+    public Definition getDefinition(Definitions definition) {
+        return get(assetsLocation + definition.getFilePath());
     }
 
     public void loadGameFiles(final AssetsType... assetsTypeToExclude) {
         Arrays.stream(AssetsType.values())
             .filter(type -> Arrays.stream(assetsTypeToExclude).noneMatch(toExclude -> toExclude == type))
             .filter(type -> !type.isManualLoad())
-            .forEach(type -> Arrays.stream(type.getAssetDefinitions()).forEach(def -> {
+            .forEach(type -> Arrays.stream(type.getAssetDeclarations()).forEach(def -> {
                 String[] filesList = def.getFilesList();
                 if (filesList.length == 0) {
                     loadFile(def, def.getFilePath(), type.isBlock());
@@ -105,7 +107,7 @@ public class GameAssetsManager extends AssetManager {
     }
 
 
-    public Texture getTexture(final TextureDefinition definition) {
+    public Texture getTexture(final TextureDeclaration definition) {
         return get(assetsLocation + definition.getFilePath(), Texture.class);
     }
 
@@ -114,7 +116,7 @@ public class GameAssetsManager extends AssetManager {
     }
 
 
-    public com.badlogic.gdx.graphics.g3d.Model getModel(final ModelDefinition model) {
+    public com.badlogic.gdx.graphics.g3d.Model getModel(final ModelDeclaration model) {
         return get(assetsLocation + model.getFilePath(), com.badlogic.gdx.graphics.g3d.Model.class);
     }
 
@@ -122,7 +124,7 @@ public class GameAssetsManager extends AssetManager {
         return get(assetsLocation + shaders.getFilePath(), String.class);
     }
 
-    private void loadFile(AssetDefinition def, String fileName, boolean block) {
+    private void loadFile(AssetDeclaration def, String fileName, boolean block) {
         String path = Gdx.files.getFileHandle(assetsLocation + fileName, Files.FileType.Internal).path();
         if (def.getParameters() != null) {
             load(path, def.getTypeClass(), def.getParameters());
@@ -135,10 +137,10 @@ public class GameAssetsManager extends AssetManager {
         loadModelExplicitTexture(def);
     }
 
-    private void loadModelExplicitTexture(AssetDefinition def) {
-        if (def instanceof ModelDefinition modelDef) {
+    private void loadModelExplicitTexture(AssetDeclaration def) {
+        if (def instanceof ModelDeclaration modelDef) {
             Optional.ofNullable(modelDef.getTextureFileName()).ifPresent(t -> {
-                String fileName = assetsLocation + ModelDefinition.FOLDER + "/" + t + ".png";
+                String fileName = assetsLocation + ModelDeclaration.FOLDER + "/" + t + ".png";
                 load(fileName, Texture.class);
             });
         }

@@ -8,7 +8,7 @@ import lombok.Getter;
 import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
-public enum Atlases implements AtlasDefinition {
+public enum Atlases implements AtlasDeclaration {
     PLAYER_GENERIC,
     PLAYER_GLOCK,
     PLAYER_MELEE,

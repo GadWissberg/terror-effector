@@ -11,18 +11,23 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pools;
+import com.gadarts.te.DebugSettings;
 import com.gadarts.te.EntityBuilder;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.assets.atlas.Atlases;
-import com.gadarts.te.common.assets.declarations.CharacterDeclaration;
-import com.gadarts.te.common.assets.declarations.player.PlayerDeclaration;
-import com.gadarts.te.common.assets.declarations.player.PlayerWeaponDeclaration;
-import com.gadarts.te.common.assets.declarations.player.PlayerWeaponsDeclarations;
+import com.gadarts.te.common.assets.definitions.Definitions;
+import com.gadarts.te.common.assets.definitions.DefinitionsUtils;
+import com.gadarts.te.common.assets.definitions.character.CharacterDefinition;
+import com.gadarts.te.common.assets.definitions.character.player.PlayerDefinition;
+import com.gadarts.te.common.assets.definitions.character.player.PlayerWeaponDefinition;
+import com.gadarts.te.common.assets.definitions.character.player.PlayerWeaponsDefinitions;
+import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition;
+import com.gadarts.te.common.assets.definitions.env.EnvObjectsDefinitions;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
-import com.gadarts.te.common.definitions.env.EnvObjectDefinition;
 import com.gadarts.te.common.map.*;
 import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.utils.EnvObjectUtils;
+import com.gadarts.te.common.utils.GameException;
 import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.components.ModelInstanceComponent;
 import com.gadarts.te.components.cd.CharacterAnimations;
@@ -32,13 +37,13 @@ import com.gadarts.te.systems.map.graph.MapGraphNode;
 import com.google.gson.*;
 
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import static com.gadarts.te.DebugSettings.STARTING_WEAPON;
 import static com.gadarts.te.EntityBuilder.beginBuildingEntity;
 import static com.gadarts.te.common.assets.atlas.Atlases.PLAYER_GLOCK;
-import static com.gadarts.te.common.assets.declarations.Declarations.PLAYER_WEAPONS;
 import static com.gadarts.te.common.assets.texture.SurfaceTextures.MISSING;
 import static com.gadarts.te.common.definitions.character.SpriteType.IDLE;
 import static com.gadarts.te.common.map.MapJsonKeys.*;
@@ -77,12 +82,12 @@ public class MapInflater implements Disposable {
     }
 
 
-    private CharacterSpriteData createCharacterSpriteData(CharacterDeclaration declaration) {
+    private CharacterSpriteData createCharacterSpriteData(CharacterDefinition definition) {
         CharacterSpriteData characterSpriteData = Pools.obtain(CharacterSpriteData.class);
         characterSpriteData.init(
             IDLE,
-            declaration.getPrimaryAttackHitFrameIndex(),
-            declaration.isSingleDeathAnimation());
+            definition.getPrimaryAttackHitFrameIndex(),
+            definition.isSingleDeathAnimation());
         return characterSpriteData;
     }
 
@@ -97,7 +102,19 @@ public class MapInflater implements Disposable {
             ModelInstanceComponent component = engine.createComponent(ModelInstanceComponent.class);
             JsonObject elementJsonObject = jsonElement.getAsJsonObject();
             Coords coords = new Coords(elementJsonObject.get(COORD_X).getAsInt(), elementJsonObject.get(COORD_Z).getAsInt());
-            EnvObjectDefinition envObjectDefinition = EnvObjectUtils.fromString(elementJsonObject.get(DEFINITION).getAsString());
+            EnvObjectsDefinitions envObjectDefinitions = (EnvObjectsDefinitions) assetsManager.getDefinition(Definitions.ENV_OBJECTS);
+            String definition = elementJsonObject.get(DEFINITION).getAsString();
+            EnvObjectDefinition envObjectDefinition;
+            try {
+                List<EnvObjectDefinition> definitions = envObjectDefinitions.definitions();
+                envObjectDefinition = definitions.stream()
+                    .filter(def -> def.id()
+                        .equalsIgnoreCase(definition))
+                    .findFirst()
+                    .orElseThrow((Supplier<Throwable>) ( ) -> new GameException("No env-object definition with %s".formatted(definition)));
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
             component.init(EnvObjectUtils.createModelInstanceForEnvObject(
                     assetsManager,
                     coords,
@@ -113,11 +130,12 @@ public class MapInflater implements Disposable {
     private void inflateCharacters(JsonObject mapJsonObj, MapGraph mapGraph) {
         mapJsonObj.get(ELEMENTS).getAsJsonObject().get(CHARACTERS).getAsJsonArray().forEach(jsonElement -> {
             EntityBuilder builder = beginBuildingEntity(engine).addPlayerComponent(assetsManager.get(PLAYER_GLOCK.name()));
-            CharacterSpriteData characterSpriteData = createCharacterSpriteData(PlayerDeclaration.getInstance());
-            PlayerWeaponDeclaration weaponDec = ((PlayerWeaponsDeclarations) assetsManager.getDeclaration(PLAYER_WEAPONS))
-                .parse(STARTING_WEAPON);
-            CharacterAnimations animations = assetsManager.get(weaponDec.relatedAtlas().name());
-            Atlases atlas = weaponDec.relatedAtlas();
+            CharacterSpriteData characterSpriteData = createCharacterSpriteData(PlayerDefinition.getInstance());
+            PlayerWeaponsDefinitions playerWeaponsDefinitions = (PlayerWeaponsDefinitions) assetsManager.getDefinition(Definitions.PLAYER_WEAPONS);
+            List<PlayerWeaponDefinition> definitions = playerWeaponsDefinitions.definitions();
+            PlayerWeaponDefinition startingWeaponDefinition = DefinitionsUtils.parse(DebugSettings.STARTING_WEAPON, definitions);
+            CharacterAnimations animations = assetsManager.get(startingWeaponDefinition.relatedAtlas().name());
+            Atlases atlas = startingWeaponDefinition.relatedAtlas();
             JsonObject asJsonObject = jsonElement.getAsJsonObject();
             Direction direction = Direction.valueOf(asJsonObject.get(DIRECTION).getAsString());
             float x = asJsonObject.get(COORD_X).getAsInt() + 0.5F;
@@ -452,7 +470,7 @@ public class MapInflater implements Disposable {
     }
 
     @Override
-    public void dispose() {
+    public void dispose( ) {
         GeneralUtils.disposeObject(this, MapInflater.class);
     }
 }

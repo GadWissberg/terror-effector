@@ -7,7 +7,7 @@ import lombok.Getter;
 import static com.gadarts.te.common.assets.GameAssetsManager.PATH_SEPARATOR;
 
 @Getter
-public enum Melodies implements MelodyDefinition {
+public enum Melodies implements MelodyDeclaration {
     TEST;
 
     private final String filePath;

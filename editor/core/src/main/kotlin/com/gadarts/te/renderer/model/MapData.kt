@@ -12,9 +12,8 @@ import com.badlogic.gdx.graphics.g3d.decals.DecalBatch
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.atlas.Atlases
-import com.gadarts.te.common.assets.declarations.CharacterDeclaration
-import com.gadarts.te.common.assets.declarations.EnvObjectDeclaration
-import com.gadarts.te.common.assets.declarations.player.PlayerDeclaration
+import com.gadarts.te.common.assets.definitions.character.player.PlayerDefinition
+import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
 import com.gadarts.te.common.definitions.character.SpriteType
@@ -47,7 +46,7 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
         GeneralUtils.disposeObject(this, MapData::class.java)
     }
 
-    fun insertEnvObject(coords: Coords, height: Float, declaration: EnvObjectDeclaration, direction: Direction) {
+    fun insertEnvObject(coords: Coords, height: Float, declaration: EnvObjectDefinition, direction: Direction) {
         if (placedEnvObjects.find { it.coords.equals(coords) && it.declaration == declaration } == null) {
             val modelInstance =
                 EnvObjectUtils.createModelInstanceForEnvObject(
@@ -69,7 +68,7 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
             val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
             val decal = CharacterUtils.createCharacterDecal(region)
             decal.setPosition(coords.x.toFloat() + 0.5F, height + BILLBOARD_Y, coords.z.toFloat() + 0.5F)
-            val element = PlacedCharacter(coords, PlayerDeclaration.getInstance(), direction, decal)
+            val element = PlacedCharacter(coords, PlayerDefinition.getInstance(), direction, decal)
             placedCharacters.add(element)
         }
     }
@@ -129,7 +128,6 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
                 it.decal,
                 camera,
                 gameAssetsManager,
-                it.declaration as CharacterDeclaration
             )
             decalsBatch.add(it.decal)
         }

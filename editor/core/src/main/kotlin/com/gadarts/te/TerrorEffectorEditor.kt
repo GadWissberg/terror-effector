@@ -24,16 +24,15 @@ import com.gadarts.te.assets.IconsTextures.*
 import com.gadarts.te.assets.ShaderLoader
 import com.gadarts.te.assets.Shaders
 import com.gadarts.te.common.assets.GameAssetsManager
-import com.gadarts.te.common.assets.declarations.CharacterDeclaration
-import com.gadarts.te.common.assets.declarations.player.PlayerDeclaration
+import com.gadarts.te.common.assets.definitions.Definitions
+import com.gadarts.te.common.assets.definitions.character.CharacterDefinition
+import com.gadarts.te.common.assets.definitions.character.enemy.EnemiesDefinitions
+import com.gadarts.te.common.assets.definitions.character.player.PlayerDefinition
+import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition
+import com.gadarts.te.common.assets.definitions.env.EnvObjectsDefinitions
 import com.gadarts.te.common.assets.texture.SurfaceTextures
-import com.gadarts.te.common.definitions.character.CharacterDefinition
-import com.gadarts.te.common.definitions.character.EnemyDefinition
-import com.gadarts.te.common.definitions.character.FriendlyDefinition
 import com.gadarts.te.common.definitions.character.SpriteType
-import com.gadarts.te.common.definitions.env.EnvObjectDefinition
-import com.gadarts.te.common.definitions.env.Obstacles
-import com.gadarts.te.common.definitions.env.WallObjects
+import com.gadarts.te.common.definitions.env.EnvObjectType
 import com.gadarts.te.common.map.element.Direction
 import com.gadarts.te.common.utils.GeneralUtils
 import com.gadarts.te.renderer.SceneRenderer
@@ -54,9 +53,10 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         VisUI.load()
         val gameAssetsManager = GameAssetsManager("../game/assets/")
         gameAssetsManager.loadGameFiles()
-        generateFramesMapForCharacter(PlayerDeclaration.getInstance(), gameAssetsManager)
-        EnemyDefinition.entries.forEach { _ ->
-            generateFramesMapForCharacter(PlayerDeclaration.getInstance(), gameAssetsManager)
+        generateFramesMapForCharacter(PlayerDefinition.getInstance(), gameAssetsManager)
+        val enemiesDefinitions = gameAssetsManager.getDefinition(Definitions.ENEMIES) as EnemiesDefinitions
+        enemiesDefinitions.definitions.forEach {
+            generateFramesMapForCharacter(it, gameAssetsManager)
         }
         editorAssetManager = AssetManager()
         editorAssetManager.setLoader(
@@ -83,7 +83,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     }
 
     private fun generateFramesMapForCharacter(
-        characterDeclaration: CharacterDeclaration,
+        characterDeclaration: CharacterDefinition,
         gameAssetsManager: GameAssetsManager
     ) {
         if (characterDeclaration.atlasDefinition == null) return
@@ -127,9 +127,9 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         contentCatalogDisplay = Stack()
         val heightUnderBars = WINDOW_HEIGHT - (menuBar.table.height + buttonBar.height)
         contentCatalogDisplay.add(galleryScrollPane)
-        val envObjectsTree = addEnvObjectsTree()
+        val envObjectsTree = addEnvObjectsTree(gameAssetsManager)
         contentCatalogDisplay.add(envObjectsTree)
-        val charactersTree = addCharactersTree()
+        val charactersTree = addCharactersTree(gameAssetsManager)
         contentCatalogDisplay.add(charactersTree)
         modeToContentCatalog[Modes.FLOOR] = galleryScrollPane
         modeToContentCatalog[Modes.WALLS] = galleryScrollPane
@@ -142,22 +142,32 @@ class TerrorEffectorEditor : ApplicationAdapter() {
         sceneRenderer.init(heightUnderBars)
     }
 
-    private fun addEnvObjectsTree(): VisTree<TreeNode, String> {
+    private fun addEnvObjectsTree(gameAssetsManager: GameAssetsManager): VisTree<TreeNode, String> {
         val envObjectsTree = VisTree<TreeNode, String>()
         val treeRoot = createTreeRoot(envObjectsTree)
-        addNodeToEnvObjectsTree(treeRoot, "Walls", TREE_ICON_WALL, WallObjects.entries.toTypedArray())
-        addNodeToEnvObjectsTree(treeRoot, "Obstacles", TREE_ICON_OBSTACLE, Obstacles.entries.toTypedArray())
+        val definitions = gameAssetsManager.getDefinition(Definitions.ENV_OBJECTS) as EnvObjectsDefinitions
+        addNodeToEnvObjectsTree(
+            treeRoot,
+            "Walls",
+            TREE_ICON_WALL,
+            definitions.definitions.filter { it.type == EnvObjectType.WALL })
+        addNodeToEnvObjectsTree(
+            treeRoot,
+            "Obstacles",
+            TREE_ICON_OBSTACLE,
+            definitions.definitions.filter { it.type == EnvObjectType.OBSTACLE })
         envObjectsTree.add(treeRoot)
         envObjectsTree.isVisible = false
         return envObjectsTree
     }
 
-    private fun addCharactersTree(): VisTree<TreeNode, String> {
+    private fun addCharactersTree(gameAssetsManager: GameAssetsManager): VisTree<TreeNode, String> {
         val tree = VisTree<TreeNode, String>()
         val treeRoot = createTreeRoot(tree)
         val iconTexture = editorAssetManager.get(TREE_ICON_CHARACTER.getFileName(), Texture::class.java)
-        addCharacterNode(iconTexture, treeRoot, FriendlyDefinition.PLAYER)
-        EnemyDefinition.entries.forEach { addCharacterNode(iconTexture, treeRoot, it) }
+        addCharacterNode(iconTexture, treeRoot, PlayerDefinition.getInstance())
+        val definitions = gameAssetsManager.getDefinition(Definitions.ENEMIES) as EnemiesDefinitions
+        definitions.definitions.forEach { addCharacterNode(iconTexture, treeRoot, it) }
         tree.add(treeRoot)
         tree.isVisible = false
         return tree
@@ -178,7 +188,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
     }
 
     private fun addNodeToEnvObjectsTree(
-        treeRoot: TreeNode, label: String, icon: IconsTextures, entries: Array<out EnvObjectDefinition>
+        treeRoot: TreeNode, label: String, icon: IconsTextures, entries: List<EnvObjectDefinition>
     ) {
         val iconTexture = editorAssetManager.get(icon.getFileName(), Texture::class.java)
         val treeNode = TreeNode(label, iconTexture)
