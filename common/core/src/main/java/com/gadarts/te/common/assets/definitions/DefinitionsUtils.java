@@ -8,4 +8,5 @@ public final class DefinitionsUtils {
             .filter(definition -> definition.id().equalsIgnoreCase(id))
             .findFirst().orElse(null);
     }
+
 }

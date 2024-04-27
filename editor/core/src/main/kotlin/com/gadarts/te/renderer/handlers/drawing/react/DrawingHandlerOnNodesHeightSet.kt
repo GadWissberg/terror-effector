@@ -24,7 +24,7 @@ class DrawingHandlerOnNodesHeightSet : HandlerOnEvent {
             nodes.find { node -> it.coords.equals(node.coords) } != null
         }.forEach {
             it.modelInstance.transform.values[M13] =
-                nodes[0].height + (it.declaration as EnvObjectDefinition).model.modelOffset.y
+                nodes[0].height + (it.elementDefinition as EnvObjectDefinition).model.modelOffset.y
         }
     }
 

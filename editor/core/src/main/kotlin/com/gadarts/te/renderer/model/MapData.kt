@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.g3d.decals.DecalBatch
 import com.badlogic.gdx.utils.Disposable
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.atlas.Atlases
-import com.gadarts.te.common.assets.definitions.character.player.PlayerDefinition
+import com.gadarts.te.common.assets.definitions.character.CharacterDefinition
 import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y
@@ -46,29 +46,29 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
         GeneralUtils.disposeObject(this, MapData::class.java)
     }
 
-    fun insertEnvObject(coords: Coords, height: Float, declaration: EnvObjectDefinition, direction: Direction) {
-        if (placedEnvObjects.find { it.coords.equals(coords) && it.declaration == declaration } == null) {
+    fun insertEnvObject(coords: Coords, height: Float, definition: EnvObjectDefinition, direction: Direction) {
+        if (placedEnvObjects.find { it.coords.equals(coords) && it.elementDefinition == definition } == null) {
             val modelInstance =
                 EnvObjectUtils.createModelInstanceForEnvObject(
                     gameAssetsManager,
                     coords,
                     height,
-                    declaration,
+                    definition,
                     direction
                 )
-            val element = PlacedEnvObject(coords, declaration, direction, modelInstance)
+            val element = PlacedEnvObject(coords, definition, direction, modelInstance)
             placedEnvObjects.add(element)
         }
     }
 
-    fun insertCharacter(coords: Coords, height: Float, direction: Direction) {
+    fun insertCharacter(coords: Coords, height: Float, direction: Direction, characterDefinition: CharacterDefinition) {
         if (placedCharacters.find { it.coords.equals(coords) } == null) {
             val idle: String = SpriteType.IDLE.name + "_0_" + Direction.SOUTH.name.lowercase(Locale.getDefault())
             val atlas: TextureAtlas = gameAssetsManager.getAtlas(Atlases.PLAYER_MELEE)
             val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
             val decal = CharacterUtils.createCharacterDecal(region)
             decal.setPosition(coords.x.toFloat() + 0.5F, height + BILLBOARD_Y, coords.z.toFloat() + 0.5F)
-            val element = PlacedCharacter(coords, PlayerDefinition.getInstance(), direction, decal)
+            val element = PlacedCharacter(coords, characterDefinition, direction, decal)
             placedCharacters.add(element)
         }
     }
@@ -126,6 +126,7 @@ class MapData(val mapSize: Int, private val gameAssetsManager: GameAssetsManager
         placedCharacters.forEach {
             DecalUtils.applyFrameSeenFromCameraForCharacterDecal(
                 it.decal,
+                (it.elementDefinition as CharacterDefinition),
                 camera,
                 gameAssetsManager,
             )

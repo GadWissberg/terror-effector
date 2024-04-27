@@ -108,12 +108,12 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
         selectedWalls.clear()
     }
 
-    override fun displayCharacterCursor(characterDeclaration: CharacterDefinition) {
+    override fun displayCharacterCursor(characterDefinition: CharacterDefinition) {
         objectModelCursor = null
         val idle: String = SpriteType.IDLE.name + "_0_" + Direction.SOUTH.name.lowercase(Locale.getDefault())
-        val atlas: TextureAtlas = gameAssetsManager.getAtlas(characterDeclaration.atlasDefinition)
+        val atlas: TextureAtlas = gameAssetsManager.getAtlas(characterDefinition.atlasDefinition)
         val region = atlas.findRegion(idle.lowercase(Locale.getDefault()))
-        decalCursor.newDecal(region, characterDeclaration)
+        decalCursor.newDecal(region, characterDefinition)
     }
 
     override fun dispose() {
@@ -172,9 +172,10 @@ class CursorHandlerImpl : Disposable, InputProcessor, BaseHandler(), CursorHandl
     }
 
     override fun onDecalsRender(decalsBatch: DecalBatch) {
-        if (decalCursor.decal != null) {
+        if (decalCursor.decal != null && decalCursor.characterDefinition != null) {
             DecalUtils.applyFrameSeenFromCameraForCharacterDecal(
                 decalCursor.decal!!,
+                decalCursor.characterDefinition!!,
                 handlersData.camera,
                 gameAssetsManager,
             )

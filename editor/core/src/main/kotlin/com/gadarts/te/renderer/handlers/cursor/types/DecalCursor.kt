@@ -6,14 +6,14 @@ import com.gadarts.te.common.assets.definitions.character.CharacterDefinition
 import com.gadarts.te.common.utils.CharacterUtils
 
 class DecalCursor {
-    var characterDeclaration: CharacterDefinition? = null
+    var characterDefinition: CharacterDefinition? = null
         private set
     var decal: Decal? = null
         private set
 
     fun newDecal(region: TextureAtlas.AtlasRegion, characterDeclaration: CharacterDefinition) {
         decal = CharacterUtils.createCharacterDecal(region)
-        this.characterDeclaration = characterDeclaration
+        this.characterDefinition = characterDeclaration
     }
 
     fun updateAlpha(alpha: Float) {

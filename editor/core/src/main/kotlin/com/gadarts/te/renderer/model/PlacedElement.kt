@@ -6,6 +6,6 @@ import com.gadarts.te.common.map.element.Direction
 
 abstract class PlacedElement(
     val coords: Coords,
-    val declaration: ElementDefinition,
+    val elementDefinition: ElementDefinition,
     val direction: Direction
 )

@@ -60,7 +60,8 @@ class DrawingHandlerOnClickedGridCell(private val drawingHandler: DrawingHandler
                     msg.extraInfo as ClickedGridCellEventForCharacterExtraInfo
                 action = PlaceCharacterAction(
                     clickedGridCellEventForCharacterExtraInfo.coords,
-                    clickedGridCellEventForCharacterExtraInfo.direction
+                    clickedGridCellEventForCharacterExtraInfo.direction,
+                    clickedGridCellEventForCharacterExtraInfo.characterDefinition
                 )
             }
         }

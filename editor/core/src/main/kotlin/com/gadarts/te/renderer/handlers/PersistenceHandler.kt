@@ -9,6 +9,10 @@ import com.gadarts.te.EditorEvents
 import com.gadarts.te.common.assets.GameAssetsManager
 import com.gadarts.te.common.assets.definitions.Definitions
 import com.gadarts.te.common.assets.definitions.DefinitionsUtils
+import com.gadarts.te.common.assets.definitions.character.CharacterDefinition
+import com.gadarts.te.common.assets.definitions.character.enemy.EnemiesDefinitions
+import com.gadarts.te.common.assets.definitions.character.player.PlayerDefinition
+import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition
 import com.gadarts.te.common.assets.definitions.env.EnvObjectsDefinitions
 import com.gadarts.te.common.assets.texture.SurfaceTextures
 import com.gadarts.te.common.map.*
@@ -356,28 +360,52 @@ class PersistenceHandler : BaseHandler() {
             FileReader(TEMP_PATH).use { reader ->
                 val input: JsonObject = gson.fromJson(reader, JsonObject::class.java)
                 inflateMapStructure(input)
-                inflateMapElements(input, ENV_OBJECTS)
-                { x: Int, z: Int, height: Float, definition: String, direction: Direction ->
-                    handlersData.mapData.insertEnvObject(
-                        Coords(x, z),
-                        height,
-                        DefinitionsUtils.parse(definition, envObjectDefs),
-                        direction
-                    )
-                }
-                inflateMapElements(input, CHARACTERS)
-                { x: Int, z: Int, height: Float, _: String, direction: Direction ->
-                    handlersData.mapData.insertCharacter(
-                        Coords(x, z),
-                        height,
-                        direction
-                    )
-                }
+                inflateEnvObjects(input, envObjectDefs)
+                inflateCharacters(input)
             }
         } catch (e: JsonSyntaxException) {
             throw IOException(e.message)
         }
     }
+
+    private fun inflateEnvObjects(
+        input: JsonObject,
+        envObjectDefs: List<EnvObjectDefinition>?
+    ) {
+        inflateMapElements(input, ENV_OBJECTS)
+        { x: Int, z: Int, height: Float, definition: String, direction: Direction ->
+            handlersData.mapData.insertEnvObject(
+                Coords(x, z),
+                height,
+                DefinitionsUtils.parse(definition, envObjectDefs),
+                direction
+            )
+        }
+    }
+
+    private fun inflateCharacters(input: JsonObject) {
+        inflateMapElements(input, CHARACTERS)
+        { x: Int, z: Int, height: Float, definitionId: String, direction: Direction ->
+            val selectedCharacter = parseCharacter(definitionId)
+            if (selectedCharacter != null) {
+                handlersData.mapData.insertCharacter(
+                    Coords(x, z),
+                    height,
+                    direction,
+                    selectedCharacter
+                )
+            }
+        }
+    }
+
+    private fun parseCharacter(definitionId: String): CharacterDefinition? =
+        if (PlayerDefinition.getInstance().id().equals(definitionId)) {
+            PlayerDefinition.getInstance()
+        } else {
+            val enemyDefinitions =
+                (gameAssetsManager.getDefinition(Definitions.ENEMIES) as EnemiesDefinitions).definitions
+            DefinitionsUtils.parse(definitionId, enemyDefinitions)
+        }
 
     private fun inflateMapElements(
         input: JsonObject,
@@ -445,7 +473,7 @@ class PersistenceHandler : BaseHandler() {
         val elementsJsonArray = JsonArray()
         placedElements.forEach {
             val elementJsonObject = JsonObject()
-            elementJsonObject.addProperty(DEFINITION, it.declaration.name())
+            elementJsonObject.addProperty(DEFINITION, it.elementDefinition.id())
             elementJsonObject.addProperty(DIRECTION, it.direction.name)
             elementJsonObject.addProperty(COORD_X, it.coords.x)
             elementJsonObject.addProperty(COORD_Z, it.coords.z)

@@ -95,7 +95,7 @@ class TerrorEffectorEditor : ApplicationAdapter() {
             val name: String = SpriteType.IDLE.name + "_0_" + direction.name
             playerFrames[direction] = atlas.findRegion(name.lowercase(Locale.getDefault()))
         }
-        val format: String = java.lang.String.format(FRAMES_KEY_CHARACTER, characterDeclaration.name())
+        val format: String = java.lang.String.format(FRAMES_KEY_CHARACTER, characterDeclaration.id())
         gameAssetsManager.addAsset(format, MutableMap::class.java, playerFrames)
     }
 

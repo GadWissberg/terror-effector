@@ -7,7 +7,7 @@ import com.gadarts.te.common.map.element.Direction
 
 class PlacedCharacter(
     coords: Coords,
-    declaration: CharacterDefinition,
+    definition: CharacterDefinition,
     direction: Direction,
     val decal: Decal
-) : PlacedElement(coords, declaration, direction)
+) : PlacedElement(coords, definition, direction)
