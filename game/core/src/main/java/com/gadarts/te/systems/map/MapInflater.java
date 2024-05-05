@@ -18,12 +18,15 @@ import com.gadarts.te.common.assets.atlas.Atlases;
 import com.gadarts.te.common.assets.definitions.Definitions;
 import com.gadarts.te.common.assets.definitions.DefinitionsUtils;
 import com.gadarts.te.common.assets.definitions.character.CharacterDefinition;
+import com.gadarts.te.common.assets.definitions.character.enemy.EnemiesDefinitions;
+import com.gadarts.te.common.assets.definitions.character.enemy.EnemyDefinition;
 import com.gadarts.te.common.assets.definitions.character.player.PlayerDefinition;
 import com.gadarts.te.common.assets.definitions.character.player.PlayerWeaponDefinition;
 import com.gadarts.te.common.assets.definitions.character.player.PlayerWeaponsDefinitions;
 import com.gadarts.te.common.assets.definitions.env.EnvObjectDefinition;
 import com.gadarts.te.common.assets.definitions.env.EnvObjectsDefinitions;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
+import com.gadarts.te.common.definitions.character.CharacterType;
 import com.gadarts.te.common.map.*;
 import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.utils.EnvObjectUtils;
@@ -129,14 +132,30 @@ public class MapInflater implements Disposable {
 
     private void inflateCharacters(JsonObject mapJsonObj, MapGraph mapGraph) {
         mapJsonObj.get(ELEMENTS).getAsJsonObject().get(CHARACTERS).getAsJsonArray().forEach(jsonElement -> {
-            EntityBuilder builder = beginBuildingEntity(engine).addPlayerComponent(assetsManager.get(PLAYER_GLOCK.name()));
-            CharacterSpriteData characterSpriteData = createCharacterSpriteData(PlayerDefinition.getInstance());
-            PlayerWeaponsDefinitions playerWeaponsDefinitions = (PlayerWeaponsDefinitions) assetsManager.getDefinition(Definitions.PLAYER_WEAPONS);
-            List<PlayerWeaponDefinition> definitions = playerWeaponsDefinitions.definitions();
-            PlayerWeaponDefinition startingWeaponDefinition = DefinitionsUtils.parse(DebugSettings.STARTING_WEAPON, definitions);
-            CharacterAnimations animations = assetsManager.get(startingWeaponDefinition.relatedAtlas().name());
-            Atlases atlas = startingWeaponDefinition.relatedAtlas();
             JsonObject asJsonObject = jsonElement.getAsJsonObject();
+            String characterDefinition = asJsonObject.get(DEFINITION).getAsString();
+            EnemiesDefinitions enemiesDefinitions = (EnemiesDefinitions) assetsManager.getDefinition(Definitions.ENEMIES);
+            CharacterDefinition selectedDefinition = DefinitionsUtils.parse(characterDefinition, enemiesDefinitions.definitions());
+            if (selectedDefinition == null) {
+                selectedDefinition = PlayerDefinition.getInstance();
+            }
+            EntityBuilder builder;
+            Atlases atlas;
+            CharacterAnimations animations;
+            if (selectedDefinition.getCharacterType() == CharacterType.PLAYER) {
+                builder = beginBuildingEntity(engine).addPlayerComponent(assetsManager.get(PLAYER_GLOCK.name()));
+                PlayerWeaponsDefinitions playerWeaponsDefinitions = (PlayerWeaponsDefinitions) assetsManager.getDefinition(Definitions.PLAYER_WEAPONS);
+                List<PlayerWeaponDefinition> definitions = playerWeaponsDefinitions.definitions();
+                PlayerWeaponDefinition startingWeaponDefinition = DefinitionsUtils.parse(DebugSettings.STARTING_WEAPON, definitions);
+                animations = assetsManager.get(startingWeaponDefinition.relatedAtlas().name());
+                atlas = startingWeaponDefinition.relatedAtlas();
+            } else {
+                assert selectedDefinition instanceof EnemyDefinition;
+                builder = beginBuildingEntity(engine).addEnemyComponent((EnemyDefinition) selectedDefinition);
+                animations = assetsManager.get(selectedDefinition.getAtlasDefinition().name());
+                atlas = selectedDefinition.getAtlasDefinition();
+            }
+            CharacterSpriteData characterSpriteData = createCharacterSpriteData(selectedDefinition);
             Direction direction = Direction.valueOf(asJsonObject.get(DIRECTION).getAsString());
             float x = asJsonObject.get(COORD_X).getAsInt() + 0.5F;
             float z = asJsonObject.get(COORD_Z).getAsInt() + 0.5F;

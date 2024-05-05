@@ -88,7 +88,7 @@ public class CharacterSystem extends GameSystem {
         }
     }
 
-    private void updateCurrentCommand() {
+    private void updateCurrentCommand( ) {
         if (commandInProgress.getState().getStatus() == CharacterCommandStatus.READY) {
             updateReadyGoTo();
         } else {
@@ -120,7 +120,7 @@ public class CharacterSystem extends GameSystem {
         }
     }
 
-    private void updateReadyGoTo() {
+    private void updateReadyGoTo( ) {
         if (commandInProgress.getCharacterCommandDefinition() == CharacterCommandDefinition.GO_TO) {
             Entity initiator = commandInProgress.getInitiator();
             Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
@@ -139,7 +139,7 @@ public class CharacterSystem extends GameSystem {
         }
     }
 
-    private Direction calculateDirectionToDestination() {
+    private Direction calculateDirectionToDestination( ) {
         int nextNodeIndex = commandInProgress.getState().getNextNodeIndex();
         MapGraphPath path = commandInProgress.getPath();
         if (nextNodeIndex >= path.nodes.size) return SOUTH;
@@ -168,15 +168,15 @@ public class CharacterSystem extends GameSystem {
         return handled;
     }
 
-    private void handleRunning() {
+    private void handleRunning( ) {
         Entity initiator = commandInProgress.getInitiator();
         playStepSound(initiator);
         Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
         Vector2 characterPosition = auxVector2_1.set(decal.getX(), decal.getZ());
         int nextNodeIndex = commandInProgress.getState().getNextNodeIndex();
-        MapGraphNode nextNode = commandInProgress.getPath().get(nextNodeIndex);
-        boolean done = false;
-        if (nextNodeIndex == -1 || characterPosition.dst2(nextNode.getCenterPosition(auxVector2_2)) < MOVEMENT_EPSILON) {
+        MapGraphPath path = commandInProgress.getPath();
+        boolean done = nextNodeIndex >= path.nodes.size;
+        if (!done && (nextNodeIndex == -1 || characterPosition.dst2(path.get(nextNodeIndex).getCenterPosition(auxVector2_2)) < MOVEMENT_EPSILON)) {
             done = reachedNodeOfPath();
         }
         if (!done) {
@@ -197,7 +197,7 @@ public class CharacterSystem extends GameSystem {
     }
 
 
-    private void takeStep() {
+    private void takeStep( ) {
         CharacterDecalComponent characterDecalComponent = ComponentsMapper.characterDecal.get(commandInProgress.getInitiator());
         Decal decal = characterDecalComponent.getDecal();
         Vector3 decalPos = decal.getPosition();
@@ -234,7 +234,7 @@ public class CharacterSystem extends GameSystem {
         decal.translate(auxVector3_1.set(velocity.x, 0, velocity.y));
     }
 
-    private boolean reachedNodeOfPath() {
+    private boolean reachedNodeOfPath( ) {
         eventDispatcher.dispatchMessage(SystemEvent.CHARACTER_REACHED_NODE.ordinal(), commandInProgress.getInitiator());
         MapGraphPath path = commandInProgress.getPath();
         CharacterCommandState state = commandInProgress.getState();
@@ -270,7 +270,7 @@ public class CharacterSystem extends GameSystem {
     }
 
     @Override
-    public void dispose() {
+    public void dispose( ) {
         GeneralUtils.disposeObject(this, CharacterSystem.class);
     }
 }

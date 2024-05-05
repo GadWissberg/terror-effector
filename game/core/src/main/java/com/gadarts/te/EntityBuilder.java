@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
+import com.gadarts.te.common.assets.definitions.character.enemy.EnemyDefinition;
 import com.gadarts.te.common.assets.texture.SurfaceTextures;
 import com.gadarts.te.common.definitions.character.SpriteType;
 import com.gadarts.te.common.map.element.Direction;
@@ -53,6 +54,13 @@ public class EntityBuilder {
         PlayerComponent playerComponent = engine.createComponent(PlayerComponent.class);
         playerComponent.init(general);
         currentEntity.add(playerComponent);
+        return instance;
+    }
+
+    public EntityBuilder addEnemyComponent(EnemyDefinition enemyDefinition) {
+        EnemyComponent enemyComponent = engine.createComponent(EnemyComponent.class);
+        enemyComponent.init(enemyDefinition);
+        currentEntity.add(enemyComponent);
         return instance;
     }
 

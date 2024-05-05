@@ -14,6 +14,7 @@ import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.components.cd.CharacterAnimation;
 import com.gadarts.te.components.cd.CharacterAnimations;
 import com.gadarts.te.systems.CameraSystem;
+import com.gadarts.te.systems.EnemySystem;
 import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.PlayerSystem;
 import com.gadarts.te.systems.character.CharacterSystem;
@@ -34,7 +35,8 @@ public class InGameScreen implements Screen {
         new InterfaceSystem(),
         new RenderSystem(),
         new PlayerSystem(),
-        new MapSystem());
+        new MapSystem(),
+        new EnemySystem());
 
     private PooledEngine engine;
     private GameAssetsManager assetsManager;
