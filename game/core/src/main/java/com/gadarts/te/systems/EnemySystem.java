@@ -3,7 +3,6 @@ package com.gadarts.te.systems;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ai.msg.MessageDispatcher;
 import com.badlogic.gdx.ai.msg.Telegram;
 import com.badlogic.gdx.math.GridPoint2;
@@ -70,7 +69,7 @@ public class EnemySystem extends GameSystem {
         if (!checkIfFloorNodesBlockSightToTarget(enemy, nodes)) {
             boolean targetIsClose = isTargetCloseEnough(enemy);
             if (targetIsClose) {
-                Gdx.app.log("SIGHTED", "SIGHTED");
+                eventDispatcher.dispatchMessage(SystemEvent.ENEMY_SPOTTED_PLAYER.ordinal());
             }
         }
     }

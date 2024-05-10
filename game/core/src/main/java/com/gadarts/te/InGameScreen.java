@@ -22,6 +22,7 @@ import com.gadarts.te.systems.data.SharedData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 import com.gadarts.te.systems.map.MapSystem;
 import com.gadarts.te.systems.render.RenderSystem;
+import com.gadarts.te.systems.turns.TurnsSystem;
 import com.gadarts.te.systems.ui.InterfaceSystem;
 
 import java.util.Arrays;
@@ -36,7 +37,8 @@ public class InGameScreen implements Screen {
         new RenderSystem(),
         new PlayerSystem(),
         new MapSystem(),
-        new EnemySystem());
+        new EnemySystem(),
+        new TurnsSystem());
 
     private PooledEngine engine;
     private GameAssetsManager assetsManager;
