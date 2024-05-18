@@ -7,13 +7,13 @@ import com.badlogic.gdx.ai.msg.Telegraph;
 import com.badlogic.gdx.utils.Disposable;
 import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
-import com.gadarts.te.systems.data.SharedData;
+import com.gadarts.te.systems.data.GameSessionData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 
 import java.util.Arrays;
 
 public abstract class GameSystem extends EntitySystem implements Disposable, Telegraph {
-    protected SharedData sharedData;
+    protected GameSessionData sessionData;
     protected GameAssetsManager assetsManager;
     protected MessageDispatcher eventDispatcher;
     protected SoundPlayer soundPlayer;
@@ -36,7 +36,7 @@ public abstract class GameSystem extends EntitySystem implements Disposable, Tel
         return false;
     }
 
-    public void onSystemReady(SharedData sharedData) {
-        this.sharedData = sharedData;
+    public void onSystemReady(GameSessionData gameSessionData) {
+        this.sessionData = gameSessionData;
     }
 }

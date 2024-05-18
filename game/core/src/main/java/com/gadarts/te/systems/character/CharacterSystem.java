@@ -29,7 +29,7 @@ import com.gadarts.te.components.character.CharacterRotationData;
 import com.gadarts.te.components.character.CharacterSpriteData;
 import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.SystemEvent;
-import com.gadarts.te.systems.data.SharedData;
+import com.gadarts.te.systems.data.GameSessionData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 import com.gadarts.te.systems.map.GameHeuristic;
 import com.gadarts.te.systems.map.MapGraphPath;
@@ -68,9 +68,9 @@ public class CharacterSystem extends GameSystem {
     }
 
     @Override
-    public void onSystemReady(SharedData sharedData) {
-        super.onSystemReady(sharedData);
-        pathFinder = new IndexedAStarPathFinder<>(sharedData.mapGraph());
+    public void onSystemReady(GameSessionData gameSessionData) {
+        super.onSystemReady(gameSessionData);
+        pathFinder = new IndexedAStarPathFinder<>(gameSessionData.mapGraph());
     }
 
     @Override
@@ -125,7 +125,7 @@ public class CharacterSystem extends GameSystem {
             Entity initiator = commandInProgress.getInitiator();
             Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
             Vector3 position = decal.getPosition();
-            MapGraphNode startNode = sharedData.mapGraph().getNode((int) position.x, (int) position.z);
+            MapGraphNode startNode = sessionData.mapGraph().getNode((int) position.x, (int) position.z);
             auxPath.clear();
             boolean found = pathFinder.searchNodePath(startNode, commandInProgress.getDestination(), heuristic, auxPath);
             if (found) {
@@ -157,8 +157,8 @@ public class CharacterSystem extends GameSystem {
         if (msg.message == SystemEvent.PLAYER_REQUESTS_MOVE.ordinal()) {
             CharacterCommand characterCommand = Pools.get(CharacterCommand.class).obtain();
             Vector2 extraInfo = (Vector2) msg.extraInfo;
-            MapGraphNode destination = sharedData.mapGraph().getNode((int) extraInfo.x, (int) extraInfo.y);
-            characterCommand.init(CharacterCommandDefinition.GO_TO, destination, sharedData.player());
+            MapGraphNode destination = sessionData.mapGraph().getNode((int) extraInfo.x, (int) extraInfo.y);
+            characterCommand.init(CharacterCommandDefinition.GO_TO, destination, sessionData.player());
             commandsToExecute.addLast(characterCommand);
             handled = true;
         } else if (msg.message == CHARACTER_ANIMATION_RUN_NEW_FRAME.ordinal()) {
@@ -204,7 +204,7 @@ public class CharacterSystem extends GameSystem {
         MapGraphNode nextNode = commandInProgress.getPath().get(commandInProgress.getState().getNextNodeIndex());
         float distanceToNextNode = nextNode.getCenterPosition(auxVector2_1).dst2(decalPos.x, decalPos.z);
         Vector2 nodePosition = characterDecalComponent.getNodePosition(auxVector2_1);
-        MapGraph map = sharedData.mapGraph();
+        MapGraph map = sessionData.mapGraph();
         MapGraphNode currentNode = map.getNode((int) nodePosition.x, (int) nodePosition.y);
         if (distanceToNextNode < MOVEMENT_EPSILON) {
             placeCharacterInTheNextNode(decal);
@@ -242,7 +242,7 @@ public class CharacterSystem extends GameSystem {
         state.setNextNodeIndex(state.getNextNodeIndex() + 1);
         int nextNodeIndex = state.getNextNodeIndex();
         MapGraphNode nextNode = nextNodeIndex < path.nodes.size ? path.get(nextNodeIndex) : null;
-        MapGraph mapGraph = sharedData.mapGraph();
+        MapGraph mapGraph = sessionData.mapGraph();
         boolean done = nextNodeIndex == -1 || mapGraph.findConnection(state.getPrevNode(), nextNode) == null;
         if (!done && nextNode != null) {
             Vector2 nextNodeCenterPosition = nextNode.getCenterPosition(auxVector2_1);

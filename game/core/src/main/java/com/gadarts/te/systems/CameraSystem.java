@@ -14,7 +14,7 @@ import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.common.utils.CameraUtils;
 import com.gadarts.te.components.ComponentsMapper;
-import com.gadarts.te.systems.data.SharedData;
+import com.gadarts.te.systems.data.GameSessionData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 import com.gadarts.te.systems.map.graph.MapGraph;
 
@@ -45,13 +45,13 @@ public class CameraSystem extends GameSystem implements InputProcessor {
     @Override
     public void update(float deltaTime) {
         handleCameraFollow();
-        sharedData.camera().update();
+        sessionData.camera().update();
     }
 
     private void handleCameraFollow( ) {
-        Entity player = sharedData.player();
+        Entity player = sessionData.player();
         Vector3 playerPos = ComponentsMapper.characterDecal.get(player).getDecal().getPosition();
-        Camera camera = sharedData.camera();
+        Camera camera = sessionData.camera();
         Ray ray = camera.getPickRay(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f);
         groundPlane.d = playerPos.y;
         Intersector.intersectRayPlane(ray, groundPlane, auxVector1);
@@ -62,8 +62,8 @@ public class CameraSystem extends GameSystem implements InputProcessor {
     }
 
     @Override
-    public void onSystemReady(SharedData sharedData) {
-        super.onSystemReady(sharedData);
+    public void onSystemReady(GameSessionData gameSessionData) {
+        super.onSystemReady(gameSessionData);
     }
 
     @Override
@@ -115,10 +115,10 @@ public class CameraSystem extends GameSystem implements InputProcessor {
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         boolean handled = false;
         if (!lastRightPressMousePosition.epsilonEquals(-1F, -1F)) {
-            Vector3 rotationPoint = ComponentsMapper.characterDecal.get(sharedData.player()).getDecal().getPosition();
-            OrthographicCamera camera = sharedData.camera();
+            Vector3 rotationPoint = ComponentsMapper.characterDecal.get(sessionData.player()).getDecal().getPosition();
+            OrthographicCamera camera = sessionData.camera();
             camera.rotateAround(rotationPoint, Vector3.Y, (lastRightPressMousePosition.x - screenX) / 2f);
-            MapGraph mapGraph = sharedData.mapGraph();
+            MapGraph mapGraph = sessionData.mapGraph();
             camera.position.x = MathUtils.clamp(camera.position.x, -EXTRA_LEVEL_PADDING, mapGraph.getWidth() + EXTRA_LEVEL_PADDING);
             camera.position.z = MathUtils.clamp(camera.position.z, -EXTRA_LEVEL_PADDING, mapGraph.getDepth() + EXTRA_LEVEL_PADDING);
             lastRightPressMousePosition.set(screenX, screenY);

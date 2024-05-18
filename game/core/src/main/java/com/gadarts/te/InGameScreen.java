@@ -18,7 +18,7 @@ import com.gadarts.te.systems.EnemySystem;
 import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.PlayerSystem;
 import com.gadarts.te.systems.character.CharacterSystem;
-import com.gadarts.te.systems.data.SharedData;
+import com.gadarts.te.systems.data.GameSessionData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 import com.gadarts.te.systems.map.MapSystem;
 import com.gadarts.te.systems.render.RenderSystem;
@@ -42,7 +42,7 @@ public class InGameScreen implements Screen {
 
     private PooledEngine engine;
     private GameAssetsManager assetsManager;
-    private SharedData sharedData;
+    private GameSessionData gameSessionData;
     private SoundPlayer soundPlayer;
 
     @Override
@@ -58,8 +58,8 @@ public class InGameScreen implements Screen {
             engine.addSystem(system);
             system.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
         });
-        sharedData = sharedDataBuilder.build();
-        systems.forEach(system -> system.onSystemReady(sharedData));
+        gameSessionData = sharedDataBuilder.build();
+        systems.forEach(system -> system.onSystemReady(gameSessionData));
     }
 
     private void generateCharactersAnimations( ) {

@@ -34,7 +34,7 @@ import com.gadarts.te.components.character.CharacterComponent;
 import com.gadarts.te.components.character.CharacterSpriteData;
 import com.gadarts.te.systems.GameSystem;
 import com.gadarts.te.systems.SystemEvent;
-import com.gadarts.te.systems.data.SharedData;
+import com.gadarts.te.systems.data.GameSessionData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 
 import static com.gadarts.te.DebugSettings.HIDE_CHARACTERS;
@@ -91,9 +91,9 @@ public class RenderSystem extends GameSystem {
     }
 
     @Override
-    public void onSystemReady(SharedData sharedData) {
-        super.onSystemReady(sharedData);
-        strategies.createDecalGroupStrategies(sharedData.camera(), assetsManager);
+    public void onSystemReady(GameSessionData gameSessionData) {
+        super.onSystemReady(gameSessionData);
+        strategies.createDecalGroupStrategies(gameSessionData.camera(), assetsManager);
         this.decalBatch = new DecalBatch(DECALS_POOL_SIZE, strategies.getRegularDecalGroupStrategy());
     }
 
@@ -101,7 +101,7 @@ public class RenderSystem extends GameSystem {
     public void update(float deltaTime) {
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         ScreenUtils.clear(Color.BLACK, true);
-        modelBatch.begin(sharedData.camera());
+        modelBatch.begin(sessionData.camera());
         for (Entity entity : modelEntities) {
             ModelInstanceComponent modelInstanceComponent = ComponentsMapper.modelInstance.get(entity);
             ModelInstance modelInstance = modelInstanceComponent.getModelInstance();
@@ -113,7 +113,7 @@ public class RenderSystem extends GameSystem {
         }
         modelBatch.end();
         renderDecals();
-        sharedData.uiStage().draw();
+        sessionData.uiStage().draw();
     }
 
     private void renderDecals( ) {
@@ -136,7 +136,7 @@ public class RenderSystem extends GameSystem {
 
         Decal decal = ComponentsMapper.characterDecal.get(entity).getDecal();
         Vector3 decalPosition = decal.getPosition();
-        OrthographicCamera camera = sharedData.camera();
+        OrthographicCamera camera = sessionData.camera();
         decal.lookAt(auxVector.set(decalPosition).sub(camera.direction), camera.up);
         decalBatch.add(decal);
     }
@@ -144,7 +144,7 @@ public class RenderSystem extends GameSystem {
     private void updateCharacterDecal(Entity entity) {
         CharacterComponent characterComp = ComponentsMapper.character.get(entity);
         CharacterSpriteData charSpriteData = characterComp.getCharacterSpriteData();
-        Direction direction = CharacterUtils.calculateDirectionSeenFromCamera(sharedData.camera(), characterComp.getFacingDirection());
+        Direction direction = CharacterUtils.calculateDirectionSeenFromCamera(sessionData.camera(), characterComp.getFacingDirection());
         SpriteType spriteType = charSpriteData.getSpriteType();
         boolean sameSpriteType = spriteType.equals(ComponentsMapper.characterDecal.get(entity).getSpriteType());
         Direction characterFacingDirection = ComponentsMapper.characterDecal.get(entity).getDirection();

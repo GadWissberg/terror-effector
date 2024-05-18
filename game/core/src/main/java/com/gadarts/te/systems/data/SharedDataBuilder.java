@@ -13,7 +13,7 @@ public class SharedDataBuilder {
     private Entity player;
     private Stage uiStage;
 
-    public SharedData build( ) {
-        return new SharedData(camera, mapGraph, player, uiStage);
+    public GameSessionData build( ) {
+        return new GameSessionData(camera, mapGraph, player, uiStage);
     }
 }

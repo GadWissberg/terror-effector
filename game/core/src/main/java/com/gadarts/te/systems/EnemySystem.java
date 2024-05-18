@@ -55,7 +55,7 @@ public class EnemySystem extends GameSystem {
     private boolean isTargetInFov(final Entity enemy) {
         CharacterComponent charComponent = ComponentsMapper.character.get(enemy);
         Vector3 enemyPos = ComponentsMapper.characterDecal.get(enemy).getDecal().getPosition();
-        Vector3 targetPos = ComponentsMapper.characterDecal.get(sharedData.player()).getDecal().getPosition();
+        Vector3 targetPos = ComponentsMapper.characterDecal.get(sessionData.player()).getDecal().getPosition();
         Vector2 enemyDirection = charComponent.getFacingDirection().getDirection(auxVector2_1);
         float dirToTarget = auxVector2_2.set(targetPos.x, targetPos.z).sub(enemyPos.x, enemyPos.z).nor().angleDeg();
         float angleDiff = (enemyDirection.angleDeg() - dirToTarget + 180 + 360) % 360 - 180;
@@ -65,7 +65,7 @@ public class EnemySystem extends GameSystem {
     private void awakeEnemyIfTargetSpotted(final Entity enemy) {
         if (!isTargetInFov(enemy)) return;
 
-        LinkedHashSet<GridPoint2> nodes = EnemyUtils.findAllNodesToTarget(enemy, bresenhamOutput, true, sharedData.player());
+        LinkedHashSet<GridPoint2> nodes = EnemyUtils.findAllNodesToTarget(enemy, bresenhamOutput, true, sessionData.player());
         if (!checkIfFloorNodesBlockSightToTarget(enemy, nodes)) {
             boolean targetIsClose = isTargetCloseEnough(enemy);
             if (targetIsClose) {
@@ -76,9 +76,9 @@ public class EnemySystem extends GameSystem {
 
     private boolean isTargetCloseEnough(Entity enemy) {
         Vector2 enemyPos = ComponentsMapper.characterDecal.get(enemy).getNodePosition(auxVector2_1);
-        Entity target = sharedData.player();
+        Entity target = sessionData.player();
         Vector2 targetPos = ComponentsMapper.characterDecal.get(target).getNodePosition(auxVector2_2);
-        ComponentsMapper.enemy.get(enemy).setTargetLastVisibleNode(sharedData.mapGraph().getNode((int) targetPos.x, (int) targetPos.y));
+        ComponentsMapper.enemy.get(enemy).setTargetLastVisibleNode(sessionData.mapGraph().getNode((int) targetPos.x, (int) targetPos.y));
         int maxDistance = 4;
         return enemyPos.dst2(targetPos) <= Math.pow(maxDistance, 2);
     }
@@ -86,7 +86,7 @@ public class EnemySystem extends GameSystem {
     private boolean checkIfFloorNodesBlockSightToTarget(Entity enemy, LinkedHashSet<GridPoint2> nodes) {
         Vector2 enemyPosition = ComponentsMapper.characterDecal.get(enemy).getNodePosition(auxVector2_1);
         for (GridPoint2 n : nodes) {
-            MapGraph map = sharedData.mapGraph();
+            MapGraph map = sessionData.mapGraph();
             MapGraphNode node = map.getNode(n.x, n.y);
             if (checkIfFloorNodeBlockSightToTarget(enemyPosition, map, node)) {
                 return true;

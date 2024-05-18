@@ -22,13 +22,15 @@ public class TurnsSystem extends GameSystem {
 
     @Override
     public boolean handleMessage(Telegram msg) {
+        boolean handled = false;
         if (msg.message == SystemEvent.ENEMY_SPOTTED_PLAYER.ordinal()) {
             if (mode != GameMode.COMBAT) {
                 mode = GameMode.COMBAT;
                 eventDispatcher.dispatchMessage(SystemEvent.GAME_MODE_CHANGED.ordinal());
+                handled = true;
             }
         }
-        return super.handleMessage(msg);
+        return handled;
     }
 
     @Override

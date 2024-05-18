@@ -9,7 +9,7 @@ import com.gadarts.te.common.assets.texture.UiTextures;
 import com.gadarts.te.common.map.MapUtils;
 import com.gadarts.te.common.utils.GeneralUtils;
 import com.gadarts.te.systems.GameSystem;
-import com.gadarts.te.systems.data.SharedData;
+import com.gadarts.te.systems.data.GameSessionData;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 
 public class InterfaceSystem extends GameSystem {
@@ -32,18 +32,18 @@ public class InterfaceSystem extends GameSystem {
     public void update(float deltaTime) {
         super.update(deltaTime);
         cursorHandler.update();
-        sharedData.uiStage().act(deltaTime);
+        sessionData.uiStage().act(deltaTime);
     }
 
     @Override
-    public void onSystemReady(SharedData sharedData) {
-        super.onSystemReady(sharedData);
+    public void onSystemReady(GameSessionData gameSessionData) {
+        super.onSystemReady(gameSessionData);
         cursorHandler.init(
             assetsManager.getTexture(UiTextures.NODE_CURSOR),
             getEngine(),
             floorModel,
-            sharedData.mapGraph(),
-            sharedData.camera());
+            gameSessionData.mapGraph(),
+            gameSessionData.camera());
     }
 
     @Override
