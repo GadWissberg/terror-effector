@@ -13,7 +13,7 @@ public class PlayerSystem extends GameSystem {
                            MessageDispatcher eventDispatcher,
                            SoundPlayer soundPlayer) {
         super.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
-        subscribeToEvents(SystemEvent.USER_CLICKED_NODE, SystemEvent.GAME_MODE_CHANGED);
+        subscribeToEvents(SystemEvent.USER_CLICKED_NODE);
     }
 
 
@@ -24,13 +24,9 @@ public class PlayerSystem extends GameSystem {
 
     @Override
     public boolean handleMessage(Telegram msg) {
-        boolean handled = false;
         if (msg.message == SystemEvent.USER_CLICKED_NODE.ordinal()) {
             eventDispatcher.dispatchMessage(SystemEvent.PLAYER_REQUESTS_MOVE.ordinal(), msg.extraInfo);
-            handled = true;
-        } else if (msg.message == SystemEvent.GAME_MODE_CHANGED.ordinal()) {
-            handled = true;
         }
-        return handled;
+        return false;
     }
 }

@@ -10,6 +10,7 @@ import com.gadarts.te.common.map.Coords;
 import com.gadarts.te.common.map.MapNodesTypes;
 import com.gadarts.te.components.ComponentsMapper;
 import lombok.Getter;
+import lombok.Setter;
 
 @SuppressWarnings("GDXJavaUnsafeIterator")
 public class MapGraph implements IndexedGraph<MapGraphNode> {
@@ -22,6 +23,9 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
     @Getter
     private final int depth;
     private final ImmutableArray<Entity> characters;
+
+    @Setter
+    private MapGraphNode currentCalculationDestination;
 
     public MapGraph(int width, int depth, ImmutableArray<Entity> characters) {
         this.width = width;
@@ -139,7 +143,9 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
         boolean result = true;
         for (Entity character : characters) {
             Vector2 characterNodePosition = ComponentsMapper.characterDecal.get(character).getNodePosition(auxVector);
-            if (connection.getToNode().equals(getNode((int) characterNodePosition.x, (int) characterNodePosition.y))) {
+            MapGraphNode toNode = connection.getToNode();
+            boolean hasCharacter = toNode.equals(getNode((int) characterNodePosition.x, (int) characterNodePosition.y));
+            if (hasCharacter && (!toNode.equals(currentCalculationDestination))) {
                 result = false;
                 break;
             }

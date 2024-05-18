@@ -14,6 +14,6 @@ public class SharedDataBuilder {
     private Stage uiStage;
 
     public GameSessionData build( ) {
-        return new GameSessionData(camera, mapGraph, player, uiStage);
+        return new GameSessionData(camera, mapGraph, player, uiStage, new GameModeContainer(), new CharacterCommandContainer());
     }
 }

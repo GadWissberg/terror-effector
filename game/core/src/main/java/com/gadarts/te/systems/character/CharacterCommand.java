@@ -16,8 +16,11 @@ public class CharacterCommand implements Pool.Poolable {
     private MapGraphPath path;
     private Entity initiator;
 
+    @Setter
+    private boolean stopWhenPossible;
+
     @Override
-    public void reset() {
+    public void reset( ) {
 
     }
 

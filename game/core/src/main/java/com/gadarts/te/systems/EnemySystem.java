@@ -13,6 +13,8 @@ import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.EnemyComponent;
 import com.gadarts.te.components.character.CharacterComponent;
+import com.gadarts.te.systems.character.CharacterCommand;
+import com.gadarts.te.systems.character.CharacterCommandDefinition;
 import com.gadarts.te.systems.data.SharedDataBuilder;
 import com.gadarts.te.systems.enemy.EnemyUtils;
 import com.gadarts.te.systems.map.graph.MapGraph;
@@ -21,6 +23,7 @@ import com.gadarts.te.systems.map.graph.MapGraphNode;
 import java.util.LinkedHashSet;
 
 import static com.gadarts.te.systems.SystemEvent.CHARACTER_ANIMATION_RUN_NEW_FRAME;
+import static com.gadarts.te.systems.SystemEvent.ENEMY_NEW_TURN;
 
 public class EnemySystem extends GameSystem {
     private final static LinkedHashSet<GridPoint2> bresenhamOutput = new LinkedHashSet<>();
@@ -30,10 +33,13 @@ public class EnemySystem extends GameSystem {
     private ImmutableArray<Entity> enemiesEntities;
 
     @Override
-    public void initialize(SharedDataBuilder sharedDataBuilder, GameAssetsManager assetsManager, MessageDispatcher eventDispatcher, SoundPlayer soundPlayer) {
+    public void initialize(SharedDataBuilder sharedDataBuilder,
+                           GameAssetsManager assetsManager,
+                           MessageDispatcher eventDispatcher,
+                           SoundPlayer soundPlayer) {
         super.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
         enemiesEntities = getEngine().getEntitiesFor(Family.all(EnemyComponent.class).get());
-        subscribeToEvents(CHARACTER_ANIMATION_RUN_NEW_FRAME);
+        subscribeToEvents(CHARACTER_ANIMATION_RUN_NEW_FRAME, SystemEvent.ENEMY_NEW_TURN);
     }
 
     @Override
@@ -48,6 +54,12 @@ public class EnemySystem extends GameSystem {
             for (int i = 0; i < enemiesEntities.size(); i++) {
                 awakeEnemyIfTargetSpotted(enemiesEntities.get(i));
             }
+        } else if (msg.message == ENEMY_NEW_TURN.ordinal()) {
+            CharacterCommand characterCommand = new CharacterCommand();
+            Vector2 nodePosition = ComponentsMapper.characterDecal.get(sessionData.player()).getNodePosition(auxVector2_1);
+            MapGraphNode destination = sessionData.mapGraph().getNode((int) nodePosition.x, (int) nodePosition.y);
+            characterCommand.init(CharacterCommandDefinition.GO_TO, destination, (Entity) msg.extraInfo);
+            eventDispatcher.dispatchMessage(SystemEvent.ENEMY_REQUESTS_COMMAND.ordinal(), characterCommand);
         }
         return false;
     }
@@ -69,7 +81,7 @@ public class EnemySystem extends GameSystem {
         if (!checkIfFloorNodesBlockSightToTarget(enemy, nodes)) {
             boolean targetIsClose = isTargetCloseEnough(enemy);
             if (targetIsClose) {
-                eventDispatcher.dispatchMessage(SystemEvent.ENEMY_SPOTTED_PLAYER.ordinal());
+                eventDispatcher.dispatchMessage(SystemEvent.ENEMY_SPOTTED_PLAYER.ordinal(), enemy);
             }
         }
     }
