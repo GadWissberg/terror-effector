@@ -1,10 +1,8 @@
 package com.gadarts.te.systems.map.graph;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.ai.pfa.Connection;
 import com.badlogic.gdx.ai.pfa.indexed.IndexedGraph;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.gadarts.te.common.map.Coords;
 import com.gadarts.te.common.map.MapNodesTypes;
@@ -16,22 +14,19 @@ import lombok.Setter;
 public class MapGraph implements IndexedGraph<MapGraphNode> {
     public static final float PASSABLE_MAX_HEIGHT_DIFF = 0.3f;
     private static final Array<Connection<MapGraphNode>> auxConnectionsList = new Array<>();
-    private static final Vector2 auxVector = new Vector2();
     private final Array<MapGraphNode> nodes;
     @Getter
     private final int width;
     @Getter
     private final int depth;
-    private final ImmutableArray<Entity> characters;
 
     @Setter
     private MapGraphNode currentCalculationDestination;
 
-    public MapGraph(int width, int depth, ImmutableArray<Entity> characters) {
+    public MapGraph(int width, int depth) {
         this.width = width;
         this.depth = depth;
         this.nodes = new Array<>(width * depth);
-        this.characters = characters;
         for (int z = 0; z < depth; z++) {
             for (int x = 0; x < width; x++) {
                 nodes.add(new MapGraphNode(x, z, MapNodesTypes.values()[MapNodesTypes.PASSABLE_NODE.ordinal()], 8));
@@ -132,26 +127,16 @@ public class MapGraph implements IndexedGraph<MapGraphNode> {
         auxConnectionsList.clear();
         Array<MapGraphConnection> connections = fromNode.getConnections();
         for (Connection<MapGraphNode> connection : connections) {
-            if (isConnectionAvailable(connection)) {
+            Entity nodeEntity = connection.getToNode().getEntity();
+            if (nodeEntity == null
+                || ComponentsMapper.floor.get(nodeEntity).getContainedCharacter() == null
+                || connection.getToNode().equals(currentCalculationDestination)) {
                 auxConnectionsList.add(connection);
             }
         }
         return auxConnectionsList;
     }
 
-    private boolean isConnectionAvailable(Connection<MapGraphNode> connection) {
-        boolean result = true;
-        for (Entity character : characters) {
-            Vector2 characterNodePosition = ComponentsMapper.characterDecal.get(character).getNodePosition(auxVector);
-            MapGraphNode toNode = connection.getToNode();
-            boolean hasCharacter = toNode.equals(getNode((int) characterNodePosition.x, (int) characterNodePosition.y));
-            if (hasCharacter && (!toNode.equals(currentCalculationDestination))) {
-                result = false;
-                break;
-            }
-        }
-        return result;
-    }
 
     @Override
     public int getIndex(MapGraphNode node) {

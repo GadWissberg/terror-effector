@@ -12,8 +12,6 @@ import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Pools;
-import com.badlogic.gdx.utils.Queue;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
@@ -40,7 +38,6 @@ import com.gadarts.te.systems.map.graph.MapGraphNode;
 
 import static com.gadarts.te.common.definitions.character.CharacterType.BILLBOARD_Y;
 import static com.gadarts.te.common.definitions.character.SpriteType.IDLE;
-import static com.gadarts.te.common.map.element.Direction.SOUTH;
 import static com.gadarts.te.common.map.element.Direction.findDirection;
 import static com.gadarts.te.systems.SystemEvent.CHARACTER_ANIMATION_RUN_NEW_FRAME;
 import static com.gadarts.te.systems.turns.GameMode.COMBAT;
@@ -57,7 +54,6 @@ public class CharacterSystem extends GameSystem {
     private static final Vector3 auxVector3_2 = new Vector3();
     private static final float MOVEMENT_EPSILON = 0.02F;
     private final GameHeuristic heuristic = new GameHeuristic();
-    private final Queue<CharacterCommand> commandsToExecute = new Queue<>();
     private final MapGraphPath auxPath = new MapGraphPath();
     private ImmutableArray<Entity> characters;
     private IndexedAStarPathFinder<MapGraphNode> pathFinder;
@@ -70,10 +66,8 @@ public class CharacterSystem extends GameSystem {
         super.initialize(sharedDataBuilder, assetsManager, eventDispatcher, soundPlayer);
         characters = getEngine().getEntitiesFor(Family.all(CharacterComponent.class).get());
         subscribeToEvents(
-            SystemEvent.PLAYER_REQUESTS_MOVE,
             CHARACTER_ANIMATION_RUN_NEW_FRAME,
-            SystemEvent.GAME_MODE_CHANGED,
-            SystemEvent.ENEMY_REQUESTS_COMMAND);
+            SystemEvent.GAME_MODE_CHANGED);
     }
 
     @Override
@@ -93,15 +87,15 @@ public class CharacterSystem extends GameSystem {
         CharacterCommandContainer characterCommandContainer = sessionData.commandInProgress();
         if (characterCommandContainer.getCommand() != null) {
             updateCurrentCommand();
-        } else if (commandsToExecute.notEmpty()) {
-            characterCommandContainer.setCommand(commandsToExecute.removeFirst());
+        } else if (sessionData.commandsToExecute().notEmpty()) {
+            characterCommandContainer.setCommand(sessionData.commandsToExecute().removeFirst());
         }
     }
 
     private void updateCurrentCommand( ) {
         CharacterCommand command = sessionData.commandInProgress().getCommand();
         if (command.getState().getStatus() == CharacterCommandStatus.READY) {
-            updateReadyGoTo();
+            updateCurrentCommandFromReadyToInProgress();
         } else {
             Direction directionToDest = calculateDirectionToDestination();
             CharacterComponent characterComponent = ComponentsMapper.character.get(command.getInitiator());
@@ -114,7 +108,7 @@ public class CharacterSystem extends GameSystem {
                 if (facingDirection != directionToDest) {
                     rotate(lastRotation, rotData, facingDirection, directionToDest, characterComponent);
                 } else {
-                    characterSpriteData.setSpriteType(SpriteType.RUN);
+                    characterSpriteData.setSpriteType(command.getCharacterCommandDefinition().getSpriteType());
                 }
             }
         }
@@ -131,61 +125,73 @@ public class CharacterSystem extends GameSystem {
         }
     }
 
-    private void updateReadyGoTo( ) {
+    private void updateCurrentCommandFromReadyToInProgress( ) {
         CharacterCommandContainer characterCommandContainer = sessionData.commandInProgress();
         CharacterCommand command = characterCommandContainer.getCommand();
-        if (command.getCharacterCommandDefinition() == CharacterCommandDefinition.GO_TO) {
-            Entity initiator = command.getInitiator();
-            Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
-            Vector3 position = decal.getPosition();
+        CharacterCommandDefinition characterCommandDefinition = command.getCharacterCommandDefinition();
+        Entity initiator = command.getInitiator();
+        Decal decal = ComponentsMapper.characterDecal.get(initiator).getDecal();
+        Vector3 position = decal.getPosition();
+        MapGraphNode startNode = sessionData.mapGraph().getNode((int) position.x, (int) position.z);
+        if (characterCommandDefinition == CharacterCommandDefinition.GO_TO) {
             MapGraph mapGraph = sessionData.mapGraph();
-            MapGraphNode startNode = mapGraph.getNode((int) position.x, (int) position.z);
             MapGraphNode destination = command.getDestination();
             mapGraph.setCurrentCalculationDestination(destination);
             auxPath.clear();
             boolean found = pathFinder.searchNodePath(startNode, destination, heuristic, auxPath);
             if (found) {
-                CharacterCommandState state = command.getState();
-                state.setStatus(CharacterCommandStatus.IN_PROGRESS);
-                command.setPath(auxPath);
-                state.setNextNodeIndex(1);
+                updateCommandFromReadyToInProgress(startNode);
             } else {
                 characterCommandContainer.setCommand(null);
             }
+        } else if (characterCommandDefinition == CharacterCommandDefinition.ATTACK_MELEE) {
+            auxPath.clear();
+            auxPath.add(command.getDestination());
+            updateCommandFromReadyToInProgress(startNode);
         }
+    }
+
+    private void updateCommandFromReadyToInProgress(MapGraphNode startNode) {
+        CharacterCommandContainer characterCommandContainer = sessionData.commandInProgress();
+        CharacterCommand command = characterCommandContainer.getCommand();
+        CharacterCommandState state = command.getState();
+        state.setStatus(CharacterCommandStatus.IN_PROGRESS);
+        command.setPath(auxPath);
+        state.setPrevNode(startNode);
+        state.setNextNodeIndex(1);
     }
 
     private Direction calculateDirectionToDestination( ) {
         CharacterCommand command = sessionData.commandInProgress().getCommand();
         int nextNodeIndex = command.getState().getNextNodeIndex();
         MapGraphPath path = command.getPath();
-        if (nextNodeIndex >= path.nodes.size) return SOUTH;
-
         Entity character = command.getInitiator();
         Vector3 characterPos = auxVector3_1.set(ComponentsMapper.characterDecal.get(character).getDecal().getPosition());
-        Vector2 destPos = path.get(nextNodeIndex).getCenterPosition(auxVector2_2);
+        Direction direction;
+        if (nextNodeIndex >= path.nodes.size) {
+            direction = calculateDirectionToNode(command.getDestination(), characterPos);
+        } else {
+            MapGraphNode nextNode = path.get(nextNodeIndex);
+            direction = calculateDirectionToNode(nextNode, characterPos);
+        }
+        return direction;
+    }
+
+    private Direction calculateDirectionToNode(MapGraphNode node, Vector3 characterPos) {
+        Vector2 destPos = node.getCenterPosition(auxVector2_2);
         Vector2 directionToDest = destPos.sub(characterPos.x, characterPos.z).nor();
         return findDirection(directionToDest);
     }
 
     @Override
     public boolean handleMessage(Telegram msg) {
-        if (msg.message == SystemEvent.PLAYER_REQUESTS_MOVE.ordinal()) {
-            CharacterCommand characterCommand = Pools.get(CharacterCommand.class).obtain();
-            Vector2 extraInfo = (Vector2) msg.extraInfo;
-            MapGraphNode destination = sessionData.mapGraph().getNode((int) extraInfo.x, (int) extraInfo.y);
-            characterCommand.init(CharacterCommandDefinition.GO_TO, destination, sessionData.player());
-            commandsToExecute.addLast(characterCommand);
-        } else if (msg.message == SystemEvent.ENEMY_REQUESTS_COMMAND.ordinal()) {
-            CharacterCommand enemyCommand = (CharacterCommand) msg.extraInfo;
-            commandsToExecute.addLast(enemyCommand);
-        } else if (msg.message == CHARACTER_ANIMATION_RUN_NEW_FRAME.ordinal()) {
+        if (msg.message == CHARACTER_ANIMATION_RUN_NEW_FRAME.ordinal()) {
             handleRunning();
         } else if (msg.message == SystemEvent.GAME_MODE_CHANGED.ordinal()) {
             GameModeContainer gameModeContainer = sessionData.modeManager();
             CharacterCommand command = sessionData.commandInProgress().getCommand();
             if (gameModeContainer.getMode() == COMBAT && command.getInitiator() == sessionData.player()) {
-                command.setStopWhenPossible(true);
+                command.getState().setStatus(CharacterCommandStatus.STOPPING);
             }
         }
         return false;
@@ -202,7 +208,7 @@ public class CharacterSystem extends GameSystem {
         MapGraphPath path = command.getPath();
         boolean done = nextNodeIndex >= path.nodes.size;
         if (!done && (nextNodeIndex == -1 || characterPosition.dst2(path.get(nextNodeIndex).getCenterPosition(auxVector2_2)) < MOVEMENT_EPSILON)) {
-            done = reachedNodeOfPath() || command.isStopWhenPossible();
+            done = reachedNodeOfPath() || command.getState().getStatus() == CharacterCommandStatus.STOPPING;
         }
         if (!done) {
             takeStep();
@@ -267,12 +273,17 @@ public class CharacterSystem extends GameSystem {
         eventDispatcher.dispatchMessage(SystemEvent.CHARACTER_REACHED_NODE.ordinal(), command.getInitiator());
         MapGraphPath path = command.getPath();
         CharacterCommandState state = command.getState();
-        state.setPrevNode(path.get(state.getNextNodeIndex()));
+        ComponentsMapper.floor.get(state.getPrevNode().getEntity()).setContainedCharacter(null);
+        MapGraphNode currentNode = path.get(state.getNextNodeIndex());
+        ComponentsMapper.floor.get(currentNode.getEntity()).setContainedCharacter(command.getInitiator());
+        state.setPrevNode(currentNode);
         state.setNextNodeIndex(state.getNextNodeIndex() + 1);
         int nextNodeIndex = state.getNextNodeIndex();
         MapGraphNode nextNode = nextNodeIndex < path.nodes.size ? path.get(nextNodeIndex) : null;
         MapGraph mapGraph = sessionData.mapGraph();
-        boolean done = nextNodeIndex == -1 || mapGraph.findConnection(state.getPrevNode(), nextNode) == null;
+        boolean done = nextNodeIndex == -1
+            || (nextNode != null && ComponentsMapper.floor.get(nextNode.getEntity()).getContainedCharacter() != null)
+            || mapGraph.findConnection(state.getPrevNode(), nextNode) == null;
         if (!done && nextNode != null) {
             Vector2 nextNodeCenterPosition = nextNode.getCenterPosition(auxVector2_1);
             MapGraphNode prevNode = state.getPrevNode();

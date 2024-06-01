@@ -3,6 +3,7 @@ package com.gadarts.te.systems.data;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Queue;
 import com.gadarts.te.systems.map.graph.MapGraph;
 import lombok.Setter;
 
@@ -14,6 +15,6 @@ public class SharedDataBuilder {
     private Stage uiStage;
 
     public GameSessionData build( ) {
-        return new GameSessionData(camera, mapGraph, player, uiStage, new GameModeContainer(), new CharacterCommandContainer());
+        return new GameSessionData(camera, mapGraph, player, uiStage, new GameModeContainer(), new CharacterCommandContainer(), new Queue<>());
     }
 }

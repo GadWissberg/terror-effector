@@ -2,7 +2,6 @@ package com.gadarts.te.systems.map;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -33,9 +32,9 @@ import com.gadarts.te.common.map.element.Direction;
 import com.gadarts.te.common.utils.EnvObjectUtils;
 import com.gadarts.te.common.utils.GameException;
 import com.gadarts.te.common.utils.GeneralUtils;
+import com.gadarts.te.components.ComponentsMapper;
 import com.gadarts.te.components.ModelInstanceComponent;
 import com.gadarts.te.components.cd.CharacterAnimations;
-import com.gadarts.te.components.character.CharacterComponent;
 import com.gadarts.te.components.character.CharacterSpriteData;
 import com.gadarts.te.systems.map.graph.MapGraph;
 import com.gadarts.te.systems.map.graph.MapGraphNode;
@@ -168,7 +167,8 @@ public class MapInflater implements Disposable {
             builder.addCharacterComponent(characterSpriteData, direction)
                 .addCharacterDecalComponent(assetsManager.get(atlas.name()), IDLE, direction, position)
                 .addAnimationComponent(animations.get(IDLE, direction));
-            builder.finishAndAddToEngine();
+            Entity character = builder.finishAndAddToEngine();
+            ComponentsMapper.floor.get(mapGraph.getNode((int) x, (int) z).getEntity()).setContainedCharacter(character);
         });
     }
 
@@ -489,8 +489,7 @@ public class MapInflater implements Disposable {
         JsonObject nodesJsonObject = mapJsonObj.get(NODES).getAsJsonObject();
         return new MapGraph(
             nodesJsonObject.get(WIDTH).getAsInt(),
-            nodesJsonObject.get(DEPTH).getAsInt(),
-            engine.getEntitiesFor(Family.all(CharacterComponent.class).get()));
+            nodesJsonObject.get(DEPTH).getAsInt());
     }
 
     @Override

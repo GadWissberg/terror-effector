@@ -16,18 +16,16 @@ public class CharacterCommand implements Pool.Poolable {
     private MapGraphPath path;
     private Entity initiator;
 
-    @Setter
-    private boolean stopWhenPossible;
-
     @Override
     public void reset( ) {
 
     }
 
-    public void init(CharacterCommandDefinition characterCommandDefinition, MapGraphNode destination, Entity initiator) {
+    public CharacterCommand init(CharacterCommandDefinition characterCommandDefinition, MapGraphNode destination, Entity initiator) {
         this.characterCommandDefinition = characterCommandDefinition;
         this.destination = destination;
         this.state.setStatus(CharacterCommandStatus.READY);
         this.initiator = initiator;
+        return this;
     }
 }

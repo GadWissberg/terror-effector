@@ -8,6 +8,7 @@ import com.badlogic.gdx.ai.msg.Telegram;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Queue;
 import com.gadarts.te.SoundPlayer;
 import com.gadarts.te.common.assets.GameAssetsManager;
 import com.gadarts.te.components.ComponentsMapper;
@@ -55,11 +56,11 @@ public class EnemySystem extends GameSystem {
                 awakeEnemyIfTargetSpotted(enemiesEntities.get(i));
             }
         } else if (msg.message == ENEMY_NEW_TURN.ordinal()) {
-            CharacterCommand characterCommand = new CharacterCommand();
             Vector2 nodePosition = ComponentsMapper.characterDecal.get(sessionData.player()).getNodePosition(auxVector2_1);
             MapGraphNode destination = sessionData.mapGraph().getNode((int) nodePosition.x, (int) nodePosition.y);
-            characterCommand.init(CharacterCommandDefinition.GO_TO, destination, (Entity) msg.extraInfo);
-            eventDispatcher.dispatchMessage(SystemEvent.ENEMY_REQUESTS_COMMAND.ordinal(), characterCommand);
+            Queue<CharacterCommand> characterCommands = sessionData.commandsToExecute();
+            characterCommands.addLast((new CharacterCommand()).init(CharacterCommandDefinition.GO_TO, destination, (Entity) msg.extraInfo));
+            characterCommands.addLast((new CharacterCommand()).init(CharacterCommandDefinition.ATTACK_MELEE, destination, (Entity) msg.extraInfo));
         }
         return false;
     }
